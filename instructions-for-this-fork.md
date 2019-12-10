@@ -1,29 +1,5 @@
-## Why was this fork made:
-The master branch of the original repository was not working for me. So I debugged and made this fork. Following are the changes which were made.
 
-#### Made changes to the ```Dockerfile```s.
-
-Docker-file was not building (both cpu and gpu). 
-There was some error related to 'libjasper1 libjasper-dev not found'. 
-Hence, added corresponding changes to the Dockerfile to make them buildable. 
-Have also pushed the built images to Docker Hub. Link [here][docker-hub-link]. 
-You can simply fetch the two images and re-tag them as ```deepfigures-cpu:0.0.5``` and ```deepfigures-gpu:0.0.5```. 
-Further, added the functionality to make read AWS credentials from the ./credentials file. 
-    
-#### Added the pre-built pdffigures jar.
-
-```pdffigures``` jar has been built and committed in the ```bin``` folder in this repository. Hence, you should not need to build it. Please have java 8 in your system to make it work.
-
-#### scipy version downgrade
- 
-Version 1.3.0 of scipy does not have imread and imsave in scipy.misc. As a result, the import statement ```from scipy.misc import imread, imsave``` in detections.py was not working. Hence, downgraded the version of scipy to 1.1.0 in requirements.txt. The import worked as a result.
-
-#### sp.optimize was not getting imported.
-
-Imported it separately using ```from scipy import optimize``` and started using it like ```scipy.optimize()```.
-
-
-## Instruction to run this fork:
+## Instructions to run this fork:
 
 #### Create python environment
 Use the ``requirements.txt`` from the repository's root to create your python environment.
@@ -101,7 +77,7 @@ Here, the python environment created in one of the steps above should be activat
 - ``'/home/sampanna/workspace/bdts2/deepfigures-results'`` is the host path to the output directory to put the detection results in.
 - ``'/home/sampanna/workspace/bdts2/deepfigures-results/LD5655.V855_1935.C555.pdf'`` is the host path to the PDF file to be processes.
 
-## Instruction to run on ARC using [Singularity][singularity-homepage]:
+## Instructions to run on ARC using [Singularity][singularity-homepage]:
 Docker is not available on Virginia Tech's [Advanced Research Computing][vt-arc-homepage] HPC cluster.
 However, Singularity can be used to run pre-built Docker images on ARC using singularity.
 
@@ -134,6 +110,33 @@ singularity run --nv -B /home/sampanna/deepfigures-results:/work/host-output -B 
 - The ``-B`` flag is analogous to the ``--volume`` option of Docker.
 
 The executions of the remaining commands is straightforward is left as an exercise to the reader.
+
+
+## Why was this fork made:
+The master branch of the original repository was not working for me. So I debugged and made this fork. Following are the changes which were made.
+
+#### Made changes to the ```Dockerfile```s.
+
+Docker-file was not building (both cpu and gpu). 
+There was some error related to 'libjasper1 libjasper-dev not found'. 
+Hence, added corresponding changes to the Dockerfile to make them buildable. 
+Have also pushed the built images to Docker Hub. Link [here][docker-hub-link]. 
+You can simply fetch the two images and re-tag them as ```deepfigures-cpu:0.0.5``` and ```deepfigures-gpu:0.0.5```. 
+Further, added the functionality to make read AWS credentials from the ./credentials file. 
+    
+#### Added the pre-built pdffigures jar.
+
+```pdffigures``` jar has been built and committed in the ```bin``` folder in this repository. Hence, you should not need to build it. Please have java 8 in your system to make it work.
+
+#### scipy version downgrade
+ 
+Version 1.3.0 of scipy does not have imread and imsave in scipy.misc. As a result, the import statement ```from scipy.misc import imread, imsave``` in detections.py was not working. Hence, downgraded the version of scipy to 1.1.0 in requirements.txt. The import worked as a result.
+
+#### sp.optimize was not getting imported.
+
+Imported it separately using ```from scipy import optimize``` and started using it like ```scipy.optimize()```.
+
+
 
 [docker-hub-link]: https://hub.docker.com/r/sampyash/vt_cs_6604_digital_libraries/tags
 [docker-commandline-run-docs]: https://docs.docker.com/engine/reference/commandline/run
