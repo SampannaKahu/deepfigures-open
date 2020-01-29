@@ -15,15 +15,6 @@ RUN apt-get install -y libjasper1 libjasper-dev
 
 # install system packages
 
-ENV TZ=Europe/Minsk
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-RUN apt-get update
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
-RUN apt-get update
-RUN apt-get install -y libjasper1 libjasper-dev
-
 RUN apt-get clean \
  && apt-get update --fix-missing \
  && apt-get install -y \
