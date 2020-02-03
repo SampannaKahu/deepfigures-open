@@ -438,10 +438,11 @@ def download_and_extract_tar(
 def run_on_all() -> None:
     Image.MAX_IMAGE_PIXELS = int(1e8)  # Don't render very large PDFs.
     Image.warnings.simplefilter('error', Image.DecompressionBombWarning)
-    # tarnames = [
-    #     tarname for tarname in file_util.iterate_s3_files(ARXIV_TAR_SRC)
-    #     if os.path.splitext(tarname)[1] == '.tar'
-    # ]
+    tarnames = [
+        tarname for tarname in file_util.iterate_s3_files(ARXIV_TAR_SRC)
+        if os.path.splitext(tarname)[1] == '.tar'
+    ]
+    print(tarnames)
     # import json
     # import random
     # all_tarnames = json.load(open('all_tarnames.json'))

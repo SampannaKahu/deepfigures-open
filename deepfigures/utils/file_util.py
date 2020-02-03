@@ -264,6 +264,7 @@ def iterate_s3_files(path_prefix, max_files=None):
     """Yield s3 filenames with a given prefix."""
     # return the full name of each file.
     for s3_object in iterate_s3_objects(path_prefix, max_files):
+        print("Bucket name: {}. Bucket size: {}".format(s3_object.key, s3_object.size / 10e6))
         yield 's3://{}/{}'.format(s3_object.bucket_name, s3_object.key)
 
 
