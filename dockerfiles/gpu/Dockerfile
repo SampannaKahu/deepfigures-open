@@ -65,6 +65,7 @@ RUN cat /work/credentials > ~/.aws/credentials
 
 RUN pip install six numpy scipy Pillow matplotlib scikit-image opencv-python imageio Shapely
 RUN pip install imgaug
+RUN apt-get install vim
 
 ENV IN_DOCKER Yes
 
