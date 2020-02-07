@@ -64,6 +64,8 @@ if IN_DOCKER:
     ARXIV_DATA_CACHE_DIR = '/work/host-output/download_cache'
     # Higher parallelism on docker.
     PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
+    # List of tar file to process
+    FILE_LIST = '/work/host-input/files.json'
 else:
     # The location to temporarily store arxiv source data
     ARXIV_DATA_TMP_DIR = '/home/sampanna/workspace/bdts2/deepfigures-results/arxiv_data_temp'
@@ -72,6 +74,8 @@ else:
     ARXIV_DATA_CACHE_DIR = '/home/sampanna/workspace/bdts2/deepfigures-results/download_cache'
     # Lower parallelism on local for simpler debugging.
     PROCESS_PAPER_TAR_THREAD_COUNT = 1
+    # List of tar file to process
+    FILE_LIST = '/home/sampanna/workspace/bdts2/deepfigures-results/files.json'
 
 # The location of the PMC open access data
 PUBMED_INPUT_DIR = ''
