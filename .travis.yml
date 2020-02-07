@@ -19,5 +19,8 @@ install:
   - conda info -a
   - conda env create -f environment.yml
   - source activate deepfigures
+  - cd deepfigures
+  - python setup.py install
+  - cd ..
 script:
   - python manage.py build

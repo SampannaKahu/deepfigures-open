@@ -70,7 +70,6 @@ dependencies:
     - cycler==0.10.0
     - dask==2.3.0
     - decorator==4.4.0
-    - deepfigures-open==0.0.1
     - docutils==0.15.2
     - editdistance==0.5.3
     - elasticsearch==7.0.4
