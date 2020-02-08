@@ -1,0 +1,15 @@
+language: python
+services:
+  - docker
+python:
+  - "3.6"
+install:
+  - sudo apt-get update
+  - pip install -r requirements.txt
+script:
+  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
+  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
+  - python manage.py build
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
+  - docker push sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
