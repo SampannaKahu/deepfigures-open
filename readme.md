@@ -1,5 +1,7 @@
 The original readme (readme from the original fork) can be found [here][original-readme].
 
+Master branch docker image build status: [![Build Status](https://travis-ci.org/SampannaKahu/deepfigures-open.svg?branch=master)](https://travis-ci.org/SampannaKahu/deepfigures-open)
+
 ## Instructions to run this fork:
 
 #### Create python environment
