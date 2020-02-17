@@ -27,6 +27,8 @@ def build():
         execute(
             'docker build'
             ' --tag {tag}:{version}'
+            ' --cache-from {tag}:{version}'
+            ' --build-arg BUILDKIT_INLINE_CACHE=1'
             ' --file {dockerfile_path} .'.format(
                 tag=tag,
                 version=version,

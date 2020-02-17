@@ -9,6 +9,8 @@ install:
 script:
 #  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
 #  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
+  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6 || true
+  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6 || true
   - python manage.py build
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
