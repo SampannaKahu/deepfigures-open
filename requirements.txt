@@ -10,7 +10,7 @@ cffi
 dask
 editdistance
 elasticsearch
-fastparquet==0.3.1
+fastparquet
 keras
 lxml
 matplotlib
