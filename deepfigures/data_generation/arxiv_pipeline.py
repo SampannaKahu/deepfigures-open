@@ -480,6 +480,9 @@ def run_on_all() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='logger_arxiv.log', level=logging.WARNING)
+    if settings.IN_DOCKER:
+        logging.basicConfig(filename='/work/host-output/logger_arxiv.log', level=logging.WARNING)
+    else:
+        logging.basicConfig(filename='logger_arxiv.log', level=logging.WARNING)
     run_on_all()
     print('All done')
