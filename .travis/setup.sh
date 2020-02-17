@@ -26,4 +26,4 @@ make -j `nproc 2>/dev/null || echo 1` -C ./builddir all
 sudo make -C ./builddir install
 
 mkdir -p ~/.singularity
-$SYLABS_API_TOKEN >> ~/.singularity/sylabs-token
+echo $SYLABS_API_TOKEN >> ~/.singularity/sylabs-token
