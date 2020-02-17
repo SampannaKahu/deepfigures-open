@@ -3,10 +3,14 @@
 sudo sed -i -e 's/^Defaults\tsecure_path.*$//' /etc/sudoers
 
 # Check Python
+sudo apt-get install software-properties-common python-software-properties -y
+sudo add-apt-repository ppa:jonathonf/python-3.6 -y
+sudo apt-get update
+sudo apt-get install python3.6 -y
 
 echo "Python Version:"
-python --version
-pip install sregistry
+python3 --version
+pip3 install sregistry
 sregistry version
 
 echo "sregistry Version:"

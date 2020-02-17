@@ -24,10 +24,11 @@ services:
 python:
   - "3.6"
 install:
-  - sudo add-apt-repository ppa:jonathonf/python-3.6
-  - sudo apt-get update
-  - sudo apt-get install python3.6
-  - pip install -r requirements.txt
+#  - sudo apt-get install software-properties-common python-software-properties -y
+#  - sudo add-apt-repository ppa:jonathonf/python-3.6 -y
+#  - sudo apt-get update
+#  - sudo apt-get install python3.6 -y
+  - pip3 install -r requirements.txt
 before_install:
   - chmod u+x .travis/*.sh
   - /bin/bash .travis/setup.sh
@@ -36,7 +37,7 @@ script:
 #  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
   - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6 || true
   - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6 || true
-  - python manage.py build
+  - python3 manage.py build
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
   - docker push sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
