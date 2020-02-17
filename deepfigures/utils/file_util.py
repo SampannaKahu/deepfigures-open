@@ -175,6 +175,7 @@ def cache_file_2(name, cache_dir=None):
     if not cache_dir:
         cache_dir = _cache_dir()
 
+    logging.info("Cache file name: %s" % cache_dir)
     s3_last_modified = last_modified(name)
     cleaned_name = name[5:].replace('/', '_')
     target_filename = os.path.join(cache_dir, cleaned_name)
