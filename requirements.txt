@@ -25,5 +25,5 @@ scikit-image
 seaborn
 tqdm
 typing
-PyYAML
+PyYAML==5.2
 imgaug
