@@ -35,14 +35,23 @@ before_install:
 script:
 #  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
 #  - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
+  - /bin/bash .travis/health_check.sh
   - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6 || true
+  - /bin/bash .travis/health_check.sh
   - docker pull sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6 || true
+  - /bin/bash .travis/health_check.sh
   - python3 manage.py build
+  - /bin/bash .travis/health_check.sh
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
   - docker push sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
+  - /bin/bash .travis/health_check.sh
   - docker run -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/test:/output --privileged -t --rm singularityware/docker2singularity sampyash/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
+  - /bin/bash .travis/health_check.sh
   - singularity push --allow-unsigned `ls -1 /tmp/test/*.simg | head -1` library://sampyash/default/vt_cs_6604_digital_libraries:deepfigures_cpu_0.0.6
+  - /bin/bash .travis/health_check.sh
   - sudo rm `ls -1 /tmp/test/*.simg | head -1`
   - docker run -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/test:/output --privileged -t --rm singularityware/docker2singularity sampyash/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
+  - /bin/bash .travis/health_check.sh
   - singularity push --allow-unsigned `ls -1 /tmp/test/*.simg | head -1` library://sampyash/default/vt_cs_6604_digital_libraries:deepfigures_gpu_0.0.6
+  - /bin/bash .travis/health_check.sh
