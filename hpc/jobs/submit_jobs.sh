@@ -1,0 +1,1 @@
+sbatch --array=0-26%1 process_file_chunk.sh
