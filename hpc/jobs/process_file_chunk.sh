@@ -81,12 +81,17 @@ module load parallel/20180222
 
 # Change to the directory from which the job was submitted
 cd "$WORK"/deepfigures-results || exit
+if [ -z ${SLURM_ARRAY_TASK_ID+x} ]; then
+  echo "SLURM_ARRAY_TASK_ID is not set. Stopping the job."
+  exit
+fi
+
 i=$SLURM_ARRAY_TASK_ID
 
 CPU_IMAGE="$WORK/singularity/vt_cs_6604_digital_libraries_sha256.fcf57738a51202fe7e13350f423b920d6425db9d3de6e54f80d2c1ce31e38a5e.sif"
 GPU_IMAGE="$WORK/singularity/vt_cs_6604_digital_libraries_sha256.7bfe02ec818baab43ed974653e2214868525b7e234543d7d053663ffe6af2a38.sif"
 NUM_CPUS=$(lscpu | grep "CPU(s)" | head -1 | awk -F' ' '{print $2}')
-NUM_CPUS_TIMES_2=$((NUM_CPUS*2))
+NUM_CPUS_TIMES_2=$((NUM_CPUS * 2))
 NUM_GPUS=$(nvidia-smi | grep -ic tesla)
 
 echo "Starting batch $i"
