@@ -1,5 +1,9 @@
 #!/bin/bash -x
 
+current_timestamp() {
+  date +"%Y-%m-%d_%H-%M-%S"
+}
+
 CPU_IMAGE="sampyash/vt_cs_6604_digital_libraries@sha256:4f11459fb5e6df40fecc08a1a15f4d49fb061604c5898b59d1fab21925bce5d8"
 GPU_IMAGE="sampyash/vt_cs_6604_digital_libraries@sha256:eadba541198726e02750586232eb0498bc5df7f307da53ed86375da6bf29a37f"
 NUM_CPUS=$(lscpu | grep "CPU(s)" | head -1 | awk -F' ' '{print $2}')
@@ -73,8 +77,11 @@ for i in {0..26}; do
   #parallel -j "$NUM_CPUS" --progress --no-notice -a "$WORK"/deepfigures-results/to_be_zipped.txt rm -rf
   parallel -j "$NUM_CPUS_TIMES_2" --progress --no-notice -a "$WORK"/deepfigures-results/to_be_zipped.txt 'var="{}"; zip -rmq "$var".zip $var'
   echo "Again calling the zip -rm command to do the final packing."
-  zip -rm "$WORK"/deepfigures-results/arxiv_data_temp_$i.zip "$WORK"/deepfigures-results/arxiv_data_temp
-  zip -rm "$WORK"/deepfigures-results/arxiv_data_output_$i.zip "$WORK"/deepfigures-results/arxiv_data_output
+  ts=$(current_timestamp)
+  zip -rm "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_temp
+  zip -rm "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_output
+  scp "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip cascades2.arc.vt.edu:~/ir_backup
+  scp "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip cascades2.arc.vt.edu:~/ir_backup
   echo "Again calling the rm -rf command just to be sure."
   rm -rf "$WORK"/deepfigures-results/arxiv_data_temp/*
   rm -rf "$WORK"/deepfigures-results/arxiv_data_output/*
