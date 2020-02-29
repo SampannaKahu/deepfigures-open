@@ -6,16 +6,16 @@ NUM_CPUS=$(lscpu | grep "CPU(s)" | head -1 | awk -F' ' '{print $2}')
 NUM_CPUS_TIMES_2=$((NUM_CPUS * 2))
 NUM_GPUS=1
 
-conda init bash
-conda activate deepfigures
+#conda init bash
+#conda activate deepfigures
 
 WORK=/home/sampanna
 
 # Create the necessary directories, if they do not exist.
-mkdir -p arxiv_data_output
-mkdir -p arxiv_data_temp
-mkdir -p model_checkpoints
-mkdir -p weights
+mkdir -p "$WORK"/deepfigures-results/arxiv_data_output
+mkdir -p "$WORK"/deepfigures-results/arxiv_data_temp
+mkdir -p "$WORK"/deepfigures-results/model_checkpoints
+mkdir -p "$WORK"/deepfigures-results/weights
 
 # Start the iterations.
 for i in {0..26}; do
