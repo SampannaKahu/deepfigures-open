@@ -102,7 +102,11 @@ for i in {0..26}; do
   rm -f /tmp/rsync.txt
 
   # Generate the data.
-  docker run --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $CPU_IMAGE python deepfigures/data_generation/arxiv_pipeline.py
+  if [ $i == "0" ]; then
+    echo "Skipping data generation 0th iteration."
+  else
+    docker run --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $CPU_IMAGE python deepfigures/data_generation/arxiv_pipeline.py
+  fi
 
   # Prepare the figure_boundaries.json file.
   docker run --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $CPU_IMAGE python figure_json_transformer.py
