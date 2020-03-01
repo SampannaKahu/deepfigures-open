@@ -80,8 +80,8 @@ for i in {0..26}; do
   ts=$(current_timestamp)
   zip -rm "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_temp
   zip -rm "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_output
-  scp "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip cascades2.arc.vt.edu:~/ir_backup
-  scp "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip cascades2.arc.vt.edu:~/ir_backup
+  scp "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip cascades2.arc.vt.edu:/work/cascades/sampanna/ir_backup
+  scp "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip cascades2.arc.vt.edu:/work/cascades/sampanna/ir_backup
   echo "Again calling the rm -rf command just to be sure."
   rm -rf "$WORK"/deepfigures-results/arxiv_data_temp/*
   rm -rf "$WORK"/deepfigures-results/arxiv_data_output/*
