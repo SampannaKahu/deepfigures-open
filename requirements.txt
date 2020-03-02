@@ -16,7 +16,7 @@ lxml
 matplotlib
 more_itertools
 numpy
-opencv-python
+# opencv-python
 pandas
 pytest
 pytest-xdist==1.18.2
