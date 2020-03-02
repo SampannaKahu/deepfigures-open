@@ -82,6 +82,8 @@ for i in {0..26}; do
   zip -rm "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_output
   scp "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip cascades2.arc.vt.edu:/work/cascades/sampanna/ir_backup
   scp "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip cascades2.arc.vt.edu:/work/cascades/sampanna/ir_backup
+  rm -f "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip
+  rm -f "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip
   echo "Again calling the rm -rf command just to be sure."
   rm -rf "$WORK"/deepfigures-results/arxiv_data_temp/*
   rm -rf "$WORK"/deepfigures-results/arxiv_data_output/*
