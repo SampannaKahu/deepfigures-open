@@ -43,7 +43,7 @@
 # Note that if your job exceeds the walltime estimated during submission, the scheduler
 # will kill it. So it is important to be conservative (i.e., to err on the high side)
 # with the walltime that you include in your submission script.
-#SBATCH -t 24:00:00
+#SBATCH -t 48:00:00
 
 #### Queue ####
 # Queue name. Cascades has five queues:
@@ -52,7 +52,7 @@
 #   dev_q           for development/debugging jobs. These jobs must be short but can be large.
 #   v100_normal_q   for production jobs on Skylake/V100 nodes
 #   v100_dev_q      for development/debugging jobs on Skylake/V100 nodes
-#SBATCH -p v100_normal_q
+#SBATCH -p k80_q
 
 #SBATCH -A waingram_lab
 
@@ -162,14 +162,14 @@ echo "Renaming $WORK/deepfigures-results/files_0.json to $WORK/deepfigures-resul
 cp "$WORK"/deepfigures-results/files_0.json "$WORK"/deepfigures-results/files.json
 
 # Generate the data.
-singularity exec -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input /work/cascades/sampanna/singularity/"$CPU_IMAGE" python /work/deepfigures/data_generation/arxiv_pipeline.py
+singularity exec -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input "$CPU_IMAGE" python /work/deepfigures/data_generation/arxiv_pipeline.py
 
 # Prepare the figure_boundaries.json file.
-singularity exec -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input /work/cascades/sampanna/singularity/"$CPU_IMAGE" python /work/figure_json_transformer.py
-singularity exec -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input /work/cascades/sampanna/singularity/"$CPU_IMAGE" python /work/figure_boundaries_train_test_split.py
+singularity exec -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input "$CPU_IMAGE" python /work/figure_json_transformer.py
+singularity exec -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input "$CPU_IMAGE" python /work/figure_boundaries_train_test_split.py
 
 # Trigger the training.
 # The timeout command will kill the training after certain time.
-timeout --preserve-status 12h singularity exec --nv -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input /work/cascades/sampanna/singularity/"$GPU_IMAGE" python /work/vendor/tensorboxresnet/tensorboxresnet/train.py --hypes /work/host-input/weights/hypes.json --gpu 0 --logdir /work/host-output
+timeout --preserve-status 12h singularity exec --nv -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input "$GPU_IMAGE" python /work/vendor/tensorboxresnet/tensorboxresnet/train.py --hypes /work/host-input/weights/hypes.json --gpu 0 --logdir /work/host-output
 
 exit
