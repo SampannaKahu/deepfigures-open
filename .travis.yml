@@ -45,7 +45,7 @@ install:
 #  - sudo apt-get install python-opencv -y
   - which python
 #  - which pip
-  - which pip3
+#  - which pip3
   - pip3 install -r requirements.txt
 before_install:
   - chmod u+x .travis/*.sh
