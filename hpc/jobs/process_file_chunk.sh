@@ -79,6 +79,10 @@ module load parallel/20180222
 #  $TMPFS    File system set up in memory for this job. Use for very fast, small I/O
 #  $TMPDIR   Local disk (hard drive) space set up for this job
 
+current_timestamp() {
+  date +"%Y-%m-%d_%H-%M-%S"
+}
+
 # Change to the directory from which the job was submitted
 cd "$WORK"/deepfigures-results || exit
 if [ -z ${SLURM_ARRAY_TASK_ID+x} ]; then
@@ -146,8 +150,9 @@ ls -d "$WORK"/deepfigures-results/arxiv_data_output/diffs_100dpi/* "$WORK"/deepf
 #parallel -j "$NUM_CPUS" --progress --no-notice -a "$WORK"/deepfigures-results/to_be_zipped.txt rm -rf
 parallel -j "$NUM_CPUS_TIMES_2" --progress --no-notice -a "$WORK"/deepfigures-results/to_be_zipped.txt 'var="{}"; zip -rmq "$var".zip $var'
 cho "Again calling the zip -rm command to do the final packing."
-zip -rm "$WORK"/deepfigures-results/arxiv_data_temp.zip "$WORK"/deepfigures-results/arxiv_data_temp
-zip -rm "$WORK"/deepfigures-results/arxiv_data_output.zip "$WORK"/deepfigures-results/arxiv_data_output
+ts=$(current_timestamp)
+zip -rm "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_temp
+zip -rm "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_output
 echo "Again calling the rm -rf command just to be sure."
 rm -rf "$WORK"/deepfigures-results/arxiv_data_temp/*
 rm -rf "$WORK"/deepfigures-results/arxiv_data_output/*
