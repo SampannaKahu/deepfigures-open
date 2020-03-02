@@ -1,6 +1,4 @@
-os: linux
-arch: ppc64le
-dist: xenial
+dist: bionic
 language: go
 go:
     - "1.11"
