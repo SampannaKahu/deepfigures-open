@@ -22,7 +22,7 @@ mkdir -p "$WORK"/deepfigures-results/model_checkpoints
 mkdir -p "$WORK"/deepfigures-results/weights
 
 # Start the iterations.
-for i in {0..26}; do
+for i in {1..26}; do
   echo ""
   echo ""
   echo "Starting batch $i"
@@ -82,8 +82,6 @@ for i in {0..26}; do
   zip -rm "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip "$WORK"/deepfigures-results/arxiv_data_output
   scp "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip cascades2.arc.vt.edu:/work/cascades/sampanna/ir_backup
   scp "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip cascades2.arc.vt.edu:/work/cascades/sampanna/ir_backup
-  rm -f "$WORK"/deepfigures-results/arxiv_data_temp_"$i"_"$ts".zip
-  rm -f "$WORK"/deepfigures-results/arxiv_data_output_"$i"_"$ts".zip
   echo "Again calling the rm -rf command just to be sure."
   rm -rf "$WORK"/deepfigures-results/arxiv_data_temp/*
   rm -rf "$WORK"/deepfigures-results/arxiv_data_output/*
@@ -111,7 +109,9 @@ for i in {0..26}; do
   docker run --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $CPU_IMAGE python figure_boundaries_train_test_split.py
 
   # Trigger the training.
-  # The timeout command will kill the training after certain time.
-  timeout --preserve-status 12h docker run --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $GPU_IMAGE python /work/vendor/tensorboxresnet/tensorboxresnet/train.py --hypes /work/host-input/weights/hypes.json --gpu 0 --logdir /work/host-output
+  rm -f "$WORK"/deepfigures-results/train_cid.txt
+  CID=$(docker run --cidfile "$WORK"/deepfigures-results/train_cid.txt -d --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $GPU_IMAGE python /work/vendor/tensorboxresnet/tensorboxresnet/train.py --hypes /work/host-input/weights/hypes.json --gpu 0 --logdir /work/host-output)
+  sleep 12h && docker stop -t 60 "$CID" # Sleep for 12 hours and then invoke the stop command (with a 60 sec timeout)
+  #  timeout --preserve-status 12h docker run --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $GPU_IMAGE python /work/vendor/tensorboxresnet/tensorboxresnet/train.py --hypes /work/host-input/weights/hypes.json --gpu 0 --logdir /work/host-output
 
 done
