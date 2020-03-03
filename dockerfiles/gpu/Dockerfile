@@ -3,7 +3,7 @@
 FROM tensorflow/tensorflow:1.14.0-gpu-py3
 
 ENV LC_ALL C.UTF-8
-
+ENV IN_DOCKER Yes
 ENV TZ=America/New_York
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -41,11 +41,11 @@ RUN apt-get clean \
     texlive-fonts-recommended \
     texlive-fonts-extra \
     texlive-latex-extra \
-    texlive-font-utils
+    texlive-font-utils \
+    vim \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /work
-
-# install python packages
 
 ADD ./requirements.txt /work
 
@@ -56,18 +56,15 @@ RUN pip3 install -r ./requirements.txt
 ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
 RUN pip3 install -e /work/vendor/tensorboxresnet
 
-ADD . /work
-RUN pip3 install --quiet -e /work
-
 RUN mkdir ~/.aws
 ADD credentials /work
 RUN cat /work/credentials > ~/.aws/credentials
 
 RUN pip install six numpy scipy Pillow matplotlib scikit-image opencv-python imageio Shapely
 RUN pip install imgaug
-RUN apt-get install -y vim
 
-ENV IN_DOCKER Yes
+ADD . /work
+RUN pip3 install --quiet -e /work
 
 #ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
 #RUN tar -xf /work/weights.tar.gz
