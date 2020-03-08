@@ -64,9 +64,9 @@ for i in {0..26}; do
     echo "Previous model moved successfully."
   else
     echo "No previous model found."
-    sudo -u $NORMAL_USER rm -f "$WORK"/deepfigures-results/figure_boundaries.json
-    sudo -u $NORMAL_USER rm -f "$WORK"/deepfigures-results/figure_boundaries_train.json
-    sudo -u $NORMAL_USER rm -f "$WORK"/deepfigures-results/figure_boundaries_test.json
+    sudo -u $ROOT_USER rm -f "$WORK"/deepfigures-results/figure_boundaries.json
+    sudo -u $ROOT_USER rm -f "$WORK"/deepfigures-results/figure_boundaries_train.json
+    sudo -u $ROOT_USER rm -f "$WORK"/deepfigures-results/figure_boundaries_test.json
   fi
 
   echo "Deleting $WORK/deepfigures-results/arxiv_data_output and $WORK/deepfigures-results/arxiv_data_temp."
@@ -86,23 +86,7 @@ for i in {0..26}; do
 
   sudo -u $NORMAL_USER mkdir -p $WORK/deepfigures-results/arxiv_data_output
   sudo -u $NORMAL_USER mkdir -p $WORK/deepfigures-results/arxiv_data_temp
-  #  sudo -u $NORMAL_USER mkdir -p /tmp/empty_dir
-  #  sudo -u $ROOT_USER rm -rf /tmp/empty_dir/*
-  #  sudo -u $ROOT_USER rsync -a --delete /tmp/empty_dir $WORK/deepfigures-results/arxiv_data_output
-  #  sudo -u $ROOT_USER rsync -a --delete /tmp/empty_dir $WORK/deepfigures-results/arxiv_data_temp
-  #  rm -f "$WORK"/deepfigures-results/to_be_zipped.txt
-  #  ls -d "$WORK"/deepfigures-results/arxiv_data_output/diffs_100dpi/* "$WORK"/deepfigures-results/arxiv_data_output/figure-jsons/* "$WORK"/deepfigures-results/arxiv_data_output/modified_src/* "$WORK"/deepfigures-results/arxiv_data_output/src/* "$WORK"/deepfigures-results/arxiv_data_temp/* >"$WORK"/deepfigures-results/to_be_zipped.txt
-  #  #  sudo -u $ROOT_USER parallel -j "$NUM_CPUS" --progress --no-notice -a "$WORK"/deepfigures-results/to_be_zipped.txt 'var="{}"; rsync -a --delete /tmp/empty_dir $var'
-  #  sudo -u $ROOT_USER parallel -j "$NUM_CPUS" --progress --no-notice -a "$WORK"/deepfigures-results/to_be_zipped.txt 'var="{}"; rm -rf $var'
-  #  echo "Creating output and temp dirs in case they got deleted."
-  #  sudo -u $NORMAL_USER mkdir -p "$WORK"/deepfigures-results/arxiv_data_temp
-  #  sudo -u $NORMAL_USER mkdir -p "$WORK"/deepfigures-results/arxiv_data_output
-  #  echo "Again calling the rm -rf command just to be sure."
-  #  sudo -u $ROOT_USER rm -rf "$WORK"/deepfigures-results/arxiv_data_temp/*
-  #  sudo -u $ROOT_USER rm -rf "$WORK"/deepfigures-results/arxiv_data_output/*
-  #  echo "Creating output and temp dirs just to be sure."
-  sudo -u $NORMAL_USER mkdir -p "$WORK"/deepfigures-results/arxiv_data_temp
-  sudo -u $NORMAL_USER mkdir -p "$WORK"/deepfigures-results/arxiv_data_output
+
   echo "Cleaning up the download_cache"
   sudo -u $NORMAL_USER rm -rf "$WORK"/deepfigures-results/download_cache
   sudo -u $NORMAL_USER mkdir -p "$WORK"/deepfigures-results/download_cache
