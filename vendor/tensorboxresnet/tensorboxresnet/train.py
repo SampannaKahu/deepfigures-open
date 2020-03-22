@@ -2,7 +2,7 @@
 import os
 
 import json
-import tensorflow.contrib.slim as slim
+# import tensorflow.contrib.slim as slim
 import datetime
 import random
 import time
@@ -13,13 +13,13 @@ from scipy import misc
 import tensorflow as tf
 import numpy as np
 from distutils.version import LooseVersion
-if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
-    rnn_cell = tf.contrib.rnn
-else:
-    try:
-        from tensorflow.models.rnn import rnn_cell
-    except ImportError:
-        rnn_cell = tf.nn.rnn_cell
+# if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
+#     rnn_cell = tf.contrib.rnn
+# else:
+#     try:
+#         from tensorflow.models.rnn import rnn_cell
+#     except ImportError:
+#         rnn_cell = tf.nn.rnn_cell
 
 random.seed(0)
 np.random.seed(0)
@@ -34,9 +34,9 @@ def build_overfeat_inner(H, lstm_input):
     if H['rnn_len'] > 1:
         raise ValueError('rnn_len > 1 only supported with use_lstm == True')
     outputs = []
-    initializer = tf.random_uniform_initializer(-0.1, 0.1)
-    with tf.variable_scope('Overfeat', initializer=initializer):
-        w = tf.get_variable(
+    initializer = tf.compat.v1.random_uniform_initializer(-0.1, 0.1)
+    with tf.compat.v1.variable_scope('Overfeat', initializer=initializer):
+        w = tf.compat.v1.get_variable(
             'ip', shape=[H['later_feat_channels'], H['lstm_size']]
         )
         outputs.append(tf.matmul(lstm_input, w))
@@ -46,9 +46,9 @@ def build_overfeat_inner(H, lstm_input):
 def deconv(x, output_shape, channels):
     k_h = 2
     k_w = 2
-    w = tf.get_variable(
+    w = tf.compat.v1.get_variable(
         'w_deconv',
-        initializer=tf.random_normal_initializer(stddev=0.01),
+        initializer=tf.compat.v1.random_normal_initializer(stddev=0.01),
         shape=[k_h, k_w, channels[1], channels[0]]
     )
     y = tf.nn.conv2d_transpose(
@@ -97,7 +97,7 @@ def rezoom(
             early_feat_channels
         ]
     )
-    rezoom_features_t = tf.transpose(rezoom_features_r, [1, 2, 0, 3])
+    rezoom_features_t = tf.transpose(a=rezoom_features_r, perm=[1, 2, 0, 3])
     return tf.reshape(
         rezoom_features_t, [
             outer_size, H['rnn_len'],
@@ -124,20 +124,20 @@ def build_forward(H, x, phase, reuse):
         stride = 2
         pool_size = 5
 
-        with tf.variable_scope("deconv", reuse=reuse):
-            w = tf.get_variable(
+        with tf.compat.v1.variable_scope("deconv", reuse=reuse):
+            w = tf.compat.v1.get_variable(
                 'conv_pool_w',
                 shape=[
                     size, size, H['later_feat_channels'],
                     H['later_feat_channels']
                 ],
-                initializer=tf.random_normal_initializer(stddev=0.01)
+                initializer=tf.compat.v1.random_normal_initializer(stddev=0.01)
             )
             cnn_s = tf.nn.conv2d(
-                cnn, w, strides=[1, stride, stride, 1], padding='SAME'
+                input=cnn, filters=w, strides=[1, stride, stride, 1], padding='SAME'
             )
-            cnn_s_pool = tf.nn.avg_pool(
-                cnn_s[:, :, :, :256],
+            cnn_s_pool = tf.nn.avg_pool2d(
+                input=cnn_s[:, :, :, :256],
                 ksize=[1, pool_size, pool_size, 1],
                 strides=[1, 1, 1, 1],
                 padding='SAME'
@@ -157,8 +157,8 @@ def build_forward(H, x, phase, reuse):
         pool_size = H['avg_pool_size']
         cnn1 = cnn[:, :, :, :700]
         cnn2 = cnn[:, :, :, 700:]
-        cnn2 = tf.nn.avg_pool(
-            cnn2,
+        cnn2 = tf.nn.avg_pool2d(
+            input=cnn2,
             ksize=[1, pool_size, pool_size, 1],
             strides=[1, 1, 1, 1],
             padding='SAME'
@@ -171,8 +171,8 @@ def build_forward(H, x, phase, reuse):
             H['later_feat_channels']
         ]
     )
-    initializer = tf.random_uniform_initializer(-0.1, 0.1)
-    with tf.variable_scope('decoder', reuse=reuse, initializer=initializer):
+    initializer = tf.compat.v1.random_uniform_initializer(-0.1, 0.1)
+    with tf.compat.v1.variable_scope('decoder', reuse=reuse, initializer=initializer):
         scale_down = 0.01
         lstm_input = tf.reshape(
             cnn * scale_down,
@@ -188,11 +188,11 @@ def build_forward(H, x, phase, reuse):
         for k in range(H['rnn_len']):
             output = lstm_outputs[k]
             if phase == 'train':
-                output = tf.nn.dropout(output, 0.5)
-            box_weights = tf.get_variable(
+                output = tf.nn.dropout(output, 1 - (0.5))
+            box_weights = tf.compat.v1.get_variable(
                 'box_ip%d' % k, shape=(H['lstm_size'], 4)
             )
-            conf_weights = tf.get_variable(
+            conf_weights = tf.compat.v1.get_variable(
                 'conf_ip%d' % k, shape=(H['lstm_size'], H['num_classes'])
             )
 
@@ -230,13 +230,13 @@ def build_forward(H, x, phase, reuse):
                 h_offsets
             )
             if phase == 'train':
-                rezoom_features = tf.nn.dropout(rezoom_features, 0.5)
+                rezoom_features = tf.nn.dropout(rezoom_features, 1 - (0.5))
             for k in range(H['rnn_len']):
                 delta_features = tf_concat(
                     1, [lstm_outputs[k], rezoom_features[:, k, :] / 1000.]
                 )
                 dim = 128
-                delta_weights1 = tf.get_variable(
+                delta_weights1 = tf.compat.v1.get_variable(
                     'delta_ip1%d' % k,
                     shape=[
                         H['lstm_size'] + early_feat_channels * num_offsets, dim
@@ -244,12 +244,12 @@ def build_forward(H, x, phase, reuse):
                 )
                 ip1 = tf.nn.relu(tf.matmul(delta_features, delta_weights1))
                 if phase == 'train':
-                    ip1 = tf.nn.dropout(ip1, 0.5)
-                delta_confs_weights = tf.get_variable(
+                    ip1 = tf.nn.dropout(ip1, 1 - (0.5))
+                delta_confs_weights = tf.compat.v1.get_variable(
                     'delta_ip2%d' % k, shape=[dim, H['num_classes']]
                 )
                 if H['reregress']:
-                    delta_boxes_weights = tf.get_variable(
+                    delta_boxes_weights = tf.compat.v1.get_variable(
                         'delta_ip_boxes%d' % k, shape=[dim, 4]
                     )
                     pred_boxes_deltas.append(
@@ -290,7 +290,7 @@ def build_forward_backward(H, x, phase, boxes, flags):
         pred_boxes, pred_logits, pred_confidences = build_forward(
             H, x, phase, reuse
         )
-    with tf.variable_scope(
+    with tf.compat.v1.variable_scope(
         'decoder', reuse={'train': None,
                           'test': True}[phase]
     ):
@@ -323,7 +323,7 @@ def build_forward_backward(H, x, phase, boxes, flags):
         )
         confidences_loss = (
             tf.reduce_sum(
-                tf.nn.sparse_softmax_cross_entropy_with_logits(
+                input_tensor=tf.nn.sparse_softmax_cross_entropy_with_logits(
                     logits=pred_logit_r, labels=true_classes
                 )
             )
@@ -332,19 +332,19 @@ def build_forward_backward(H, x, phase, boxes, flags):
             perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4]
         )
         boxes_loss = tf.reduce_sum(
-            tf.abs(residual)
+            input_tensor=tf.abs(residual)
         ) / outer_size * H['solver']['head_weights'][1]
         if H['use_rezoom']:
             if H['rezoom_change_loss'] == 'center':
                 error = (perm_truth[:, :, 0:2] - pred_boxes[:, :, 0:2]
                         ) / tf.maximum(perm_truth[:, :, 2:4], 1.)
-                square_error = tf.reduce_sum(tf.square(error), 2)
+                square_error = tf.reduce_sum(input_tensor=tf.square(error), axis=2)
                 inside = tf.reshape(
-                    tf.to_int64(
+                    tf.cast(
                         tf.logical_and(
                             tf.less(square_error, 0.2**2),
                             tf.greater(classes, 0)
-                        )
+                        ), dtype=tf.int64
                     ), [-1]
                 )
             elif H['rezoom_change_loss'] == 'iou':
@@ -352,18 +352,18 @@ def build_forward_backward(H, x, phase, boxes, flags):
                     train_utils.to_x1y1x2y2(tf.reshape(pred_boxes, [-1, 4])),
                     train_utils.to_x1y1x2y2(tf.reshape(perm_truth, [-1, 4]))
                 )
-                inside = tf.reshape(tf.to_int64(tf.greater(iou, 0.5)), [-1])
+                inside = tf.reshape(tf.cast(tf.greater(iou, 0.5), dtype=tf.int64), [-1])
             else:
                 assert H['rezoom_change_loss'] == False
                 inside = tf.reshape(
-                    tf.to_int64((tf.greater(classes, 0))), [-1]
+                    tf.cast((tf.greater(classes, 0)), dtype=tf.int64), [-1]
                 )
             new_confs = tf.reshape(
                 pred_confs_deltas,
                 [outer_size * H['rnn_len'], H['num_classes']]
             )
             delta_confs_loss = tf.reduce_sum(
-                tf.nn.sparse_softmax_cross_entropy_with_logits(
+                input_tensor=tf.nn.sparse_softmax_cross_entropy_with_logits(
                     logits=new_confs, labels=inside
                 )
             ) / outer_size * H['solver']['head_weights'][0] * 0.1
@@ -384,21 +384,21 @@ def build_forward_backward(H, x, phase, boxes, flags):
                 )
                 delta_boxes_loss = (
                     tf.reduce_sum(
-                        tf.minimum(tf.square(delta_residual), 10.**2)
+                        input_tensor=tf.minimum(tf.square(delta_residual), 10.**2)
                     ) / outer_size * H['solver']['head_weights'][1] * 0.03
                 )
                 boxes_loss = delta_boxes_loss
 
-                tf.summary.histogram(
+                tf.compat.v1.summary.histogram(
                     phase + '/delta_hist0_x', pred_boxes_deltas[:, 0, 0]
                 )
-                tf.summary.histogram(
+                tf.compat.v1.summary.histogram(
                     phase + '/delta_hist0_y', pred_boxes_deltas[:, 0, 1]
                 )
-                tf.summary.histogram(
+                tf.compat.v1.summary.histogram(
                     phase + '/delta_hist0_w', pred_boxes_deltas[:, 0, 2]
                 )
-                tf.summary.histogram(
+                tf.compat.v1.summary.histogram(
                     phase + '/delta_hist0_h', pred_boxes_deltas[:, 0, 3]
                 )
                 loss += delta_boxes_loss
@@ -418,27 +418,27 @@ def build(H, q):
 
     os.environ['CUDA_VISIBLE_DEVICES'] = str(solver.get('gpu', ''))
 
-    gpu_options = tf.GPUOptions()
-    config = tf.ConfigProto(gpu_options=gpu_options)
+    gpu_options = tf.compat.v1.GPUOptions()
+    config = tf.compat.v1.ConfigProto(gpu_options=gpu_options)
 
-    learning_rate = tf.placeholder(tf.float32)
+    learning_rate = tf.compat.v1.placeholder(tf.float32)
     if solver['opt'] == 'RMS':
-        opt = tf.train.RMSPropOptimizer(
+        opt = tf.compat.v1.train.RMSPropOptimizer(
             learning_rate=learning_rate, decay=0.9, epsilon=solver['epsilon']
         )
     elif solver['opt'] == 'Adam':
-        opt = tf.train.AdamOptimizer(
+        opt = tf.compat.v1.train.AdamOptimizer(
             learning_rate=learning_rate, epsilon=solver['epsilon']
         )
     elif solver['opt'] == 'SGD':
-        opt = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
+        opt = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=learning_rate)
     else:
         raise ValueError('Unrecognized opt type')
     loss, accuracy, confidences_loss, boxes_loss = {}, {}, {}, {}
     for phase in ['train', 'test']:
         # generate predictions and losses from forward pass
         x, confidences, boxes = q[phase].dequeue_many(arch['batch_size'])
-        flags = tf.argmax(confidences, 3)
+        flags = tf.argmax(input=confidences, axis=3)
 
         grid_size = H['grid_width'] * H['grid_height']
 
@@ -456,22 +456,22 @@ def build(H, q):
 
         # Set up summary operations for tensorboard
         a = tf.equal(
-            tf.argmax(confidences[:, :, 0, :], 2),
-            tf.argmax(pred_confidences_r[:, :, 0, :], 2)
+            tf.argmax(input=confidences[:, :, 0, :], axis=2),
+            tf.argmax(input=pred_confidences_r[:, :, 0, :], axis=2)
         )
         accuracy[phase] = tf.reduce_mean(
-            tf.cast(a, 'float32'), name=phase + '/accuracy'
+            input_tensor=tf.cast(a, 'float32'), name=phase + '/accuracy'
         )
 
         if phase == 'train':
             global_step = tf.Variable(0, trainable=False)
 
-            tvars = tf.trainable_variables()
+            tvars = tf.compat.v1.trainable_variables()
             if H['clip_norm'] <= 0:
-                grads = tf.gradients(loss['train'], tvars)
+                grads = tf.gradients(ys=loss['train'], xs=tvars)
             else:
                 grads, norm = tf.clip_by_global_norm(
-                    tf.gradients(loss['train'], tvars), H['clip_norm']
+                    tf.gradients(ys=loss['train'], xs=tvars), H['clip_norm']
                 )
             train_op = opt.apply_gradients(
                 zip(grads, tvars), global_step=global_step
@@ -490,19 +490,19 @@ def build(H, q):
             )
 
             for p in ['train', 'test']:
-                tf.summary.scalar('%s/accuracy' % p, accuracy[p])
-                tf.summary.scalar(
+                tf.compat.v1.summary.scalar('%s/accuracy' % p, accuracy[p])
+                tf.compat.v1.summary.scalar(
                     '%s/accuracy/smooth' % p, moving_avg.average(accuracy[p])
                 )
-                tf.summary.scalar(
+                tf.compat.v1.summary.scalar(
                     "%s/confidences_loss" % p, confidences_loss[p]
                 )
-                tf.summary.scalar(
+                tf.compat.v1.summary.scalar(
                     "%s/confidences_loss/smooth" % p,
                     moving_avg.average(confidences_loss[p])
                 )
-                tf.summary.scalar("%s/regression_loss" % p, boxes_loss[p])
-                tf.summary.scalar(
+                tf.compat.v1.summary.scalar("%s/regression_loss" % p, boxes_loss[p])
+                tf.compat.v1.summary.scalar(
                     "%s/regression_loss/smooth" % p,
                     moving_avg.average(boxes_loss[p])
                 )
@@ -542,26 +542,26 @@ def build(H, q):
                 misc.imsave(img_path, merged)
                 return merged
 
-            pred_log_img = tf.py_func(
+            pred_log_img = tf.compat.v1.py_func(
                 log_image, [
                     test_image, test_pred_confidences, test_pred_boxes,
                     global_step, 'pred'
                 ], [tf.float32]
             )
-            true_log_img = tf.py_func(
+            true_log_img = tf.compat.v1.py_func(
                 log_image, [
                     test_image, test_true_confidences, test_true_boxes,
                     global_step, 'true'
                 ], [tf.float32]
             )
-            tf.summary.image(
+            tf.compat.v1.summary.image(
                 phase + '/pred_boxes', pred_log_img, max_outputs=10
             )
-            tf.summary.image(
+            tf.compat.v1.summary.image(
                 phase + '/true_boxes', true_log_img, max_outputs=10
             )
 
-    summary_op = tf.summary.merge_all()
+    summary_op = tf.compat.v1.summary.merge_all()
 
     return (
         config, loss, accuracy, summary_op, train_op, smooth_op, global_step,
@@ -580,9 +580,10 @@ def train(H, test_images):
     with open(H['save_dir'] + '/hypes.json', 'w') as f:
         json.dump(H, f, indent=4)
 
-    x_in = tf.placeholder(tf.float32)
-    confs_in = tf.placeholder(tf.float32)
-    boxes_in = tf.placeholder(tf.float32)
+    tf.compat.v1.disable_eager_execution()
+    x_in = tf.compat.v1.placeholder(tf.float32)
+    confs_in = tf.compat.v1.placeholder(tf.float32)
+    boxes_in = tf.compat.v1.placeholder(tf.float32)
     q = {}
     enqueue_op = {}
     for phase in ['train', 'test']:
@@ -595,7 +596,7 @@ def train(H, test_images):
              channels], [grid_size, H['rnn_len'], H['num_classes']],
             [grid_size, H['rnn_len'], 4],
         )
-        q[phase] = tf.FIFOQueue(capacity=30, dtypes=dtypes, shapes=shapes)
+        q[phase] = tf.queue.FIFOQueue(capacity=30, dtypes=dtypes, shapes=shapes)
         enqueue_op[phase] = q[phase].enqueue((x_in, confs_in, boxes_in))
 
     def make_feed(d):
@@ -615,11 +616,11 @@ def train(H, test_images):
         learning_rate
     ) = build(H, q)
 
-    saver = tf.train.Saver(max_to_keep=None)
-    writer = tf.summary.FileWriter(logdir=H['save_dir'], flush_secs=10)
+    saver = tf.compat.v1.train.Saver(max_to_keep=None)
+    writer = tf.compat.v1.summary.FileWriter(logdir=H['save_dir'], flush_secs=10)
 
-    with tf.Session(config=config) as sess:
-        tf.train.start_queue_runners(sess=sess)
+    with tf.compat.v1.Session(config=config) as sess:
+        tf.compat.v1.train.start_queue_runners(sess=sess)
         for phase in ['train', 'test']:
             # enqueue once manually to avoid thread start delay
             gen = train_utils.load_data_gen(
@@ -633,8 +634,8 @@ def train(H, test_images):
             t.daemon = True
             t.start()
 
-        tf.set_random_seed(H['solver']['rnd_seed'])
-        sess.run(tf.global_variables_initializer())
+        tf.compat.v1.set_random_seed(H['solver']['rnd_seed'])
+        sess.run(tf.compat.v1.global_variables_initializer())
         writer.add_graph(sess.graph)
         weights_str = H['solver']['weights']
         if len(weights_str) > 0:
@@ -642,9 +643,9 @@ def train(H, test_images):
             saver.restore(sess, weights_str)
         elif H['slim_ckpt'] == '':
             sess.run(
-                tf.variables_initializer(
+                tf.compat.v1.variables_initializer(
                     [
-                        x for x in tf.global_variables()
+                        x for x in tf.compat.v1.global_variables()
                         if x.name.startswith(H['slim_basename']) and
                         H['solver']['opt'] not in x.name
                     ]
@@ -655,7 +656,7 @@ def train(H, test_images):
                 '%s/data/%s' %
                 (os.path.dirname(os.path.realpath(__file__)),
                  H['slim_ckpt']), [
-                     x for x in tf.global_variables()
+                     x for x in tf.compat.v1.global_variables()
                      if x.name.startswith(H['slim_basename']) and
                      H['solver']['opt'] not in x.name
                  ]

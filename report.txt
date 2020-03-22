@@ -1,0 +1,419 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 21 files
+Detected 10 issues that require attention
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+File: vendor/tensorboxresnet/tensorboxresnet/train.py
+--------------------------------------------------------------------------------
+vendor/tensorboxresnet/tensorboxresnet/train.py:39:12: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:49:8: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:128:16: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:192:26: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:195:27: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:239:33: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:248:38: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:252:42: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+vendor/tensorboxresnet/tensorboxresnet/train.py:717:16: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+--------------------------------------------------------------------------------
+File: vendor/tensorboxresnet/tensorboxresnet/utils/slim_nets/inception_v1.py
+--------------------------------------------------------------------------------
+vendor/tensorboxresnet/tensorboxresnet/utils/slim_nets/inception_v1.py:23:7: ERROR: Using member tf.contrib.slim in deprecated module tf.contrib. tf.contrib.slim cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+================================================================================
+Detailed log follows:
+
+================================================================================
+================================================================================
+Input tree: 'vendor'
+================================================================================
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/setup.py'
+ outputting to 'vendor_2/tensorboxresnet/setup.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/train.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/train.py'
+--------------------------------------------------------------------------------
+
+37:18: INFO: tf.random_uniform_initializer requires manual check. Initializers no longer have the dtype argument in the constructor or partition_info argument in the __call__ method.
+The calls have been converted to compat.v1 for safety (even though they may already have been correct).
+37:18: INFO: Renamed 'tf.random_uniform_initializer' to 'tf.compat.v1.random_uniform_initializer'
+38:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+39:12: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+39:12: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+49:8: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+49:8: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+51:20: INFO: tf.random_normal_initializer requires manual check. Initializers no longer have the dtype argument in the constructor or partition_info argument in the __call__ method.
+The calls have been converted to compat.v1 for safety (even though they may already have been correct).
+51:20: INFO: Renamed 'tf.random_normal_initializer' to 'tf.compat.v1.random_normal_initializer'
+100:24: INFO: Added keywords to args of function 'tf.transpose'
+127:13: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+128:16: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+128:16: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+134:28: INFO: tf.random_normal_initializer requires manual check. Initializers no longer have the dtype argument in the constructor or partition_info argument in the __call__ method.
+The calls have been converted to compat.v1 for safety (even though they may already have been correct).
+134:28: INFO: Renamed 'tf.random_normal_initializer' to 'tf.compat.v1.random_normal_initializer'
+136:20: INFO: Added keywords to args of function 'tf.nn.conv2d'
+136:20: INFO: Renamed keyword argument for tf.nn.conv2d from filter to filters
+139:25: INFO: Added keywords to args of function 'tf.nn.avg_pool'
+139:25: INFO: Renamed keyword argument for tf.nn.avg_pool from value to input
+139:25: INFO: Renamed 'tf.nn.avg_pool' to 'tf.nn.avg_pool2d'
+160:15: INFO: Added keywords to args of function 'tf.nn.avg_pool'
+160:15: INFO: Renamed keyword argument for tf.nn.avg_pool from value to input
+160:15: INFO: Renamed 'tf.nn.avg_pool' to 'tf.nn.avg_pool2d'
+174:18: INFO: tf.random_uniform_initializer requires manual check. Initializers no longer have the dtype argument in the constructor or partition_info argument in the __call__ method.
+The calls have been converted to compat.v1 for safety (even though they may already have been correct).
+174:18: INFO: Renamed 'tf.random_uniform_initializer' to 'tf.compat.v1.random_uniform_initializer'
+175:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+191:25: INFO: Changing keep_prob arg of tf.nn.dropout to rate, and recomputing value.
+
+192:26: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+192:26: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+195:27: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+195:27: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+233:34: INFO: Changing keep_prob arg of tf.nn.dropout to rate, and recomputing value.
+
+239:33: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+239:33: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+247:26: INFO: Changing keep_prob arg of tf.nn.dropout to rate, and recomputing value.
+
+248:38: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+248:38: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+252:42: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+252:42: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+293:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+325:12: INFO: Added keywords to args of function 'tf.reduce_sum'
+334:21: INFO: Added keywords to args of function 'tf.reduce_sum'
+341:31: INFO: Added keywords to args of function 'tf.reduce_sum'
+343:20: INFO: Changed tf.to_int64 call to tf.cast(..., dtype=tf.int64).
+355:36: INFO: Changed tf.to_int64 call to tf.cast(..., dtype=tf.int64).
+359:20: INFO: Changed tf.to_int64 call to tf.cast(..., dtype=tf.int64).
+365:31: INFO: Added keywords to args of function 'tf.reduce_sum'
+386:20: INFO: Added keywords to args of function 'tf.reduce_sum'
+392:16: INFO: tf.summary.histogram requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+392:16: INFO: Renamed 'tf.summary.histogram' to 'tf.compat.v1.summary.histogram'
+395:16: INFO: tf.summary.histogram requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+395:16: INFO: Renamed 'tf.summary.histogram' to 'tf.compat.v1.summary.histogram'
+398:16: INFO: tf.summary.histogram requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+398:16: INFO: Renamed 'tf.summary.histogram' to 'tf.compat.v1.summary.histogram'
+401:16: INFO: tf.summary.histogram requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+401:16: INFO: Renamed 'tf.summary.histogram' to 'tf.compat.v1.summary.histogram'
+421:18: INFO: Renamed 'tf.GPUOptions' to 'tf.compat.v1.GPUOptions'
+422:13: INFO: Renamed 'tf.ConfigProto' to 'tf.compat.v1.ConfigProto'
+424:20: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+426:14: INFO: Renamed 'tf.train.RMSPropOptimizer' to 'tf.compat.v1.train.RMSPropOptimizer'
+430:14: INFO: Renamed 'tf.train.AdamOptimizer' to 'tf.compat.v1.train.AdamOptimizer'
+434:14: INFO: Renamed 'tf.train.GradientDescentOptimizer' to 'tf.compat.v1.train.GradientDescentOptimizer'
+441:16: INFO: Added keywords to args of function 'tf.argmax'
+459:12: INFO: Added keywords to args of function 'tf.argmax'
+460:12: INFO: Added keywords to args of function 'tf.argmax'
+462:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+469:20: INFO: Renamed 'tf.trainable_variables' to 'tf.compat.v1.trainable_variables'
+471:24: INFO: Added keywords to args of function 'tf.gradients'
+474:20: INFO: Added keywords to args of function 'tf.gradients'
+493:16: INFO: tf.summary.scalar requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+493:16: INFO: Renamed 'tf.summary.scalar' to 'tf.compat.v1.summary.scalar'
+494:16: INFO: tf.summary.scalar requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+494:16: INFO: Renamed 'tf.summary.scalar' to 'tf.compat.v1.summary.scalar'
+497:16: INFO: tf.summary.scalar requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+497:16: INFO: Renamed 'tf.summary.scalar' to 'tf.compat.v1.summary.scalar'
+500:16: INFO: tf.summary.scalar requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+500:16: INFO: Renamed 'tf.summary.scalar' to 'tf.compat.v1.summary.scalar'
+504:16: INFO: tf.summary.scalar requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+504:16: INFO: Renamed 'tf.summary.scalar' to 'tf.compat.v1.summary.scalar'
+505:16: INFO: tf.summary.scalar requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+505:16: INFO: Renamed 'tf.summary.scalar' to 'tf.compat.v1.summary.scalar'
+545:27: INFO: Renamed 'tf.py_func' to 'tf.compat.v1.py_func'
+551:27: INFO: Renamed 'tf.py_func' to 'tf.compat.v1.py_func'
+557:12: INFO: tf.summary.image requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+557:12: INFO: Renamed 'tf.summary.image' to 'tf.compat.v1.summary.image'
+560:12: INFO: tf.summary.image requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+560:12: INFO: Renamed 'tf.summary.image' to 'tf.compat.v1.summary.image'
+564:17: INFO: tf.summary.merge_all requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+564:17: INFO: Renamed 'tf.summary.merge_all' to 'tf.compat.v1.summary.merge_all'
+583:11: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+584:15: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+585:15: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+598:19: INFO: Renamed 'tf.FIFOQueue' to 'tf.queue.FIFOQueue'
+618:12: INFO: Renamed 'tf.train.Saver' to 'tf.compat.v1.train.Saver'
+619:13: INFO: tf.summary.FileWriter requires manual check. The TF 1.x summary API cannot be automatically migrated to TF 2.0, so symbols have been converted to tf.compat.v1.summary.* and must be migrated manually. Typical usage will only require changes to the summary writing logic, not to individual calls like scalar(). For examples of the new summary API, see the Effective TF 2.0 migration document or check the TF 2.0 TensorBoard tutorials.
+619:13: INFO: Renamed 'tf.summary.FileWriter' to 'tf.compat.v1.summary.FileWriter'
+621:9: INFO: Renamed 'tf.Session' to 'tf.compat.v1.Session'
+622:8: INFO: Renamed 'tf.train.start_queue_runners' to 'tf.compat.v1.train.start_queue_runners'
+636:8: INFO: Renamed 'tf.set_random_seed' to 'tf.compat.v1.set_random_seed'
+637:17: INFO: Renamed 'tf.global_variables_initializer' to 'tf.compat.v1.global_variables_initializer'
+645:16: INFO: Renamed 'tf.variables_initializer' to 'tf.compat.v1.variables_initializer'
+647:35: INFO: Renamed 'tf.global_variables' to 'tf.compat.v1.global_variables'
+658:32: INFO: Renamed 'tf.global_variables' to 'tf.compat.v1.global_variables'
+717:16: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/__init__.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/__init__.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/googlenet_load.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/googlenet_load.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/stitch_wrapper.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/stitch_wrapper.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/train_utils.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/train_utils.py'
+--------------------------------------------------------------------------------
+
+284:14: INFO: Changed tf.to_int32 call to tf.cast(..., dtype=tf.int32).
+289:14: INFO: Changed tf.to_int32 call to tf.cast(..., dtype=tf.int32).
+292:22: INFO: Renamed 'tf.ceil' to 'tf.math.ceil'
+294:14: INFO: Changed tf.to_int32 call to tf.cast(..., dtype=tf.int32).
+296:22: INFO: Renamed 'tf.ceil' to 'tf.math.ceil'
+299:14: INFO: Changed tf.to_int32 call to tf.cast(..., dtype=tf.int32).
+301:22: INFO: Renamed 'tf.ceil' to 'tf.math.ceil'
+302:22: INFO: Renamed 'tf.ceil' to 'tf.math.ceil'
+305:34: INFO: Added keywords to args of function 'tf.shape'
+306:34: INFO: Added keywords to args of function 'tf.shape'
+307:34: INFO: Added keywords to args of function 'tf.shape'
+308:34: INFO: Added keywords to args of function 'tf.shape'
+369:12: INFO: Changed tf.to_float call to tf.cast(..., dtype=tf.float32).
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/rect.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/rect.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/data_utils.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/data_utils.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/slim_nets/resnet_utils.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/slim_nets/resnet_utils.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/slim_nets/__init__.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/slim_nets/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/slim_nets/inception_v1.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/slim_nets/inception_v1.py'
+--------------------------------------------------------------------------------
+
+23:7: ERROR: Using member tf.contrib.slim in deprecated module tf.contrib. tf.contrib.slim cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+24:30: INFO: tf.truncated_normal_initializer requires manual check. Initializers no longer have the dtype argument in the constructor or partition_info argument in the __call__ method.
+The calls have been converted to compat.v1 for safety (even though they may already have been correct).
+24:30: INFO: Renamed 'tf.truncated_normal_initializer' to 'tf.compat.v1.truncated_normal_initializer'
+54:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+86:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+87:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+91:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+98:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+105:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+119:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+120:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+124:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+131:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+138:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+157:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+158:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+162:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+169:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+176:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+190:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+191:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+195:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+202:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+209:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+223:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+224:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+228:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+235:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+242:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+256:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+257:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+261:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+268:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+275:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+289:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+290:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+294:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+301:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+308:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+327:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+328:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+332:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+339:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+346:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+360:21: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+361:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+365:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+372:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+379:25: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+434:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+441:17: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+490:31: INFO: Renamed 'tf.GraphKeys' to 'tf.compat.v1.GraphKeys'
+509:28: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+513:32: INFO: Changing tf.contrib.layers.variance_scaling_initializer to a tf.compat.v1.keras.initializers.VarianceScaling and converting arguments.
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/slim_nets/resnet_v1.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/slim_nets/resnet_v1.py'
+--------------------------------------------------------------------------------
+
+99:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+199:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+223:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+223:26: INFO: Renamed keyword argument for tf.reduce_mean from keep_dims to keepdims
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/__init__.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/plotSimple.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/plotSimple.py'
+--------------------------------------------------------------------------------
+
+ERROR: Failed to parse.
+Traceback (most recent call last):
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/tensorflow/tools/compatibility/ast_edits.py", line 661, in update_string_pasta
+    t = pasta.parse(text)
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/pasta/__init__.py", line 23, in parse
+    t = ast_utils.parse(src)
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/pasta/base/ast_utils.py", line 56, in parse
+    tree = ast.parse(sanitize_source(src))
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/ast.py", line 35, in parse
+    return compile(source, filename, mode, PyCF_ONLY_AST)
+  File "<unknown>", line 124
+    print "Plotting: " + displayname
+                     ^
+SyntaxError: Missing parentheses in call to 'print'. Did you mean print("Plotting: " + displayname)?
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/ma_utils.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/ma_utils.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/doRPC.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/doRPC.py'
+--------------------------------------------------------------------------------
+
+ERROR: Failed to parse.
+Traceback (most recent call last):
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/tensorflow/tools/compatibility/ast_edits.py", line 661, in update_string_pasta
+    t = pasta.parse(text)
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/pasta/__init__.py", line 23, in parse
+    t = ast_utils.parse(src)
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/pasta/base/ast_utils.py", line 56, in parse
+    tree = ast.parse(sanitize_source(src))
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/ast.py", line 35, in parse
+    return compile(source, filename, mode, PyCF_ONLY_AST)
+  File "<unknown>", line 388
+    print "Asorting too large/ too small detections"
+                                                   ^
+SyntaxError: Missing parentheses in call to 'print'. Did you mean print("Asorting too large/ too small detections")?
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/PalLib.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/PalLib.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/AnnotationLib.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/AnnotationLib.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/AnnoList_pb2.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/AnnoList_pb2.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'vendor/tensorboxresnet/tensorboxresnet/utils/annolist/MatPlotter.py'
+ outputting to 'vendor_2/tensorboxresnet/tensorboxresnet/utils/annolist/MatPlotter.py'
+--------------------------------------------------------------------------------
+
+ERROR: Failed to parse.
+Traceback (most recent call last):
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/tensorflow/tools/compatibility/ast_edits.py", line 661, in update_string_pasta
+    t = pasta.parse(text)
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/pasta/__init__.py", line 23, in parse
+    t = ast_utils.parse(src)
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/site-packages/pasta/base/ast_utils.py", line 56, in parse
+    tree = ast.parse(sanitize_source(src))
+  File "/home/sampanna/anaconda3/envs/deepfigures/lib/python3.6/ast.py", line 35, in parse
+    return compile(source, filename, mode, PyCF_ONLY_AST)
+  File "<unknown>", line 179
+    print "lowest_fppi: ", lowest_fppi
+                        ^
+SyntaxError: Missing parentheses in call to 'print'. Did you mean print("lowest_fppi: ", lowest_fppi)?
+
+--------------------------------------------------------------------------------
+
