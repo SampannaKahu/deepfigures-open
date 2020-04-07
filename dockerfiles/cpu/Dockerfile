@@ -47,11 +47,11 @@ RUN apt-get clean \
 
 WORKDIR /work
 
-ADD ./requirements.txt /work
+ADD ./requirements_cpu.txt /work
 
 RUN pip3 install --upgrade pip \
  && pip install Cython==0.25.2
-RUN pip3 install -r ./requirements.txt
+RUN pip3 install -r ./requirements_cpu.txt -f https://download.pytorch.org/whl/torch_stable.html
 
 ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
 RUN pip3 install -e /work/vendor/tensorboxresnet

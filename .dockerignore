@@ -3,6 +3,7 @@
 !manage.py
 !readme.md
 !requirements.txt
+!requirements_cpu.txt
 !bin
 !scripts
 !settings.py
