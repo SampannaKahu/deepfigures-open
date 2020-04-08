@@ -2,16 +2,19 @@ import torch
 from torch.utils.data.dataloader import DataLoader
 
 import os
+import cv2
 import glob
 import queue
 import shutil
 import random
 import logging
+import numpy as np
 
 from multiprocessing import Manager
 
 from deepfigures import settings
 from deepfigures.data_generation import arxiv_pipeline
+from deepfigures.data_generation import utils
 from deepfigures.data_generation.paper_tar_processor import PaperTarProcessor
 
 FILE_NAME = 'file_name'
@@ -152,7 +155,20 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                             worker_id, paper_tar_name))
             self.worker_id_to_context_map[worker_id][FIGURE_JSONS] = figure_boundaries
 
-        return self.worker_id_to_context_map[worker_id][FIGURE_JSONS].pop()
+        figure_json_retval = self.worker_id_to_context_map[worker_id][FIGURE_JSONS].pop()
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        procesed_img, labels = utils.figure_json_to_yolo_v3_value(figure_json_retval)
+        # print(yolo_v3_value, flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        # print("----------------------------------------------------------------------------", flush=True)
+        return procesed_img, labels, 0, 0
 
 
 if __name__ == '__main__':
@@ -170,5 +186,11 @@ if __name__ == '__main__':
     arxiv_dataset = ArxivDataSet(list_of_files=input_files)
     teacher_train_loader = DataLoader(arxiv_dataset, shuffle=False, num_workers=2)
     for item in teacher_train_loader:
-        # print(item)
+        print("-----------------------------------------------------------")
+        print("-----------------------------------------------------------")
+        print("-----------------------------------------------------------")
+        print(item)
+        print("-----------------------------------------------------------")
+        print("-----------------------------------------------------------")
+        print("-----------------------------------------------------------")
         logging.error(item)
