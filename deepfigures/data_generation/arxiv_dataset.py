@@ -22,6 +22,27 @@ PAPER_TAR_NAMES = 'paper_tar_names'
 FIGURE_JSONS = 'figure_jsons'
 
 
+def separate_figure_boundary(figure_boundary):
+    if len(figure_boundary['rects']) == 0 or not figure_boundary['rects']:
+        return [figure_boundary]
+    else:
+        result = []
+        for rect in figure_boundary['rects']:
+            separated_fig_boundary = {
+                'image_path': figure_boundary['image_path'],
+                'rects': [rect]
+            }
+            result.append(separated_fig_boundary)
+        return result
+
+
+def separate_figure_boundaries(figure_boundaries):
+    result = []
+    for figure_boundary in figure_boundaries:
+        result = result + separate_figure_boundary(figure_boundary)
+    return result
+
+
 class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
     """
     This class represents the ArXiv dataset of scholarly papers available here: https://arxiv.org/help/bulk_data_s3
@@ -153,6 +174,11 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                     logging.warning(
                         'Unhandled exception caught while processing paper tar. Suppressing it and moving forward. Worker ID: {}. paper_tar_name: {}'.format(
                             worker_id, paper_tar_name))
+            # print("-----------------------------------------------------------------------------------------------------------------------------------------------", flush=True)
+            # print(figure_boundaries)
+            figure_boundaries = separate_figure_boundaries(figure_boundaries)
+            # print("-----------------------------------------------------------------------------------------------------------------------------------------------", flush=True)
+            # print(figure_boundaries, flush=True)
             self.worker_id_to_context_map[worker_id][FIGURE_JSONS] = figure_boundaries
 
         figure_json_retval = self.worker_id_to_context_map[worker_id][FIGURE_JSONS].pop()
@@ -162,7 +188,10 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         # print("----------------------------------------------------------------------------", flush=True)
         # print("----------------------------------------------------------------------------", flush=True)
         procesed_img, labels = utils.figure_json_to_yolo_v3_value(figure_json_retval)
-        # print(yolo_v3_value, flush=True)
+        # print(procesed_img.shape, flush=True)
+        # print(labels.shape, flush=True)
+        procesed_img = np.swapaxes(procesed_img, 1, 2)
+        procesed_img = np.swapaxes(procesed_img, 0, 1)
         # print("----------------------------------------------------------------------------", flush=True)
         # print("----------------------------------------------------------------------------", flush=True)
         # print("----------------------------------------------------------------------------", flush=True)
@@ -194,3 +223,10 @@ if __name__ == '__main__':
         print("-----------------------------------------------------------")
         print("-----------------------------------------------------------")
         logging.error(item)
+
+    # figure_boundaries = '[{"image_path": "/work/host-output/arxiv_data_output/diffs_100dpi/0/0003/astro-ph0003102/black.pdf-images/ghostscript/dpi100/black.pdf-dpi100-page0004.png", "rects": [{"x1": 642.9305419921875, "x2": 654.4535522460938, "y1": 370.81756591796875, "y2": 375.594482421875}]}, {"image_path": "/work/host-output/arxiv_data_output/diffs_100dpi/0/0003/astro-ph0003102/black.pdf-images/ghostscript/dpi100/black.pdf-dpi100-page0007.png", "rects": [{"x1": 611.34326171875, "x2": 613.46142578125, "y1": 555.832275390625, "y2": 556.9957885742188}]}, {"image_path": "/work/host-output/arxiv_data_output/diffs_100dpi/0/0003/astro-ph0003102/black.pdf-images/ghostscript/dpi100/black.pdf-dpi100-page0012.png", "rects": [{"x1": 695.3753662109375, "x2": 700.7623901367188, "y1": 424.4481201171875, "y2": 428.1315002441406}]}]'
+    # import json
+    # figure_boundaries = json.loads(figure_boundaries)
+    # separated_figure_boundaries = separate_figure_boundaries(figure_boundaries)
+    # assert separated_figure_boundaries == figure_boundaries
+    # print(json.dumps(separated_figure_boundaries))

@@ -153,7 +153,7 @@ class YOLOLayer(nn.Module):
             pred_best_iou = (pred_best_iou > self.ignore_thre)
             pred_best_iou = pred_best_iou.view(pred[b].shape[:3])
             # set mask to zero (ignore) if pred matches truth
-            obj_mask[b] = 1 - pred_best_iou
+            obj_mask[b] = ~ pred_best_iou
 
             if sum(best_n_mask) == 0:
                 continue

@@ -61,6 +61,7 @@ def preprocess(img, imgsize, jitter, random_placing=False):
 
 def figure_json_to_yolo_v3_value(figure_json):
     img = cv2.imread(figure_json['image_path'])
+    # print("img shape " + str(img.shape))
     # height, width, channels = img.shape
     processed_img, info_img = preprocess(img, 416, jitter=0, random_placing=False)
     rects = figure_json['rects']
