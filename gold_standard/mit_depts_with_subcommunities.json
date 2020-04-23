@@ -1,0 +1,800 @@
+[
+  {
+    "dept": "Biological Engineering",
+    "handle": "1721.1/7622",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7626",
+        "name": "Biological Engineering - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7627",
+        "name": "Biological Engineering - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7628",
+        "name": "Biological Engineering - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7629",
+        "name": "Biological Engineering - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Comparative Media Studies/Writing",
+    "handle": "1721.1/39098",
+    "sub_communities": [
+      {
+        "handle": "1721.1/39100",
+        "name": "Comparative Media Studies - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/106909",
+        "name": "Science Writing - Master's degree",
+        "degree_type": "Master's degree"
+      }
+    ]
+  },
+  {
+    "dept": "Computation for Design and Optimization",
+    "handle": "1721.1/39113",
+    "sub_communities": [
+      {
+        "handle": "1721.1/39115",
+        "name": "Computation for Design and Optimization - Master's degree",
+        "degree_type": "Master's degree"
+      }
+    ]
+  },
+  {
+    "dept": "Computational and Systems Biology",
+    "handle": "1721.1/54822",
+    "sub_communities": [
+      {
+        "handle": "1721.1/72923",
+        "name": "Computational and Systems Biology - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/54823",
+        "name": "Computational and Systems Biology - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Aeronautics and Astronautics",
+    "handle": "1721.1/7621",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7630",
+        "name": "Aeronautics and Astronautics - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7744",
+        "name": "Aeronautics and Astronautics - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7631",
+        "name": "Aeronautics and Astronautics - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7632",
+        "name": "Aeronautics and Astronautics - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Architecture",
+    "handle": "1721.1/7583",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7634",
+        "name": "Architecture - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7635",
+        "name": "Architecture - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7633",
+        "name": "Architecture - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Biology",
+    "handle": "1721.1/7589",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7636",
+        "name": "Biology - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7591",
+        "name": "Biology - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7592",
+        "name": "Biology - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Brain and Cognitive Sciences",
+    "handle": "1721.1/7593",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7637",
+        "name": "Brain and Cognitive Sciences - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7638",
+        "name": "Brain and Cognitive Sciences - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7639",
+        "name": "Brain and Cognitive Sciences - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Chemical Engineering",
+    "handle": "1721.1/7594",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7641",
+        "name": "Chemical Engineering - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7643",
+        "name": "Chemical Engineering - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7642",
+        "name": "Chemical Engineering - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7640",
+        "name": "Chemical Engineering - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Chemistry",
+    "handle": "1721.1/7595",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7644",
+        "name": "Chemistry - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7645",
+        "name": "Chemistry - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7646",
+        "name": "Chemistry - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Civil and Environmental Engineering",
+    "handle": "1721.1/7596",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7648",
+        "name": "Civil and Environmental Engineering - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7649",
+        "name": "Civil and Environmental Engineering - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7652",
+        "name": "Civil and Environmental Engineering - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7653",
+        "name": "Civil and Environmental Engineering - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Earth, Atmospheric, and Planetary Sciences",
+    "handle": "1721.1/7597",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7654",
+        "name": "Earth, Atmospheric and Planetary Sciences - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      },
+      {
+        "handle": "1721.1/7655",
+        "name": "Earth, Atmospheric, and Planetary Sciences - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7656",
+        "name": "Earth, Atmospheric, and Planetary Sciences - Master's degree",
+        "degree_type": "Master's degree"
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Economics",
+    "handle": "1721.1/7598",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7657",
+        "name": "Economics - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7658",
+        "name": "Economics - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7659",
+        "name": "Economics - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Electrical Engineering and Computer Sciences",
+    "handle": "1721.1/7599",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7661",
+        "name": "Electrical Engineering and Computer Sciences - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7662",
+        "name": "Electrical Engineering and Computer Sciences - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7663",
+        "name": "Electrical Engineering and Computer Sciences - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7660",
+        "name": "Electrical Engineering and Computer Sciences - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Humanities",
+    "handle": "1721.1/7600",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7666",
+        "name": "Humanities - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7667",
+        "name": "Humanities - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7665",
+        "name": "Humanities - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Interdisciplinary Science",
+    "handle": "1721.1/7601",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7671",
+        "name": "Interdisciplinary Science - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7672",
+        "name": "Interdisciplinary Science - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7670",
+        "name": "Interdisciplinary Science - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Linguistics and Philosophy",
+    "handle": "1721.1/7602",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7674",
+        "name": "Linguistics and Philosophy - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7675",
+        "name": "Linguistics and Philosophy - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7673",
+        "name": "Linguistics and Philosophy - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Materials Science and Engineering",
+    "handle": "1721.1/7603",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7678",
+        "name": "Materials Science and Engineering - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7679",
+        "name": "Materials Science and Engineering - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7677",
+        "name": "Materials Science and Engineering - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7676",
+        "name": "Materials Science and Engineering - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Mathematics",
+    "handle": "1721.1/7604",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7681",
+        "name": "Mathematics - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7682",
+        "name": "Mathematics - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7680",
+        "name": "Mathematics - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Mechanical Engineering",
+    "handle": "1721.1/7605",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7686",
+        "name": "Mechanical Engineering - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7685",
+        "name": "Mechanical Engineering - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7684",
+        "name": "Mechanical Engineering - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7683",
+        "name": "Mechanical Engineering - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Nuclear Engineering",
+    "handle": "1721.1/7606",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7688",
+        "name": "Nuclear Engineering - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7690",
+        "name": "Nuclear Engineering - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7689",
+        "name": "Nuclear Engineering - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7687",
+        "name": "Nuclear Engineering - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Ocean Engineering",
+    "handle": "1721.1/7607",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7692",
+        "name": "Ocean Engineering - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7694",
+        "name": "Ocean Engineering - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7693",
+        "name": "Ocean Engineering - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7691",
+        "name": "Ocean Engineering - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Physics",
+    "handle": "1721.1/7608",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7696",
+        "name": "Physics - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7697",
+        "name": "Physics - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7695",
+        "name": "Physics - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Political Science",
+    "handle": "1721.1/7609",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7700",
+        "name": "Political Science - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7699",
+        "name": "Political Science - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7698",
+        "name": "Political Science - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Dept. of Urban Studies and Planning",
+    "handle": "1721.1/7610",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7703",
+        "name": "Urban Studies and Planning - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7704",
+        "name": "Urban Studies and Planning - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7702",
+        "name": "Urban Studies and Planning - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Engineering Systems Division",
+    "handle": "1721.1/7612",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7709",
+        "name": "Engineering Systems - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7711",
+        "name": "Engineering Systems - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/7710",
+        "name": "Engineering Systems - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7708",
+        "name": "Engineering Systems - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Harvard-MIT Program of Health Sciences and Technology",
+    "handle": "1721.1/7613",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7714",
+        "name": "Health Sciences and Technology - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7715",
+        "name": "Health Sciences and Technology - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7712",
+        "name": "Health Sciences and Technology - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Institute for Data, Systems, and Society",
+    "handle": "1721.1/102289",
+    "sub_communities": [
+      {
+        "handle": "1721.1/102290",
+        "name": "Institute for Data, Systems, and Society - Engineer's degree",
+        "degree_type": "Engineer's degree"
+      },
+      {
+        "handle": "1721.1/102291",
+        "name": "Institute for Data, Systems, and Society - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/102292",
+        "name": "Institute for Data, Systems, and Society - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Media Arts and Sciences",
+    "handle": "1721.1/7614",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7717",
+        "name": "Media Arts and Sciences - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7718",
+        "name": "Media Arts and Sciences - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7716",
+        "name": "Media Arts and Sciences - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Operations Research Center",
+    "handle": "1721.1/7615",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7721",
+        "name": "Operations Research - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7720",
+        "name": "Operations Research - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7719",
+        "name": "Operations Research - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Program in Real Estate Development",
+    "handle": "1721.1/54824",
+    "sub_communities": [
+      {
+        "handle": "1721.1/54825",
+        "name": "Program in Real Estate Development - Master's degree",
+        "degree_type": "Master's degree"
+      }
+    ]
+  },
+  {
+    "dept": "Program in Writing and Humanistic Studies",
+    "handle": "1721.1/39110",
+    "sub_communities": [
+      {
+        "handle": "1721.1/39111",
+        "name": "Program in Writing and Humanistic Studies - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/39112",
+        "name": "Program in Writing and Humanistic Studies - Master's degree",
+        "degree_type": "Master's degree"
+      }
+    ]
+  },
+  {
+    "dept": "Science, Technology, and Society",
+    "handle": "1721.1/7617",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7727",
+        "name": "Science, Technology and Society - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7726",
+        "name": "Science, Technology and Society - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7725",
+        "name": "Science, Technology and Society - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Sloan School of Management",
+    "handle": "1721.1/7618",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7729",
+        "name": "Management - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7730",
+        "name": "Management - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7728",
+        "name": "Management - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Supply Chain Management",
+    "handle": "1721.1/107231",
+    "sub_communities": [
+      {
+        "handle": "1721.1/107232",
+        "name": "Supply Chain Management - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/107233",
+        "name": "Supply Chain Management - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Systems Design and Management",
+    "handle": "1721.1/7737",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7740",
+        "name": "Systems Design and Management - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7739",
+        "name": "Systems Design and Management - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7738",
+        "name": "Systems Design and Management - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Technology and Policy Program",
+    "handle": "1721.1/7620",
+    "sub_communities": [
+      {
+        "handle": "1721.1/7743",
+        "name": "Technology and Policy - Bachelor's degree",
+        "degree_type": "Bachelor's degree"
+      },
+      {
+        "handle": "1721.1/7742",
+        "name": "Technology and Policy - Master's degree",
+        "degree_type": "Master's degree"
+      },
+      {
+        "handle": "1721.1/7741",
+        "name": "Technology and Policy - Ph.D. / Sc.D.",
+        "degree_type": "Ph.D. / Sc.D."
+      }
+    ]
+  },
+  {
+    "dept": "Various Historical Departments",
+    "handle": "1721.1/7959",
+    "sub_communities": [
+      {
+        "handle": "1721.1/16459",
+        "name": "Various Historical Departments",
+        "degree_type": "Other"
+      }
+    ]
+  }
+]

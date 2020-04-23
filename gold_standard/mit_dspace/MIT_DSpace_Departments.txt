@@ -1,0 +1,38 @@
+"https://dspace.mit.edu/handle/1721.1/7622" Theses - Biological Engineering
+"https://dspace.mit.edu/handle/1721.1/39098" Theses - Comparative Media Studies/Writing
+"https://dspace.mit.edu/handle/1721.1/39113" Theses - Computation for Design and Optimization
+"https://dspace.mit.edu/handle/1721.1/54822" Theses - Computational and Systems Biology
+"https://dspace.mit.edu/handle/1721.1/7621" Theses - Dept. of Aeronautics and Astronautics
+"https://dspace.mit.edu/handle/1721.1/7583" Theses - Dept. of Architecture
+"https://dspace.mit.edu/handle/1721.1/7589" Theses - Dept. of Biology
+"https://dspace.mit.edu/handle/1721.1/7593" Theses - Dept. of Brain and Cognitive Sciences
+"https://dspace.mit.edu/handle/1721.1/7594" Theses - Dept. of Chemical Engineering
+"https://dspace.mit.edu/handle/1721.1/7595" Theses - Dept. of Chemistry
+"https://dspace.mit.edu/handle/1721.1/7596" Theses - Dept. of Civil and Environmental Engineering
+"https://dspace.mit.edu/handle/1721.1/7597" Theses - Dept. of Earth, Atmospheric, and Planetary Sciences
+"https://dspace.mit.edu/handle/1721.1/7598" Theses - Dept. of Economics
+"https://dspace.mit.edu/handle/1721.1/7599" Theses - Dept. of Electrical Engineering and Computer Sciences
+"https://dspace.mit.edu/handle/1721.1/7600" Theses - Dept. of Humanities
+"https://dspace.mit.edu/handle/1721.1/7601" Theses - Dept. of Interdisciplinary Science
+"https://dspace.mit.edu/handle/1721.1/7602" Theses - Dept. of Linguistics and Philosophy
+"https://dspace.mit.edu/handle/1721.1/7603" Theses - Dept. of Materials Science and Engineering
+"https://dspace.mit.edu/handle/1721.1/7604" Theses - Dept. of Mathematics
+"https://dspace.mit.edu/handle/1721.1/7605" Theses - Dept. of Mechanical Engineering
+"https://dspace.mit.edu/handle/1721.1/7606" Theses - Dept. of Nuclear Engineering
+"https://dspace.mit.edu/handle/1721.1/7607" Theses - Dept. of Ocean Engineering
+"https://dspace.mit.edu/handle/1721.1/7608" Theses - Dept. of Physics
+"https://dspace.mit.edu/handle/1721.1/7609" Theses - Dept. of Political Science
+"https://dspace.mit.edu/handle/1721.1/7610" Theses - Dept. of Urban Studies and Planning
+"https://dspace.mit.edu/handle/1721.1/7612" Theses - Engineering Systems Division
+"https://dspace.mit.edu/handle/1721.1/7613" Theses - Harvard-MIT Program of Health Sciences and Technology
+"https://dspace.mit.edu/handle/1721.1/102289" Theses - Institute for Data, Systems, and Society
+"https://dspace.mit.edu/handle/1721.1/7614" Theses - Media Arts and Sciences
+"https://dspace.mit.edu/handle/1721.1/7615" Theses - Operations Research Center
+"https://dspace.mit.edu/handle/1721.1/54824" Theses - Program in Real Estate Development
+"https://dspace.mit.edu/handle/1721.1/39110" Theses - Program in Writing and Humanistic Studies
+"https://dspace.mit.edu/handle/1721.1/7617" Theses - Science, Technology, and Society
+"https://dspace.mit.edu/handle/1721.1/7618" Theses - Sloan School of Management
+"https://dspace.mit.edu/handle/1721.1/107231" Theses - Supply Chain Management
+"https://dspace.mit.edu/handle/1721.1/7737" Theses - Systems Design and Management
+"https://dspace.mit.edu/handle/1721.1/7620" Theses - Technology and Policy Program
+"https://dspace.mit.edu/handle/1721.1/7959" Theses - Various Historical Departments
