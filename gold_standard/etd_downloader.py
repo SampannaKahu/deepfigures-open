@@ -50,7 +50,7 @@ class EtdDownloader(object):
         table_element = tree.xpath(table_xpath)
         pretty_table_element = etree.tostring(table_element[0], pretty_print=True)
         table_dfs = pd.read_html(pretty_table_element)
-        table_dfs[0].to_json(save_path, indent=2)
+        table_dfs[0].to_json(save_path)
 
 
 if __name__ == "__main__":

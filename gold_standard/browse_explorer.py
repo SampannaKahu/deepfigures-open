@@ -1,67 +1,84 @@
 import os
 import logging
-from lxml import html, etree
+from lxml import html
 import util
+import json
+from typing import List
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
 
-class BrowseExplorer:
-    def __init__(self,
-                 handle: str,
-                 year: int = 1960,
-                 results_per_page: int = 20,
-                 sort_by: str = "dateissued",
-                 order: str = "ASC") -> None:
-        self.handle = handle
-        self.results_per_page = results_per_page
-        self.sort_by = sort_by
-        self.order = order
-        self.year = year
-        self.browse_url = self._build_url()
-        super().__init__()
+def get_sub_community_handles(mit_index_json_file: str) -> List[str]:
+    sub_community_handles = []
+    with open(mit_index_json_file) as fp:
+        mit_index = json.load(fp)
+    for dept in mit_index:
+        for sub_community in dept['sub_communities']:
+            sub_community_handles.append(sub_community['handle'])
+    return sub_community_handles
 
-    def _build_url(self):
-        return "https://dspace.mit.edu/handle/" \
-               + self.handle \
-               + "/browse?rpp=" \
-               + str(self.results_per_page) \
-               + "&sort_by=2&type=" \
-               + self.sort_by \
-               + "&etal=-1&order=" \
-               + self.order \
-               + "&year=" \
-               + str(self.year) \
-               + "&starts_with=&submit=Go"
 
-    def download_all_handles(self):
-        pass
+def get_total_items(collection_handle: str) -> int:
+    """
+    Sample URL:
+    https://dspace.mit.edu/handle/1721.1/7608/browse?rpp=20&offset=1&etal=-1&sort_by=2&type=dateissued&order=ASC
+    :param collection_handle:
+    :return: an integer with the total number of items in this collection.
+    """
+    url = "https://dspace.mit.edu/handle/" \
+          + collection_handle \
+          + "/browse?rpp=20&offset=1&etal=-1&sort_by=2&type=dateissued&order=ASC"
+    tree = html.fromstring(util.invoke(url).content)
+    pagination_element = tree.xpath("/html/body/div[4]/div[2]/div/div[1]/div/div/div[2]/div/div[1]/p")
+    if not len(pagination_element):
+        return 0
+    return int(pagination_element[0].text.split(" ")[-1])
 
-    def download_handles(self):
-        page = util.invoke(self.browse_url)
-        tree = html.fromstring(page.content)
-        element_list = tree.xpath("/html/body/div[4]/div[2]/div/div[1]/div/div/div[3]/ul")
-        handles = list()
-        for i in range(1, 25):
-            li = element_list[0].xpath("li[" + str(i) + "]")
-            if not len(li):
-                break
-            list_ahref = li[0].xpath("div/div[2]/div/h4/a")
-            year = int(li[0].xpath("div/div[2]/div/div/span[2]/small/span[2]")[0].text)
-            # string = li[0].attrib['href'].split("/handle/")[1]
-            handles.append({
-                'handle': list_ahref[0].attrib['href'].split("/handle/")[1],
-                'year': year
-            })
 
-        return handles
+def get_handles_on_browse_page(collection_handle: str, offset: int, rpp: int = 20) -> List[str]:
+    browse_url = "https://dspace.mit.edu/handle/" + collection_handle + "/browse?rpp=" + str(rpp) + "&offset=" \
+                 + str(offset) + "&etal=-1&sort_by=2&type=dateissued&order=ASC"
+    element_list = html.fromstring(util.invoke(browse_url).content) \
+        .xpath("/html/body/div[4]/div[2]/div/div[1]/div/div/div[3]/ul")
+    handles = list()
+    counter = 1
+    while True:
+        li = element_list[0].xpath("li[" + str(counter) + "]")
+        if not len(li):
+            break
+        handles.append({
+            'handle': li[0].xpath("div/div[2]/div/h4/a")[0].attrib['href'].split("/handle/")[1],
+            'year': int(li[0].xpath("div/div[2]/div/div/span[2]/small/span[2]")[0].text)
+        })
+        counter = counter + 1
 
-    def download_etd(self):
-        pass
+    return handles
+
+
+def download_handles_in_collection(collection_handle: str, stop_year: int = 1999, rpp: int = 100) -> List[str]:
+    print("Downloading handles for collection {}".format(collection_handle))
+    offset = 1
+    handles = []
+    total_items = get_total_items(collection_handle)
+    while len(handles) < total_items and (len(handles) == 0 or handles[-1]['year'] < stop_year):
+        handles = handles + get_handles_on_browse_page(collection_handle, offset, rpp)
+        offset = offset + rpp
+        print("Total handles downloaded: ", len(handles))
+    print("Downloaded {} handles for collection {}.".format(str(len(handles)), collection_handle))
+    return handles
+
+
+def get_file_path(handle: str) -> str:
+    return "data/" + handle.replace("/", "_").replace(".", "_") + ".json"
 
 
 if __name__ == "__main__":
-    browse_explorer = BrowseExplorer(handle="1721.1/7608")
-    browse_explorer.download_handles()
+    for handle in get_sub_community_handles("mit_depts_with_subcommunities.json"):
+        if os.path.exists(get_file_path(handle)):
+            print("Data file for {} exists. Skipping.".format(handle))
+            continue
+        handles = download_handles_in_collection(handle)
+        with open(get_file_path(handle), mode='w') as fp:
+            json.dump(handles, fp)
