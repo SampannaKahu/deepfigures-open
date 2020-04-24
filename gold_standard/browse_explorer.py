@@ -30,7 +30,10 @@ def get_total_items(collection_handle: str) -> int:
     url = "https://dspace.mit.edu/handle/" \
           + collection_handle \
           + "/browse?rpp=20&offset=1&etal=-1&sort_by=2&type=dateissued&order=ASC"
-    tree = html.fromstring(util.invoke(url).content)
+    page = util.invoke(url)
+    if page.status_code >= 400:
+        logger.error("Received status code {} for url {}".format(page.status_code, url))
+    tree = html.fromstring(page.content)
     pagination_element = tree.xpath("/html/body/div[4]/div[2]/div/div[1]/div/div/div[2]/div/div[1]/p")
     if not len(pagination_element):
         return 0
@@ -40,7 +43,10 @@ def get_total_items(collection_handle: str) -> int:
 def get_handles_on_browse_page(collection_handle: str, offset: int, rpp: int = 20) -> List[str]:
     browse_url = "https://dspace.mit.edu/handle/" + collection_handle + "/browse?rpp=" + str(rpp) + "&offset=" \
                  + str(offset) + "&etal=-1&sort_by=2&type=dateissued&order=ASC"
-    element_list = html.fromstring(util.invoke(browse_url).content) \
+    page = util.invoke(browse_url)
+    if page.status_code >= 400:
+        logger.error("Received status code {} for url {}".format(page.status_code, browse_url))
+    element_list = html.fromstring(page.content) \
         .xpath("/html/body/div[4]/div[2]/div/div[1]/div/div/div[3]/ul")
     handles = list()
     counter = 1
@@ -48,10 +54,16 @@ def get_handles_on_browse_page(collection_handle: str, offset: int, rpp: int = 2
         li = element_list[0].xpath("li[" + str(counter) + "]")
         if not len(li):
             break
-        handles.append({
-            'handle': li[0].xpath("div/div[2]/div/h4/a")[0].attrib['href'].split("/handle/")[1],
-            'year': int(li[0].xpath("div/div[2]/div/div/span[2]/small/span[2]")[0].text)
-        })
+        try:
+            handles.append({
+                'handle': li[0].xpath("div/div[2]/div/h4/a")[0].attrib['href'].split("/handle/")[1],
+                'year': int(li[0].xpath("div/div[2]/div/div/span[2]/small/span[2]")[0].text)
+            })
+        except ValueError:
+            handles.append({
+                'handle': li[0].xpath("div/div[2]/div/h4/a")[0].attrib['href'].split("/handle/")[1],
+                'year': li[0].xpath("div/div[2]/div/div/span[2]/small/span[2]")[0].text
+            })
         counter = counter + 1
 
     return handles
@@ -63,7 +75,10 @@ def download_handles_in_collection(collection_handle: str, stop_year: int = 1999
     handles = []
     total_items = get_total_items(collection_handle)
     while len(handles) < total_items and (len(handles) == 0 or handles[-1]['year'] < stop_year):
-        handles = handles + get_handles_on_browse_page(collection_handle, offset, rpp)
+        new_handles = get_handles_on_browse_page(collection_handle, offset, rpp)
+        if not len(new_handles):
+            break
+        handles = handles + new_handles
         offset = offset + rpp
         print("Total handles downloaded: ", len(handles))
     print("Downloaded {} handles for collection {}.".format(str(len(handles)), collection_handle))
