@@ -4,6 +4,7 @@ from lxml import html
 import util
 import json
 from typing import List
+import time
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(os.path.basename(__file__))
@@ -77,6 +78,7 @@ def download_handles_in_collection(collection_handle: str, stop_year: int = 1999
     handles = []
     total_items = get_total_items(collection_handle)
     while len(handles) < total_items and (len(handles) == 0 or handles[-1]['year'] < stop_year):
+        time.sleep(5)
         new_handles = get_handles_on_browse_page(collection_handle, offset, rpp)
         if not len(new_handles):
             break
@@ -93,6 +95,7 @@ def get_file_path(handle: str) -> str:
 
 if __name__ == "__main__":
     for handle in get_sub_community_handles("mit_depts_with_subcommunities.json"):
+        time.sleep(5)
         if os.path.exists(get_file_path(handle)):
             print("Data file for {} exists. Skipping.".format(handle))
             continue
