@@ -33,6 +33,7 @@ def get_total_items(collection_handle: str) -> int:
     page = util.invoke(url)
     if page.status_code >= 400:
         logger.error("Received status code {} for url {}".format(page.status_code, url))
+        return 0
     tree = html.fromstring(page.content)
     pagination_element = tree.xpath("/html/body/div[4]/div[2]/div/div[1]/div/div/div[2]/div/div[1]/p")
     if not len(pagination_element):
@@ -40,12 +41,13 @@ def get_total_items(collection_handle: str) -> int:
     return int(pagination_element[0].text.split(" ")[-1])
 
 
-def get_handles_on_browse_page(collection_handle: str, offset: int, rpp: int = 20) -> List[str]:
+def get_handles_on_browse_page(collection_handle: str, offset: int, rpp: int = 20) -> List[dict]:
     browse_url = "https://dspace.mit.edu/handle/" + collection_handle + "/browse?rpp=" + str(rpp) + "&offset=" \
                  + str(offset) + "&etal=-1&sort_by=2&type=dateissued&order=ASC"
     page = util.invoke(browse_url)
     if page.status_code >= 400:
         logger.error("Received status code {} for url {}".format(page.status_code, browse_url))
+        return []
     element_list = html.fromstring(page.content) \
         .xpath("/html/body/div[4]/div[2]/div/div[1]/div/div/div[3]/ul")
     handles = list()
@@ -95,5 +97,8 @@ if __name__ == "__main__":
             print("Data file for {} exists. Skipping.".format(handle))
             continue
         handles = download_handles_in_collection(handle)
-        with open(get_file_path(handle), mode='w') as fp:
-            json.dump(handles, fp)
+        if handles:
+            with open(get_file_path(handle), mode='w') as fp:
+                json.dump(handles, fp)
+        else:
+            logger.error("Got empty list for {}. Skipping saving.".format(handle))
