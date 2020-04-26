@@ -5,6 +5,7 @@ from lxml import html, etree
 import util
 import json
 from typing import List
+from time import sleep
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_name = str(os.path.basename(__file__).split(".")[0])
@@ -35,9 +36,10 @@ class EtdDownloader(object):
 
     def download(self) -> None:
         page = util.invoke("https://dspace.mit.edu/handle/" + self.handle + "?show=full")
-        if page.status_code >= 400:
-            logger.error("Http call failed. Response code: {}".format(page.status_code))
-            return
+        while page.status_code >= 400:
+            logger.error("Http call failed. Code: {}. Sleeping for {} secs.".format(page.status_code, 5))
+            sleep(5)
+            page = util.invoke("https://dspace.mit.edu/handle/" + self.handle + "?show=full")
         tree = html.fromstring(page.content)
         self._download_pdf(tree, self.pdf_save_path)
         self._download_metadata(tree, self.metadata_save_path)
@@ -46,6 +48,10 @@ class EtdDownloader(object):
         download_link_element = tree.xpath("/html/body/div[4]/div[2]/div/div[1]/div/div[1]/div[2]/div/div[3]/a")
         download_url = "https://dspace.mit.edu" + download_link_element[0].attrib['href']
         response = util.invoke(download_url)
+        while response.status_code >= 400:
+            logger.error("Http call failed. Code: {}. Sleeping for {} secs.".format(response.status_code, 5))
+            sleep(5)
+            response = util.invoke("https://dspace.mit.edu/handle/" + self.handle + "?show=full")
         with open(save_path, mode='wb') as save_file:
             save_file.write(response.content)
 
