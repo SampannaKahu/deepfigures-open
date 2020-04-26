@@ -11,6 +11,7 @@ import os
 import argparse
 import yaml
 import random
+import json
 
 import torch
 from torch.autograd import Variable
@@ -39,6 +40,8 @@ def parse_args():
                         help='debug mode where only one image is trained')
     parser.add_argument(
         '--tfboard', help='tensorboard path for logging', type=str, default=None)
+    parser.add_argument('--tar_files', type=str,
+                        default='/work/host-input/files.json', help='json file containing the list of tars')
     return parser.parse_args()
 
 
@@ -116,10 +119,7 @@ def main():
     #                       augmentation=cfg['AUGMENTATION'],
     #                       debug=args.debug)
 
-    input_files = [
-        's3://arxiv/src/arXiv_src_0003_001.tar',
-        's3://arxiv/src/arXiv_src_0306_001.tar'
-    ]
+    input_files = json.load(open(args.tar_files))
     dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True)
 
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=args.n_cpu)
