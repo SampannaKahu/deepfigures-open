@@ -89,19 +89,15 @@ def download_handles_in_collection(collection_handle: str, stop_year: int = 1999
     return handles
 
 
-def get_file_path(handle: str) -> str:
-    return "data/" + handle.replace("/", "_").replace(".", "_") + ".json"
-
-
 if __name__ == "__main__":
     for handle in get_sub_community_handles("mit_depts_with_subcommunities.json"):
         time.sleep(5)
-        if os.path.exists(get_file_path(handle)):
+        if os.path.exists(util.get_file_path(handle)):
             print("Data file for {} exists. Skipping.".format(handle))
             continue
         handles = download_handles_in_collection(handle)
         if handles:
-            with open(get_file_path(handle), mode='w') as fp:
+            with open(util.get_file_path(handle), mode='w') as fp:
                 json.dump(handles, fp)
         else:
             logger.error("Got empty list for {}. Skipping saving.".format(handle))

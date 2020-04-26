@@ -3,10 +3,14 @@ import pandas as pd
 import os
 from lxml import html, etree
 import util
+import json
+from typing import List
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(os.path.basename(__file__))
+file_name = str(os.path.basename(__file__).split(".")[0])
+logger = logging.getLogger(file_name)
 logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.FileHandler(file_name + '.log'))
 
 
 class EtdDownloader(object):
@@ -53,6 +57,33 @@ class EtdDownloader(object):
         table_dfs[0].to_json(save_path)
 
 
+def get_sub_communities() -> List[str]:
+    with open("mit_depts_with_subcommunities.json") as fp:
+        mit_index = json.load(fp)
+
+    handles = []
+    for dept in mit_index:
+        for sub_com in dept['sub_communities']:
+            handles.append(sub_com['handle'])
+    return handles
+
+
+def get_etd_in_sub_community(sub_comm_handle: str) -> List[dict]:
+    with open(util.get_file_path(sub_comm_handle)) as fp:
+        return json.load(fp)
+
+
 if __name__ == "__main__":
-    etd_downloader = EtdDownloader("1721.1/11833", "/tmp", create_dir_if_not_exist=True)
-    etd_downloader.download()
+    for sub_comm_handle in get_sub_communities():
+        logger.info("Starting the sub community: {}".format(sub_comm_handle))
+        if not os.path.exists(util.get_file_path(sub_comm_handle)):
+            logger.info("No file found for sub community {}. Skipping.".format(sub_comm_handle))
+            continue
+        etds_in_sub_community = get_etd_in_sub_community(sub_comm_handle)
+        if not etds_in_sub_community:
+            logger.info("No etd in sub community {}. Skipping.".format(sub_comm_handle))
+            continue
+        for etd_handle_obj in etds_in_sub_community:
+            logger.info("Starting etd: {}".format(etd_handle_obj['handle']))
+            etd_downloader = EtdDownloader(etd_handle_obj['handle'], "data/etds", create_dir_if_not_exist=True)
+            etd_downloader.download()

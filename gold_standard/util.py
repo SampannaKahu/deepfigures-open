@@ -20,3 +20,7 @@ def invoke(url: str) -> requests.Response:
         'DNT': '1'
     }
     return requests.request("GET", url, headers=headers, data=payload)
+
+
+def get_file_path(handle: str) -> str:
+    return "data/" + handle.replace("/", "_").replace(".", "_") + ".json"
