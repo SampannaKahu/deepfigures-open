@@ -35,6 +35,8 @@ class EtdDownloader(object):
         self.metadata_save_path = os.path.join(save_dir, handle.replace("/", "_") + ".xml")
 
     def download(self) -> None:
+        if os.path.exists(self.pdf_save_path) or os.path.exists(self.metadata_save_path):
+            logger.info("Skipping already downloaded etd {}.".format(self.handle))
         page = util.invoke("https://dspace.mit.edu/handle/" + self.handle + "?show=full")
         while page.status_code >= 400:
             logger.error("Http call failed. Code: {}. Sleeping for {} secs.".format(page.status_code, 5))
