@@ -25,7 +25,7 @@ def parse_args():
                         help='config file. see readme')
     parser.add_argument('--weights_path', type=str,
                         default=None, help='darknet weights file')
-    parser.add_argument('--n_cpu', type=int, default=8,
+    parser.add_argument('--n_cpu', type=int, default=settings.PROCESS_PAPER_TAR_THREAD_COUNT,
                         help='number of workers')
     parser.add_argument('--checkpoint_interval', type=int,
                         default=1000, help='interval between saving checkpoints')

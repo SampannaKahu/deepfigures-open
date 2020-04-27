@@ -76,7 +76,7 @@ elif IN_ARC:
     ARXIV_DATA_OUTPUT_DIR = '/work/cascades/sampanna/deepfigures-results/arxiv_data_output'
     ARXIV_DATA_CACHE_DIR = '/work/cascades/sampanna/deepfigures-results/download_cache'
     # Lower parallelism on local for simpler debugging.
-    PROCESS_PAPER_TAR_THREAD_COUNT = 1
+    PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
     # List of tar file to process
     FILE_LIST = '/work/cascades/sampanna/deepfigures-results/files.json'
 else:
