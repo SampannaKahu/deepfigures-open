@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 IN_DOCKER = os.environ.get('IN_DOCKER', False)
 
+ARC_CLUSTERS = ['cascades', 'newriver', 'dragonstooth', 'huckleberry']
+IN_ARC = os.environ.get('SYSNAME', 'local')
+
 # path to the deepfigures project root
 BASE_DIR = os.path.dirname(
     os.path.dirname(os.path.realpath(__file__)))
@@ -66,6 +69,16 @@ if IN_DOCKER:
     PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
     # List of tar file to process
     FILE_LIST = '/work/host-input/files.json'
+elif IN_ARC:
+    # The location to temporarily store arxiv source data
+    ARXIV_DATA_TMP_DIR = '/work/cascades/sampanna/deepfigures-results/arxiv_data_temp'
+    # The location to store the final output labels
+    ARXIV_DATA_OUTPUT_DIR = '/work/cascades/sampanna/deepfigures-results/arxiv_data_output'
+    ARXIV_DATA_CACHE_DIR = '/work/cascades/sampanna/deepfigures-results/download_cache'
+    # Lower parallelism on local for simpler debugging.
+    PROCESS_PAPER_TAR_THREAD_COUNT = 1
+    # List of tar file to process
+    FILE_LIST = '/work/cascades/sampanna/deepfigures-results/files.json'
 else:
     # The location to temporarily store arxiv source data
     ARXIV_DATA_TMP_DIR = '/home/sampanna/workspace/bdts2/deepfigures-results/arxiv_data_temp'

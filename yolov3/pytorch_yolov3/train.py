@@ -6,6 +6,7 @@ from yolov3 import YOLOv3
 from yolo_layer import YOLOLayer
 from deepfigures.data_generation.arxiv_dataset import ArxivDataSet
 from torch.utils.data.dataloader import DataLoader
+from deepfigures import settings
 
 import os
 import argparse
@@ -41,7 +42,7 @@ def parse_args():
     parser.add_argument(
         '--tfboard', help='tensorboard path for logging', type=str, default=None)
     parser.add_argument('--tar_files', type=str,
-                        default='/work/host-input/files.json', help='json file containing the list of tars')
+                        default=settings.FILE_LIST, help='json file containing the list of tars')
     return parser.parse_args()
 
 
