@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 IN_DOCKER = os.environ.get('IN_DOCKER', False)
 
 ARC_CLUSTERS = ['cascades', 'newriver', 'dragonstooth', 'huckleberry']
-IN_ARC = os.environ.get('SYSNAME', 'local')
+IN_ARC = os.environ.get('SYSNAME', 'local') in ARC_CLUSTERS
 
 # path to the deepfigures project root
 BASE_DIR = os.path.dirname(
