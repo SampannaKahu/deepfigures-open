@@ -8,9 +8,11 @@ from imgaug import augmenters as iaa
 logger = logging.getLogger(__name__)
 
 IN_DOCKER = os.environ.get('IN_DOCKER', False)
-
+IN_IR = os.environ.get('HOSTNAME', 'local') is 'ir.cs.vt.edu'
 ARC_CLUSTERS = ['cascades', 'newriver', 'dragonstooth', 'huckleberry']
 IN_ARC = os.environ.get('SYSNAME', 'local') in ARC_CLUSTERS
+ECE_HOSTNAMES = ['big.lan.ece', 'cluster01', 'cluster02', 'cluster03', 'cluster04', 'cluster05', 'cluster06', 'cluster07', 'cluster08', 'cluster09', 'cluster10', 'cluster11', 'cluster12', 'cluster13', 'cluster14', 'cluster15']
+IN_ECE = os.environ.get('HOSTNAME', 'local') in ECE_HOSTNAMES
 
 # path to the deepfigures project root
 BASE_DIR = os.path.dirname(
@@ -79,6 +81,26 @@ elif IN_ARC:
     PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
     # List of tar file to process
     FILE_LIST = '/work/cascades/sampanna/deepfigures-results/files.json'
+elif IN_ECE:
+    # The location to temporarily store arxiv source data
+    ARXIV_DATA_TMP_DIR = '/home/sampanna/deepfigures-results/arxiv_data_temp'
+    # The location to store the final output labels
+    ARXIV_DATA_OUTPUT_DIR = '/home/sampanna/deepfigures-results/arxiv_data_output'
+    ARXIV_DATA_CACHE_DIR = '/home/sampanna/deepfigures-results/download_cache'
+    # Lower parallelism on local for simpler debugging.
+    PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
+    # List of tar file to process
+    FILE_LIST = '/home/sampanna/deepfigures-results/files.json'
+elif IN_IR:
+    # The location to temporarily store arxiv source data
+    ARXIV_DATA_TMP_DIR = '/home/sampanna/deepfigures-results/arxiv_data_temp'
+    # The location to store the final output labels
+    ARXIV_DATA_OUTPUT_DIR = '/home/sampanna/deepfigures-results/arxiv_data_output'
+    ARXIV_DATA_CACHE_DIR = '/home/sampanna/deepfigures-results/download_cache'
+    # Lower parallelism on local for simpler debugging.
+    PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
+    # List of tar file to process
+    FILE_LIST = '/home/sampanna/deepfigures-results/files.json'
 else:
     # The location to temporarily store arxiv source data
     ARXIV_DATA_TMP_DIR = '/home/sampanna/workspace/bdts2/deepfigures-results/arxiv_data_temp'
