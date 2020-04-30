@@ -117,38 +117,40 @@ def transform_figure_json(result_path: str = None):
 
 
 class PaperTarProcessor:
-    def __init__(self, paper_tarname: str, worker_id: int = None) -> None:
+    def __init__(self, paper_tarname: str, worker_id: int = None,
+                 work_dir_prefix: str = os.environ.get('HOSTNAME', '')) -> None:
         super().__init__()
 
         Image.MAX_IMAGE_PIXELS = int(1e8)  # Don't render very large PDFs.
         Image.warnings.simplefilter('error', Image.DecompressionBombWarning)
 
         self.paper_tarname = paper_tarname
-        self.worker_id = worker_id
+        self.work_dir_prefix = work_dir_prefix
+        self.worker_id = self.work_dir_prefix + '_' + str(worker_id)
 
         self.ARXIV_SRC_DIR = os.path.join(
             settings.ARXIV_DATA_OUTPUT_DIR,
             'src/')
         if self.worker_id is not None:
-            self.ARXIV_SRC_DIR = self.ARXIV_SRC_DIR + str(self.worker_id) + '/'
+            self.ARXIV_SRC_DIR = self.ARXIV_SRC_DIR + self.worker_id + '/'
 
         self.ARXIV_MODIFIED_SRC_DIR = os.path.join(
             settings.ARXIV_DATA_OUTPUT_DIR,
             'modified_src/')
         if self.worker_id is not None:
-            self.ARXIV_MODIFIED_SRC_DIR = self.ARXIV_MODIFIED_SRC_DIR + str(self.worker_id) + '/'
+            self.ARXIV_MODIFIED_SRC_DIR = self.ARXIV_MODIFIED_SRC_DIR + self.worker_id + '/'
 
         self.ARXIV_DIFF_DIR = os.path.join(
             settings.ARXIV_DATA_OUTPUT_DIR,
             'diffs_%ddpi/' % settings.DEFAULT_INFERENCE_DPI)
         if self.worker_id is not None:
-            self.ARXIV_DIFF_DIR = self.ARXIV_DIFF_DIR + str(self.worker_id) + '/'
+            self.ARXIV_DIFF_DIR = self.ARXIV_DIFF_DIR + self.worker_id + '/'
 
         self.ARXIV_FIGURE_JSON_DIR = os.path.join(
             settings.ARXIV_DATA_OUTPUT_DIR,
             'figure-jsons/')
         if self.worker_id is not None:
-            self.ARXIV_FIGURE_JSON_DIR = self.ARXIV_FIGURE_JSON_DIR + str(self.worker_id) + '/'
+            self.ARXIV_FIGURE_JSON_DIR = self.ARXIV_FIGURE_JSON_DIR + self.worker_id + '/'
 
         clean_up_directory(self.ARXIV_SRC_DIR)
         clean_up_directory(self.ARXIV_MODIFIED_SRC_DIR)
