@@ -2,13 +2,14 @@
 
 import logging
 import os
+import socket
 
 from imgaug import augmenters as iaa
 
 logger = logging.getLogger(__name__)
 
 IN_DOCKER = os.environ.get('IN_DOCKER', False)
-IN_IR = os.environ.get('HOSTNAME', 'local') is 'ir.cs.vt.edu'
+IN_IR = os.environ.get('HOSTNAME', 'local') is 'ir.cs.vt.edu' or socket.gethostname() == 'ir.cs.vt.edu'
 ARC_CLUSTERS = ['cascades', 'newriver', 'dragonstooth', 'huckleberry']
 IN_ARC = os.environ.get('SYSNAME', 'local') in ARC_CLUSTERS
 ECE_HOSTNAMES = ['big.lan.ece', 'cluster01', 'cluster02', 'cluster03', 'cluster04', 'cluster05', 'cluster06',
@@ -73,6 +74,7 @@ if IN_DOCKER:
     PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
     # List of tar file to process
     FILE_LIST = '/work/host-input/files.json'
+    PDFLATEX_EXECUTABLE_PATH = 'pdflatex'
 elif IN_ARC:
     # The location to temporarily store arxiv source data
     ARXIV_DATA_TMP_DIR = '/work/' + os.environ.get('SYSNAME',
@@ -87,6 +89,7 @@ elif IN_ARC:
     # List of tar file to process
     FILE_LIST = '/work/' + os.environ.get('SYSNAME',
                                           'cascades') + '/sampanna/deepfigures-results/files.json'
+    PDFLATEX_EXECUTABLE_PATH = '/home/sampanna/texlive/install-tl-20200425/texlive/installation/2020/bin/x86_64-linux/pdflatex'
 elif IN_ECE:
     # The location to temporarily store arxiv source data
     ARXIV_DATA_TMP_DIR = '/home/sampanna/deepfigures-results/arxiv_data_temp'
@@ -97,6 +100,7 @@ elif IN_ECE:
     PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
     # List of tar file to process
     FILE_LIST = '/home/sampanna/deepfigures-results/files.json'
+    PDFLATEX_EXECUTABLE_PATH = '/home/sampanna/texlive/2020/bin/x86_64-linux/pdflatex'
 elif IN_IR:
     # The location to temporarily store arxiv source data
     ARXIV_DATA_TMP_DIR = '/home/sampanna/deepfigures-results/arxiv_data_temp'
@@ -107,6 +111,7 @@ elif IN_IR:
     PROCESS_PAPER_TAR_THREAD_COUNT = 2 * os.cpu_count()
     # List of tar file to process
     FILE_LIST = '/home/sampanna/deepfigures-results/files.json'
+    PDFLATEX_EXECUTABLE_PATH = '/home/sampanna/texlive/2020/bin/x86_64-linux/pdflatex'
 else:
     # The location to temporarily store arxiv source data
     ARXIV_DATA_TMP_DIR = '/home/sampanna/workspace/bdts2/deepfigures-results/arxiv_data_temp'
@@ -117,6 +122,7 @@ else:
     PROCESS_PAPER_TAR_THREAD_COUNT = 1
     # List of tar file to process
     FILE_LIST = '/home/sampanna/workspace/bdts2/deepfigures-results/files.json'
+    PDFLATEX_EXECUTABLE_PATH = 'pdflatex'
 
 # The location of the PMC open access data
 PUBMED_INPUT_DIR = ''

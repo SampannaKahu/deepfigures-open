@@ -13,6 +13,7 @@ from deepfigures.extraction.renderers import PDFRenderer
 from deepfigures.extraction.exceptions import LatexException
 from deepfigures.extraction.datamodels import (BoxClass, Figure)
 from deepfigures.settings import DEFAULT_INFERENCE_DPI
+from deepfigures.settings import PDFLATEX_EXECUTABLE_PATH
 
 
 def call_pdflatex(
@@ -26,7 +27,7 @@ def call_pdflatex(
     file_util.safe_makedirs(dest_dir)
     # Shell-escape required due to https://www.scivision.co/pdflatex-error-epstopdf-output-filename-not-allowed-in-restricted-mode/
     cmd = [
-        'pdflatex', '-interaction=nonstopmode', '-shell-escape',
+        PDFLATEX_EXECUTABLE_PATH, '-interaction=nonstopmode', '-shell-escape',
         '-output-directory=' + dest_dir, src_tex
     ]
     # Run twice so that citations are built correctly

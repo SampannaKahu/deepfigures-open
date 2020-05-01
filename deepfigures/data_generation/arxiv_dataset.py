@@ -2,6 +2,7 @@ import torch
 from torch.utils.data.dataloader import DataLoader
 
 import os
+import socket
 import cv2
 import glob
 import queue
@@ -106,7 +107,7 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         :param file_name: the name of the zipped file that this worker will process next.
         :return: None.
         """
-        worker_tmpdir = settings.ARXIV_DATA_TMP_DIR + '/' + os.environ.get('HOSTNAME', '') + str(worker_id) + '/'
+        worker_tmpdir = settings.ARXIV_DATA_TMP_DIR + '/' + socket.gethostname() + '_' + str(worker_id) + '/'
         if os.path.exists(worker_tmpdir):
             shutil.rmtree(worker_tmpdir)
         os.makedirs(worker_tmpdir)
