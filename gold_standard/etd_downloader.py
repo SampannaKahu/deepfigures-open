@@ -31,8 +31,8 @@ class EtdDownloader(object):
                 os.makedirs(save_dir, exist_ok=True)
             else:
                 raise ValueError("save_dir does not exist or is not a directory.")
-        self.pdf_save_path = os.path.join(save_dir, handle.replace("/", "_") + ".pdf")
-        self.metadata_save_path = os.path.join(save_dir, handle.replace("/", "_") + ".xml")
+        self.pdf_save_path = os.path.join(save_dir, handle.replace("/", "_").replace(".", "_") + ".pdf")
+        self.metadata_save_path = os.path.join(save_dir, handle.replace("/", "_").replace(".", "_") + ".json")
 
     def download(self) -> None:
         if os.path.exists(self.pdf_save_path) or os.path.exists(self.metadata_save_path):

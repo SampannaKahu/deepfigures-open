@@ -53,4 +53,4 @@ if __name__ == "__main__":
     for figure_path in figure_paths:
         fig_idx = int(figure_path.split('-')[-1].split('.png')[0].split('page')[1]) - 1
         page_bbs = result_json['raw_detected_boxes'][fig_idx]
-        plot_bbs(figure_path, page_bbs, save_fig=False)
+        plot_bbs(figure_path, page_bbs, save_fig=True)
