@@ -1,0 +1,36 @@
+import os
+import glob
+import shutil
+import logging
+from deepfigures.utils import settings_utils
+from deepfigures import settings
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(os.path.basename(__file__))
+logger.setLevel(logging.DEBUG)
+
+pdf_renderer = settings_utils.import_setting(settings.DEEPFIGURES_PDF_RENDERER)()
+
+input_pattern = '/home/sampanna/mit_etd_data/data/etds/*.pdf'
+output_dir = '/home/sampanna/mit_etd_data/page_images'
+
+pdf_paths = list(map(os.path.abspath, glob.glob(input_pattern)))
+logger.info("Total paths obtained: {path_count}".format(path_count=len(pdf_paths)))
+
+for pdf_path in pdf_paths:
+    logger.info(" ")
+    logger.info("----------------------------------------------------------------------------------------")
+    logger.info("Converting {pdf}.".format(pdf=pdf_path))
+    image_paths = pdf_renderer.render(
+        pdf_path=pdf_path,
+        dpi=100,
+        max_pages=500,
+        output_dir=output_dir
+    )
+    for image_path in image_paths:
+        dest_image_path = os.path.join(output_dir, os.path.basename(image_path))
+        logger.info("Moving {src} to {dest}".format(src=image_path, dest=dest_image_path))
+        os.rename(image_path, dest_image_path)
+        logger.info("Moved {src} to {dest}".format(src=image_path, dest=dest_image_path))
+    dir_to_delete = os.path.dirname(os.path.dirname(os.path.dirname(image_paths[0])))
+    shutil.rmtree(dir_to_delete)

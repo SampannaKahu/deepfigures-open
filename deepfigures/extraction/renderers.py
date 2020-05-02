@@ -120,7 +120,7 @@ class PDFRenderer(object):
 
         if not os.path.isdir(output_dir):
             raise IOError(
-                "Output directory ({}) does not exist.".format(output))
+                "Output directory ({}) does not exist.".format(output_dir))
 
         pdf_name = os.path.basename(pdf_path)
 
