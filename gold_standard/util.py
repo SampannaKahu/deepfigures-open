@@ -23,4 +23,12 @@ def invoke(url: str) -> requests.Response:
 
 
 def get_file_path(handle: str) -> str:
-    return "data/" + handle.replace("/", "_").replace(".", "_") + ".json"
+    return "data/" + handle_to_filename(handle)
+
+
+def handle_to_filename(handle: str) -> str:
+    return handle.replace('/', '_').replace('.', '_') + '.json'
+
+
+def filename_to_handle(filename: str) -> str:
+    return filename.split('.json')[0].replace('_', '.', 1).replace('_', '/', 1)
