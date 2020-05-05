@@ -29,12 +29,14 @@ for pdf_path in pdf_paths:
         pdf_path=pdf_path,
         dpi=100,
         max_pages=500,
-        output_dir=output_dir
+        output_dir=output_dir,
+        use_cache=False
     )
     for image_path in image_paths:
         dest_image_path = os.path.join(output_dir, os.path.basename(image_path))
         logger.info("Moving {src} to {dest}".format(src=image_path, dest=dest_image_path))
         os.rename(image_path, dest_image_path)
         logger.info("Moved {src} to {dest}".format(src=image_path, dest=dest_image_path))
-    dir_to_delete = os.path.dirname(os.path.dirname(os.path.dirname(image_paths[0])))
-    shutil.rmtree(dir_to_delete)
+    if image_paths and os.path.exists(os.path.dirname(os.path.dirname(os.path.dirname(image_paths[0])))):
+        dir_to_delete = os.path.dirname(os.path.dirname(os.path.dirname(image_paths[0])))
+        shutil.rmtree(dir_to_delete)
