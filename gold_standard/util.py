@@ -32,3 +32,7 @@ def handle_to_filename(handle: str) -> str:
 
 def filename_to_handle(filename: str) -> str:
     return filename.split('.json')[0].replace('_', '.', 1).replace('_', '/', 1)
+
+
+def handle_to_pdffilename(handle: str) -> str:
+    return handle.replace('/', '_').replace('.', '_') + '.pdf'

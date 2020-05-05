@@ -1,5 +1,7 @@
 import os
 import glob
+import json
+import util
 import shutil
 import logging
 from deepfigures.utils import settings_utils
@@ -11,10 +13,12 @@ logger.setLevel(logging.DEBUG)
 
 pdf_renderer = settings_utils.import_setting(settings.DEEPFIGURES_PDF_RENDERER)()
 
-input_pattern = '/home/sampanna/mit_etd_data/data/etds/*.pdf'
 output_dir = '/home/sampanna/mit_etd_data/page_images'
 
-pdf_paths = list(map(os.path.abspath, glob.glob(input_pattern)))
+# input_pattern = '/home/sampanna/mit_etd_data/data/etds/*.pdf'
+# pdf_paths = list(map(os.path.abspath, glob.glob(input_pattern)))
+pdf_paths = ['/home/sampanna/mit_etd_data/data/etds/' + util.handle_to_pdffilename(handle) for handle in
+             json.load(open('data/sampled_etds.json'))]
 logger.info("Total paths obtained: {path_count}".format(path_count=len(pdf_paths)))
 
 for pdf_path in pdf_paths:
