@@ -25,6 +25,8 @@ def parse_args():
     parser.add_argument('--images_per_zip', type=int, default=500, help='Maximum number of images per zip file.')
     parser.add_argument('--zip_save_dir', type=str, default='/tmp',
                         help='Provide the path where all the generated zips will be saved.')
+    parser.add_argument('--work_dir_prefix', type=str, default=settings.HOSTNAME,
+                        help='The prefix for the work directory of each instance of ArxivDataset.')
     return parser.parse_args()
 
 
@@ -46,12 +48,12 @@ def get_zipfile_name(zip_file_id: int) -> str:
 if __name__ == "__main__":
     """
     Command to invoke:
-    python training_data_generator.py --file_list_json /home/sampanna/deepfigures-results/files.json --n_cpu=1 --images_per_zip=2 --zip_save_dir=/tmp
+    /home/sampanna/.conda/envs/deepfigures/bin/python /home/sampanna/deepfigures-open/deepfigures/data_generation/training_data_generator.py --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json --images_per_zip=500 --zip_save_dir=/work/cascades/sampanna/deepfigures-results/pregenerated_training_data/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" --n_cpu=1 --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts"
     """
     args = parse_args()
     os.makedirs(args.zip_save_dir, exist_ok=True)
     input_files = json.load(open(args.file_list_json))
-    dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True)
+    dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True, work_dir_prefix=args.work_dir_prefix)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=args.n_cpu)
     data_iterator = iter(data_loader)
 

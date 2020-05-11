@@ -6,4 +6,4 @@ sudo ./ir_job.sh 2>&1 | tee -a output.log
 
 ## For pregenerating training data
 
-sbatch --array=0-39 pregenerate_data.sh
+sbatch --array=0-2632 pregenerate_data.sh
