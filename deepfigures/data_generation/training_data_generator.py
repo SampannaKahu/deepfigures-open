@@ -44,6 +44,10 @@ def get_zipfile_name(zip_file_id: int) -> str:
 
 
 if __name__ == "__main__":
+    """
+    Command to invoke:
+    python training_data_generator.py --file_list_json /home/sampanna/deepfigures-results/files.json --n_cpu=1 --images_per_zip=2 --zip_save_dir=/tmp
+    """
     args = parse_args()
     os.makedirs(args.zip_save_dir, exist_ok=True)
     input_files = json.load(open(args.file_list_json))
