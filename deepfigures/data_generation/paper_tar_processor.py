@@ -1,5 +1,4 @@
 import os
-import socket
 import tarfile
 import logging
 
@@ -119,7 +118,7 @@ def transform_figure_json(result_path: str = None):
 
 class PaperTarProcessor:
     def __init__(self, paper_tarname: str, worker_id: int = None,
-                 work_dir_prefix: str = socket.gethostname()) -> None:
+                 work_dir_prefix: str = settings.HOSTAME) -> None:
         super().__init__()
 
         Image.MAX_IMAGE_PIXELS = int(1e8)  # Don't render very large PDFs.

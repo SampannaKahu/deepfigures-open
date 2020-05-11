@@ -8,8 +8,10 @@ from imgaug import augmenters as iaa
 
 logger = logging.getLogger(__name__)
 
+HOSTAME = socket.gethostname()
+
 IN_DOCKER = os.environ.get('IN_DOCKER', False)
-IN_IR = os.environ.get('HOSTNAME', 'local') is 'ir.cs.vt.edu' or socket.gethostname() == 'ir.cs.vt.edu'
+IN_IR = os.environ.get('HOSTNAME', 'local') is 'ir.cs.vt.edu' or HOSTAME == 'ir.cs.vt.edu'
 ARC_CLUSTERS = ['cascades', 'newriver', 'dragonstooth', 'huckleberry']
 IN_ARC = os.environ.get('SYSNAME', 'local') in ARC_CLUSTERS
 ECE_HOSTNAMES = ['big.lan.ece', 'cluster01', 'cluster02', 'cluster03', 'cluster04', 'cluster05', 'cluster06',
