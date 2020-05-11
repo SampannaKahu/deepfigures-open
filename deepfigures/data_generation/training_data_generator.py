@@ -56,7 +56,6 @@ if __name__ == "__main__":
     data_iterator = iter(data_loader)
 
     zip_file_id = 0
-    os.remove(os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)))
     z = ZipFile(os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)), mode='w')
 
     file_counter = 0
@@ -85,5 +84,4 @@ if __name__ == "__main__":
             z.close()
             file_counter = 0
             zip_file_id = zip_file_id + 1
-            os.remove(os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)))
             z = ZipFile(os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)), mode='w')
