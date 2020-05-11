@@ -27,6 +27,8 @@
 #   #SBATCH --ntasks=50
 #   #SBATCH --spread-job
 #SBATCH --ntasks=1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=sampanna@vt.edu
 
