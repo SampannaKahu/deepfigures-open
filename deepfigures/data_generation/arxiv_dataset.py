@@ -60,7 +60,7 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
     Further details about the implementation are provided in the documentation of each method of this class.
     """
 
-    def __init__(self, list_of_files=None, shuffle_input=True) -> None:
+    def __init__(self, list_of_files=None, shuffle_input=True, work_dir_prefix: str = settings.HOSTNAME) -> None:
         """
         This class initializes the queue and the contexts for each worker.
         Irrespective of the number of workers in the DataLoader, this constructor will be
@@ -81,6 +81,8 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         :param shuffle_input: if True, will randomly shuffle the input.
         """
         super().__init__()
+        self.work_dir_prefix = work_dir_prefix
+
         if not list_of_files:
             list_of_files = []
 
@@ -106,7 +108,7 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         :param file_name: the name of the zipped file that this worker will process next.
         :return: None.
         """
-        worker_tmpdir = settings.ARXIV_DATA_TMP_DIR + '/' + settings.HOSTAME + '_' + str(worker_id) + '/'
+        worker_tmpdir = settings.ARXIV_DATA_TMP_DIR + '/' + settings.HOSTNAME + '_' + str(worker_id) + '/'
         if os.path.exists(worker_tmpdir):
             shutil.rmtree(worker_tmpdir)
         os.makedirs(worker_tmpdir)

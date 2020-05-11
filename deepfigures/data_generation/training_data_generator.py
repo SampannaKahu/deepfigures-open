@@ -40,7 +40,7 @@ def plot_png_image(path: str):
 
 
 def get_zipfile_name(zip_file_id: int) -> str:
-    return settings.HOSTAME + '_' + str(zip_file_id) + '.zip'
+    return settings.HOSTNAME + '_' + str(zip_file_id) + '.zip'
 
 
 if __name__ == "__main__":
