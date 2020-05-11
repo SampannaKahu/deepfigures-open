@@ -26,14 +26,13 @@
 #   #SBATCH --nodes=5
 #   #SBATCH --ntasks=50
 #   #SBATCH --spread-job
-#SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
+#SBATCH --exclusive
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=sampanna@vt.edu
 
 #### Walltime ####
-#SBATCH -t 4:00:00
+#SBATCH -t 10:00:00
 
 #### Queue ####
 # Queue name. Cascades has five queues:
@@ -42,7 +41,7 @@
 #   dev_q           for development/debugging jobs. These jobs must be short but can be large.
 #   v100_normal_q   for production jobs on Skylake/V100 nodes
 #   v100_dev_q      for development/debugging jobs on Skylake/V100 nodes
-#SBATCH -p normal_q
+#SBATCH -p k80_q
 #SBATCH -A waingram_lab
 
 module purge
@@ -77,7 +76,14 @@ fi
 
 i=$SLURM_ARRAY_TASK_ID
 
-/home/sampanna/.conda/envs/deepfigures/bin/python /home/sampanna/deepfigures-open/deepfigures/data_generation/training_data_generator.py --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json --images_per_zip=500 --zip_save_dir=/work/cascades/sampanna/deepfigures-results/pregenerated_training_data/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" --n_cpu=1 --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts"
+
+NUM_CPUS=$(lscpu | grep "CPU(s)" | head -1 | awk -F' ' '{print $2}')
+NUM_CPUS_TIMES_2=$((NUM_CPUS * 2))
+
+echo "Number of CPUs : $NUM_CPUS"
+echo "Number of CPUs times 2 : $NUM_CPUS_TIMES_2"
+
+/home/sampanna/.conda/envs/deepfigures/bin/python /home/sampanna/deepfigures-open/deepfigures/data_generation/training_data_generator.py --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json --images_per_zip=500 --zip_save_dir=/work/cascades/sampanna/deepfigures-results/pregenerated_training_data/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" --n_cpu=$NUM_CPUS_TIMES_2 --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts"
 
 echo "Job ended. Job ID: $SLURM_JOBID . Array ID: $i"
 
