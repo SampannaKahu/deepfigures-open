@@ -118,7 +118,8 @@ def transform_figure_json(result_path: str = None):
 
 class PaperTarProcessor:
     def __init__(self, paper_tarname: str, worker_id: int = None,
-                 work_dir_prefix: str = settings.HOSTNAME) -> None:
+                 work_dir_prefix: str = settings.HOSTNAME,
+                 arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR) -> None:
         super().__init__()
 
         Image.MAX_IMAGE_PIXELS = int(1e8)  # Don't render very large PDFs.
@@ -127,27 +128,28 @@ class PaperTarProcessor:
         self.paper_tarname = paper_tarname
         self.work_dir_prefix = work_dir_prefix
         self.worker_id = self.work_dir_prefix + '_' + str(worker_id)
+        self.arxiv_data_output_dir = arxiv_data_output_dir
 
         self.ARXIV_SRC_DIR = os.path.join(
-            settings.ARXIV_DATA_OUTPUT_DIR,
+            self.arxiv_data_output_dir,
             'src/')
         if self.worker_id is not None:
             self.ARXIV_SRC_DIR = self.ARXIV_SRC_DIR + self.worker_id + '/'
 
         self.ARXIV_MODIFIED_SRC_DIR = os.path.join(
-            settings.ARXIV_DATA_OUTPUT_DIR,
+            self.arxiv_data_output_dir,
             'modified_src/')
         if self.worker_id is not None:
             self.ARXIV_MODIFIED_SRC_DIR = self.ARXIV_MODIFIED_SRC_DIR + self.worker_id + '/'
 
         self.ARXIV_DIFF_DIR = os.path.join(
-            settings.ARXIV_DATA_OUTPUT_DIR,
+            self.arxiv_data_output_dir,
             'diffs_%ddpi/' % settings.DEFAULT_INFERENCE_DPI)
         if self.worker_id is not None:
             self.ARXIV_DIFF_DIR = self.ARXIV_DIFF_DIR + self.worker_id + '/'
 
         self.ARXIV_FIGURE_JSON_DIR = os.path.join(
-            settings.ARXIV_DATA_OUTPUT_DIR,
+            self.arxiv_data_output_dir,
             'figure-jsons/')
         if self.worker_id is not None:
             self.ARXIV_FIGURE_JSON_DIR = self.ARXIV_FIGURE_JSON_DIR + self.worker_id + '/'

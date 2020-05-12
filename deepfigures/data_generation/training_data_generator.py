@@ -27,6 +27,12 @@ def parse_args():
                         help='Provide the path where all the generated zips will be saved.')
     parser.add_argument('--work_dir_prefix', type=str, default=settings.HOSTNAME,
                         help='The prefix for the work directory of each instance of ArxivDataset.')
+    parser.add_argument('--arxiv_tmp_dir', type=str, default=settings.ARXIV_DATA_TMP_DIR,
+                        help='The tmp directory for arxiv data.')
+    parser.add_argument('--arxiv_cache_dir', type=str, default=settings.ARXIV_DATA_CACHE_DIR,
+                        help='The download cache for arxiv data.')
+    parser.add_argument('--arxiv_data_output_dir', type=str, default=settings.ARXIV_DATA_OUTPUT_DIR,
+                        help='The output directory for arxiv data.')
     return parser.parse_args()
 
 
@@ -48,12 +54,22 @@ def get_zipfile_name(zip_file_id: int) -> str:
 if __name__ == "__main__":
     """
     Command to invoke:
-    /home/sampanna/.conda/envs/deepfigures/bin/python /home/sampanna/deepfigures-open/deepfigures/data_generation/training_data_generator.py --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json --images_per_zip=500 --zip_save_dir=/work/cascades/sampanna/deepfigures-results/pregenerated_training_data/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" --n_cpu=1 --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts"
+    /home/sampanna/.conda/envs/deepfigures/bin/python /home/sampanna/deepfigures-open/deepfigures/data_generation/training_data_generator.py \
+        --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json \
+        --images_per_zip=500 \
+        --zip_save_dir=/work/cascades/sampanna/deepfigures-results/pregenerated_training_data/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
+        --n_cpu=1 \
+        --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
+        --arxiv_tmp_dir /scratch-ssd/arxiv_data_temp \
+        --arxiv_cache_dir /scratch-ssd/download_dache \
+        --arxiv_data_output_dir /scratch-ssd/arxiv_data_output
     """
     args = parse_args()
     os.makedirs(args.zip_save_dir, exist_ok=True)
     input_files = json.load(open(args.file_list_json))
-    dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True, work_dir_prefix=args.work_dir_prefix)
+    dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True, work_dir_prefix=args.work_dir_prefix,
+                           arxiv_tmp_dir=args.arxiv_tmp_dir, arxiv_cache_dir=args.arxiv_cache_dir,
+                           arxiv_data_output_dir=args.arxiv_data_output_dir)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=args.n_cpu)
     data_iterator = iter(data_loader)
 

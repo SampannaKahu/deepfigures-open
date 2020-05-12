@@ -418,13 +418,13 @@ def process_paper_tar_with_timeout(paper_tarname: str) -> None:
 
 
 def download_and_extract_tar(
-        tarname: str, extract_dir: str, n_attempts: int = 100
+        tarname: str, extract_dir: str, n_attempts: int = 100, cache_dir: str = settings.ARXIV_DATA_CACHE_DIR
 ) -> None:
     print('.', end='', flush=True)
     logging.info('Downloading %s' % tarname)
     for attempt in range(n_attempts):
         try:
-            cached_file = file_util.cache_file_2(tarname, cache_dir=settings.ARXIV_DATA_CACHE_DIR)
+            cached_file = file_util.cache_file_2(tarname, cache_dir=cache_dir)
             break
         except FileNotFoundError:
             if attempt == n_attempts - 1:

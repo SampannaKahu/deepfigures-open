@@ -60,7 +60,10 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
     Further details about the implementation are provided in the documentation of each method of this class.
     """
 
-    def __init__(self, list_of_files=None, shuffle_input=True, work_dir_prefix: str = settings.HOSTNAME) -> None:
+    def __init__(self, list_of_files=None, shuffle_input=True, work_dir_prefix: str = settings.HOSTNAME,
+                 arxiv_tmp_dir: str = settings.ARXIV_DATA_TMP_DIR,
+                 arxiv_cache_dir: str = settings.ARXIV_DATA_CACHE_DIR,
+                 arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR) -> None:
         """
         This class initializes the queue and the contexts for each worker.
         Irrespective of the number of workers in the DataLoader, this constructor will be
@@ -82,6 +85,9 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         """
         super().__init__()
         self.work_dir_prefix = work_dir_prefix
+        self.arxiv_tmp_dir = arxiv_tmp_dir
+        self.arxiv_cache_dir = arxiv_cache_dir
+        self.arxiv_data_output_dir = arxiv_data_output_dir
 
         if not list_of_files:
             list_of_files = []
@@ -108,11 +114,11 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         :param file_name: the name of the zipped file that this worker will process next.
         :return: None.
         """
-        worker_tmpdir = settings.ARXIV_DATA_TMP_DIR + '/' + self.work_dir_prefix + '_' + str(worker_id) + '/'
+        worker_tmpdir = self.arxiv_tmp_dir + '/' + self.work_dir_prefix + '_' + str(worker_id) + '/'
         if os.path.exists(worker_tmpdir):
             shutil.rmtree(worker_tmpdir)
         os.makedirs(worker_tmpdir)
-        arxiv_pipeline.download_and_extract_tar(file_name, extract_dir=worker_tmpdir)
+        arxiv_pipeline.download_and_extract_tar(file_name, extract_dir=worker_tmpdir, cache_dir=self.arxiv_cache_dir)
         paper_tarnames = glob.glob(os.path.join(worker_tmpdir, '*/*.gz'))
         self.worker_id_to_context_map[worker_id] = {
             FILE_NAME: file_name,
@@ -168,7 +174,8 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
 
                 paper_tar_name = self.worker_id_to_context_map[worker_id][PAPER_TAR_NAMES].pop(0)
                 paper_tar_processor = PaperTarProcessor(paper_tarname=paper_tar_name, worker_id=worker_id,
-                                                        work_dir_prefix=self.work_dir_prefix)
+                                                        work_dir_prefix=self.work_dir_prefix,
+                                                        arxiv_data_output_dir=self.arxiv_data_output_dir)
                 try:
                     result_tuple = paper_tar_processor.process_paper_tar()
                     if result_tuple:
@@ -177,29 +184,13 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                     logging.warning(
                         'Unhandled exception caught while processing paper tar. Suppressing it and moving forward. Worker ID: {}. paper_tar_name: {}'.format(
                             worker_id, paper_tar_name))
-            # print("-----------------------------------------------------------------------------------------------------------------------------------------------", flush=True)
-            # print(figure_boundaries)
             figure_boundaries = separate_figure_boundaries(figure_boundaries)
-            # print("-----------------------------------------------------------------------------------------------------------------------------------------------", flush=True)
-            # print(figure_boundaries, flush=True)
             self.worker_id_to_context_map[worker_id][FIGURE_JSONS] = figure_boundaries
 
         figure_json_retval = self.worker_id_to_context_map[worker_id][FIGURE_JSONS].pop()
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
         procesed_img, labels = utils.figure_json_to_yolo_v3_value(figure_json_retval)
-        # print(procesed_img.shape, flush=True)
-        # print(labels.shape, flush=True)
         procesed_img = np.swapaxes(procesed_img, 1, 2)
         procesed_img = np.swapaxes(procesed_img, 0, 1)
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
-        # print("----------------------------------------------------------------------------", flush=True)
         return procesed_img, labels, 0, 0
 
 
