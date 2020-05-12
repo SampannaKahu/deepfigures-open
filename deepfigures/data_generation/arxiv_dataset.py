@@ -108,7 +108,7 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         :param file_name: the name of the zipped file that this worker will process next.
         :return: None.
         """
-        worker_tmpdir = settings.ARXIV_DATA_TMP_DIR + '/' + settings.HOSTNAME + '_' + str(worker_id) + '/'
+        worker_tmpdir = settings.ARXIV_DATA_TMP_DIR + '/' + self.work_dir_prefix + '_' + str(worker_id) + '/'
         if os.path.exists(worker_tmpdir):
             shutil.rmtree(worker_tmpdir)
         os.makedirs(worker_tmpdir)
@@ -167,7 +167,8 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                         raise StopIteration
 
                 paper_tar_name = self.worker_id_to_context_map[worker_id][PAPER_TAR_NAMES].pop(0)
-                paper_tar_processor = PaperTarProcessor(paper_tarname=paper_tar_name, worker_id=worker_id)
+                paper_tar_processor = PaperTarProcessor(paper_tarname=paper_tar_name, worker_id=worker_id,
+                                                        work_dir_prefix=self.work_dir_prefix)
                 try:
                     result_tuple = paper_tar_processor.process_paper_tar()
                     if result_tuple:
