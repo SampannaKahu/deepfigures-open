@@ -32,7 +32,7 @@
 #SBATCH --mail-user=sampanna@vt.edu
 
 #### Walltime ####
-#SBATCH -t 10:00:00
+#SBATCH -t 20:00:00
 
 #### Queue ####
 # Queue name. Cascades has five queues:
