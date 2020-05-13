@@ -84,15 +84,15 @@ echo "Number of CPUs : $NUM_CPUS"
 echo "Number of CPUs times 2 : $NUM_CPUS_TIMES_2"
 echo "Number of CPUs times 3 : $NUM_CPUS_TIMES_3"
 
-SCRATCH_DIR="/scratch-ssd"
+SCRATCH_DIR=/scratch-local/"$SLURM_JOBID"/tmpfs
 if [ "$SYSNAME" = "dragonstooth" ]; then
-  SCRATCH_DIR="/scratch-local"
+  SCRATCH_DIR=/scratch-local/"$SLURM_JOBID"/tmpfs
 fi
 
 
-mkdir -p "$SCRATCH_DIR"/"$SLURM_JOBID"/arxiv_data_temp
-mkdir -p "$SCRATCH_DIR"/"$SLURM_JOBID"/download_cache
-mkdir -p "$SCRATCH_DIR"/"$SLURM_JOBID"/arxiv_data_output
+mkdir -p "$SCRATCH_DIR"/arxiv_data_temp
+mkdir -p "$SCRATCH_DIR"/download_cache
+mkdir -p "$SCRATCH_DIR"/arxiv_data_output
 
 echo "Copying tar files to $SCRATCH_DIR..."
 cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '/' '{print $3"_"$4"_"$5}' | awk -F '"' '{print "/work/cascades/sampanna/deepfigures-results/download_cache/"$1}' | xargs cp -t "$SCRATCH_DIR"/"$SLURM_JOBID"/download_cache
@@ -100,14 +100,14 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
 /home/sampanna/.conda/envs/deepfigures/bin/python /home/sampanna/deepfigures-open/deepfigures/data_generation/training_data_generator.py \
   --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json \
   --images_per_zip=500 \
-  --zip_save_dir="$SCRATCH_DIR"/"$SLURM_JOBID"/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
+  --zip_save_dir="$SCRATCH_DIR"/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
   --n_cpu=$NUM_CPUS_TIMES_2 \
   --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
-  --arxiv_tmp_dir "$SCRATCH_DIR"/"$SLURM_JOBID"/arxiv_data_temp \
-  --arxiv_cache_dir "$SCRATCH_DIR"/"$SLURM_JOBID"/download_cache \
-  --arxiv_data_output_dir "$SCRATCH_DIR"/"$SLURM_JOBID"/arxiv_data_output
+  --arxiv_tmp_dir "$SCRATCH_DIR"/arxiv_data_temp \
+  --arxiv_cache_dir "$SCRATCH_DIR"/download_cache \
+  --arxiv_data_output_dir "$SCRATCH_DIR"/arxiv_data_output
 
-cp -r "$SCRATCH_DIR"/"$SLURM_JOBID"/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" /work/"$SYSNAME"/sampanna/deepfigures-results/pregenerated_training_data
+cp -r "$SCRATCH_DIR"/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" /work/"$SYSNAME"/sampanna/deepfigures-results/pregenerated_training_data
 
 echo "Job ended. Job ID: $SLURM_JOBID . Array ID: $i"
 
