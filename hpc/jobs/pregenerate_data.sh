@@ -41,7 +41,7 @@
 #   dev_q           for development/debugging jobs. These jobs must be short but can be large.
 #   v100_normal_q   for production jobs on Skylake/V100 nodes
 #   v100_dev_q      for development/debugging jobs on Skylake/V100 nodes
-#SBATCH -p normal_q
+#SBATCH -p k80_q
 #SBATCH -A waingram_lab
 
 module purge
@@ -86,7 +86,7 @@ echo "Number of CPUs times 3 : $NUM_CPUS_TIMES_3"
 
 mkdir -p /scratch-ssd/"$SLURM_JOBID"/arxiv_data_temp
 mkdir -p /scratch-ssd/"$SLURM_JOBID"/download_cache
-mkdir -p /scratch-ssd/"$SLURM_JOBID"/arxiv_data_output
+mkdir -p /scratch-ssd/"$SLURM_JOBID"/arxiv_data_outputgs
 
 echo "Copying tar files to scratch-ssd..."
 cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '/' '{print $3"_"$4"_"$5}' | awk -F '"' '{print "/work/cascades/sampanna/deepfigures-results/download_cache/"$1}' | xargs cp -t /scratch-ssd/"$SLURM_JOBID"/download_cache
