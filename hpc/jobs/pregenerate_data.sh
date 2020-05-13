@@ -41,7 +41,7 @@
 #   dev_q           for development/debugging jobs. These jobs must be short but can be large.
 #   v100_normal_q   for production jobs on Skylake/V100 nodes
 #   v100_dev_q      for development/debugging jobs on Skylake/V100 nodes
-#SBATCH -p k80_q
+#SBATCH -p normal_q
 #SBATCH -A waingram_lab
 
 module purge
@@ -101,7 +101,7 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
   --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json \
   --images_per_zip=500 \
   --zip_save_dir="$SCRATCH_DIR"/"$SLURM_JOBID"/"$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
-  --n_cpu=$NUM_CPUS_TIMES_3 \
+  --n_cpu=$NUM_CPUS_TIMES_2 \
   --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
   --arxiv_tmp_dir "$SCRATCH_DIR"/"$SLURM_JOBID"/arxiv_data_temp \
   --arxiv_cache_dir "$SCRATCH_DIR"/"$SLURM_JOBID"/download_cache \
