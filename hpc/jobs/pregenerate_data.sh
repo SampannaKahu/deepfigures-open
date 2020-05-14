@@ -32,7 +32,7 @@
 #SBATCH --mail-user=sampanna@vt.edu
 
 #### Walltime ####
-#SBATCH -t 20:00:00
+#SBATCH -t 80:00:00
 
 #### Queue ####
 # Queue name. Cascades has five queues:
@@ -113,7 +113,8 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
   --arxiv_cache_dir "$DOWNLOAD_CACHE" \
   --arxiv_data_output_dir "$ARXIV_DATA_OUTPUT"
 
-cp -r "$ZIP_SAVE_DIR" /work/"$SYSNAME"/sampanna/deepfigures-results/pregenerated_training_data
+mkdir -p /work/"$SYSNAME"/sampanna/deepfigures-results/pregenerated_training_data/$SLURM_ARRAY_JOB_ID
+cp -r "$ZIP_SAVE_DIR" /work/"$SYSNAME"/sampanna/deepfigures-results/pregenerated_training_data/$SLURM_ARRAY_JOB_ID
 
 echo "Job ended. Job ID: $SLURM_JOBID . Array ID: $i"
 
