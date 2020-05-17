@@ -65,7 +65,10 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                  arxiv_cache_dir: str = settings.ARXIV_DATA_CACHE_DIR,
                  arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR,
                  get_raw_image: bool = True,
-                 delete_tar_after_extracting: bool = False) -> None:
+                 delete_tar_after_extracting: bool = False,
+                 augment_typewriter_font=True,
+                 augment_line_spacing_1_5=True,
+                 image_augmentation_transform_sequence=settings.seq) -> None:
         """
         This class initializes the queue and the contexts for each worker.
         Irrespective of the number of workers in the DataLoader, this constructor will be
@@ -92,6 +95,9 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         self.arxiv_data_output_dir = arxiv_data_output_dir
         self.get_raw_image = get_raw_image
         self.delete_tar_after_extracting = delete_tar_after_extracting
+        self.augment_typewriter_font = augment_typewriter_font
+        self.augment_line_spacing_1_5 = augment_line_spacing_1_5
+        self.image_augmentation_transform_sequence = image_augmentation_transform_sequence
 
         if not list_of_files:
             list_of_files = []
@@ -180,7 +186,9 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                 paper_tar_name = self.worker_id_to_context_map[worker_id][PAPER_TAR_NAMES].pop(0)
                 paper_tar_processor = PaperTarProcessor(paper_tarname=paper_tar_name, worker_id=worker_id,
                                                         work_dir_prefix=self.work_dir_prefix,
-                                                        arxiv_data_output_dir=self.arxiv_data_output_dir)
+                                                        arxiv_data_output_dir=self.arxiv_data_output_dir,
+                                                        augment_typewriter_font=True, augment_line_spacing_1_5=True,
+                                                        image_augmentation_transform_sequence=self.image_augmentation_transform_sequence)
                 try:
                     result_tuple = paper_tar_processor.process_paper_tar()
                     if result_tuple:

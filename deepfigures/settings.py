@@ -144,3 +144,8 @@ seq = iaa.Sequential([
     iaa.LinearContrast(alpha=1),
     iaa.PerspectiveTransform(scale=0.025, keep_size=True)
 ])
+
+no_op = iaa.Sequential([
+    iaa.Fliplr(p=1),
+    iaa.Fliplr(p=1)
+])

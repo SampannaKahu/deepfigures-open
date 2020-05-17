@@ -36,6 +36,13 @@ def parse_args():
     parser.add_argument('--delete_tar_after_extracting', type=bool, default=False,
                         help='Whether to delete the original tar file from the download cache or not. ' +
                              'e.g. s3://arxiv/src/arXiv_src_0003_001.tar')
+    parser.add_argument('--augment_typewriter_font', type=bool, default=False,
+                        help='Whether to augment the data with typewriter font.')
+    parser.add_argument('--augment_line_spacing_1_5', type=bool, default=False,
+                        help='Whether to augment the data with 1.5 line spacing.')
+    parser.add_argument('--should_apply_image_based_augmentations', type=bool, default=False,
+                        help='If set to true, applies all the default image-based augmentations.')
+
     return parser.parse_args()
 
 
@@ -66,17 +73,26 @@ if __name__ == "__main__":
         --arxiv_tmp_dir /scratch-ssd/arxiv_data_temp \
         --arxiv_cache_dir /scratch-ssd/download_dache \
         --arxiv_data_output_dir /scratch-ssd/arxiv_data_output \
-        --delete_tar_after_extracting True
+        --delete_tar_after_extracting True \
+        --augment_typewriter_font True \
+        --augment_line_spacing_1_5 True
     """
     args = parse_args()
     logger.info("Parsed arguments: " + str(args))
     print("Parsed arguments: ", args)
     os.makedirs(args.zip_save_dir, exist_ok=True)
     input_files = json.load(open(args.file_list_json))
+    if args.should_apply_image_based_augmentations:
+        image_based_transformations = settings.seq
+    else:
+        image_based_transformations = settings.no_op
     dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True, work_dir_prefix=args.work_dir_prefix,
                            arxiv_tmp_dir=args.arxiv_tmp_dir, arxiv_cache_dir=args.arxiv_cache_dir,
                            arxiv_data_output_dir=args.arxiv_data_output_dir, get_raw_image=True,
-                           delete_tar_after_extracting=args.delete_tar_after_extracting)
+                           delete_tar_after_extracting=args.delete_tar_after_extracting,
+                           augment_typewriter_font=args.augment_typewriter_font,
+                           augment_line_spacing_1_5=args.augment_line_spacing_1_5,
+                           image_augmentation_transform_sequence=settings.no_op)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=args.n_cpu)
     data_iterator = iter(data_loader)
 

@@ -28,6 +28,7 @@ import bs4
 
 import imageio
 import imgaug as ia
+from imgaug import augmenters as iaa
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -47,15 +48,22 @@ IMPORT_STR = r'''
 
 \usepackage[labelfont={color=%s},textfont={color=%s}]{caption}
 
+'''
+
+TYPE_WRITER_FONT = r'''
+
 \renewcommand\ttdefault{cmvtt}
 \renewcommand{\familydefault}{\ttdefault}
+
+'''
+
+LINE_SPREAD_1_5 = r'''
+
 \linespread{1.5}
 
 '''
 
 BEGIN_DOC = r'\begin{document}'
-COLOR_STR = (IMPORT_STR % ('red', 'yellow', 'green', 'blue')) + BEGIN_DOC
-BLACK_STR = (IMPORT_STR % ('white', 'white', 'black', 'black')) + BEGIN_DOC
 
 
 # ARXIV_TAR_SRC = 's3://arxiv/src/'
@@ -119,7 +127,11 @@ def transform_figure_json(result_path: str = None):
 class PaperTarProcessor:
     def __init__(self, paper_tarname: str, worker_id: int = None,
                  work_dir_prefix: str = settings.HOSTNAME,
-                 arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR) -> None:
+                 arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR,
+                 augment_typewriter_font: bool = True,
+                 augment_line_spacing_1_5: bool = True,
+                 image_augmentation_transform_sequence: iaa.Sequential = settings.no_op
+                 ) -> None:
         super().__init__()
 
         Image.MAX_IMAGE_PIXELS = int(1e8)  # Don't render very large PDFs.
@@ -129,6 +141,9 @@ class PaperTarProcessor:
         self.work_dir_prefix = work_dir_prefix
         self.worker_id = self.work_dir_prefix + '_' + str(worker_id)
         self.arxiv_data_output_dir = arxiv_data_output_dir
+        self.augment_typewriter_font = augment_typewriter_font
+        self.augment_line_spacing_1_5 = augment_line_spacing_1_5
+        self.image_augmentation_transform_sequence = image_augmentation_transform_sequence
 
         self.ARXIV_SRC_DIR = os.path.join(
             self.arxiv_data_output_dir,
@@ -241,9 +256,16 @@ class PaperTarProcessor:
         color_filename = paper_modified_src_dir + '/color.tex'
         black_filename = paper_modified_src_dir + '/black.tex'
         text = self.make_12_pt(text)
+        _IMPORT_STR = IMPORT_STR
+        if self.augment_typewriter_font:
+            _IMPORT_STR = _IMPORT_STR + TYPE_WRITER_FONT
+        if self.augment_line_spacing_1_5:
+            _IMPORT_STR = _IMPORT_STR + LINE_SPREAD_1_5
         with open(color_filename, 'w') as f:
+            COLOR_STR = (_IMPORT_STR % ('red', 'yellow', 'green', 'blue')) + BEGIN_DOC
             print(text.replace(BEGIN_DOC, COLOR_STR), file=f)
         with open(black_filename, 'w') as f:
+            BLACK_STR = (_IMPORT_STR % ('white', 'white', 'black', 'black')) + BEGIN_DOC
             print(text.replace(BEGIN_DOC, BLACK_STR), file=f)
 
         result_dir = self.ARXIV_DIFF_DIR + chunk_id + '/' + paper_id + '/'
@@ -434,7 +456,10 @@ class PaperTarProcessor:
         # figg = figures[0]
         # plot_bounding_box(image_path, x1=figg.figure_boundary.x1, y1=figg.figure_boundary.y1,
         #                   x2=figg.figure_boundary.x2, y2=figg.figure_boundary.y2)
-        images_aug, bbs_aug = settings.seq(images=[image], bounding_boxes=[bbs])
+        if self.image_augmentation_transform_sequence:
+            images_aug, bbs_aug = self.image_augmentation_transform_sequence(images=[image], bounding_boxes=[bbs])
+        else:
+            images_aug, bbs_aug = [image], [bbs]
         imageio.imwrite(image_path, images_aug[0])
         # plot_bounding_box(image_path, x1=bbs_aug[0][0].x1, y1=bbs_aug[0][0].y1,
         #                   x2=bbs_aug[0][0].x2, y2=bbs_aug[0][0].y2)
