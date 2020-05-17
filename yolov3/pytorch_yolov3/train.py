@@ -121,7 +121,7 @@ def main():
     #                       debug=args.debug)
 
     input_files = json.load(open(args.tar_files))
-    dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True)
+    dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True, get_raw_image=False)
 
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=args.n_cpu)
     dataiterator = iter(dataloader)

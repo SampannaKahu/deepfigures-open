@@ -63,7 +63,9 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
     def __init__(self, list_of_files=None, shuffle_input=True, work_dir_prefix: str = settings.HOSTNAME,
                  arxiv_tmp_dir: str = settings.ARXIV_DATA_TMP_DIR,
                  arxiv_cache_dir: str = settings.ARXIV_DATA_CACHE_DIR,
-                 arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR) -> None:
+                 arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR,
+                 get_raw_image: bool = True,
+                 delete_tar_after_extracting: bool = False) -> None:
         """
         This class initializes the queue and the contexts for each worker.
         Irrespective of the number of workers in the DataLoader, this constructor will be
@@ -88,6 +90,8 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         self.arxiv_tmp_dir = arxiv_tmp_dir
         self.arxiv_cache_dir = arxiv_cache_dir
         self.arxiv_data_output_dir = arxiv_data_output_dir
+        self.get_raw_image = get_raw_image
+        self.delete_tar_after_extracting = delete_tar_after_extracting
 
         if not list_of_files:
             list_of_files = []
@@ -103,7 +107,7 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         self.worker_id_to_context_map = {}
         self.q = q
 
-    def _populate_worker_context(self, worker_id: int, file_name: str) -> None:
+    def _populate_worker_context(self, worker_id: int, file_name: str, delete_tar_after_extracting: bool) -> None:
         """
         Cleans up the tmp directory for this worker.
         Downloads and unzips the file in the tmp directory.
@@ -118,7 +122,8 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         if os.path.exists(worker_tmpdir):
             shutil.rmtree(worker_tmpdir)
         os.makedirs(worker_tmpdir)
-        arxiv_pipeline.download_and_extract_tar(file_name, extract_dir=worker_tmpdir, cache_dir=self.arxiv_cache_dir)
+        arxiv_pipeline.download_and_extract_tar(file_name, extract_dir=worker_tmpdir, cache_dir=self.arxiv_cache_dir,
+                                                delete_tar_after_extracting=delete_tar_after_extracting)
         paper_tarnames = glob.glob(os.path.join(worker_tmpdir, '*/*.gz'))
         self.worker_id_to_context_map[worker_id] = {
             FILE_NAME: file_name,
@@ -167,7 +172,7 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                 if not self.worker_id_to_context_map.get(worker_id) or not self.worker_id_to_context_map[worker_id][
                     PAPER_TAR_NAMES]:
                     try:
-                        self._populate_worker_context(worker_id, self.q.get_nowait())
+                        self._populate_worker_context(worker_id, self.q.get_nowait(), self.delete_tar_after_extracting)
                     except queue.Empty:
                         # If queue is empty, stop iterator, and thereby this worker.
                         raise StopIteration
@@ -184,11 +189,17 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                     logging.warning(
                         'Unhandled exception caught while processing paper tar. Suppressing it and moving forward. Worker ID: {}. paper_tar_name: {}'.format(
                             worker_id, paper_tar_name))
-            figure_boundaries = separate_figure_boundaries(figure_boundaries)
+            if self.get_raw_image:
+                figure_boundaries = figure_boundaries
+            else:
+                figure_boundaries = separate_figure_boundaries(figure_boundaries)
             self.worker_id_to_context_map[worker_id][FIGURE_JSONS] = figure_boundaries
 
         figure_json_retval = self.worker_id_to_context_map[worker_id][FIGURE_JSONS].pop()
-        procesed_img, labels = utils.figure_json_to_yolo_v3_value(figure_json_retval)
+        if self.get_raw_image:
+            procesed_img, labels = utils.figure_json_to_raw_data(figure_json_retval)
+        else:
+            procesed_img, labels = utils.figure_json_to_yolo_v3_value(figure_json_retval)
         procesed_img = np.swapaxes(procesed_img, 1, 2)
         procesed_img = np.swapaxes(procesed_img, 0, 1)
         return procesed_img, labels, 0, 0

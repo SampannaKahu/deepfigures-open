@@ -418,7 +418,8 @@ def process_paper_tar_with_timeout(paper_tarname: str) -> None:
 
 
 def download_and_extract_tar(
-        tarname: str, extract_dir: str, n_attempts: int = 100, cache_dir: str = settings.ARXIV_DATA_CACHE_DIR
+        tarname: str, extract_dir: str, n_attempts: int = 100, cache_dir: str = settings.ARXIV_DATA_CACHE_DIR,
+        delete_tar_after_extracting: bool = False
 ) -> None:
     print('.', end='', flush=True)
     logging.info('Downloading %s' % tarname)
@@ -433,7 +434,8 @@ def download_and_extract_tar(
             time.sleep(10)
     logging.info("Proceeding to extract tar file: {}".format(cached_file))
     file_util.extract_tarfile(cached_file, extract_dir)
-    # os.remove(cached_file)
+    if delete_tar_after_extracting:
+        os.remove(cached_file)
 
 
 def run_on_all() -> None:

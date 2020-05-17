@@ -13,7 +13,7 @@ import matplotlib.image as mpimg
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 def parse_args():
@@ -33,6 +33,9 @@ def parse_args():
                         help='The download cache for arxiv data.')
     parser.add_argument('--arxiv_data_output_dir', type=str, default=settings.ARXIV_DATA_OUTPUT_DIR,
                         help='The output directory for arxiv data.')
+    parser.add_argument('--delete_tar_after_extracting', type=bool, default=False,
+                        help='Whether to delete the original tar file from the download cache or not. ' +
+                             'e.g. s3://arxiv/src/arXiv_src_0003_001.tar')
     return parser.parse_args()
 
 
@@ -62,14 +65,18 @@ if __name__ == "__main__":
         --work_dir_prefix "$SYSNAME"_"$SLURM_JOBID"_"$i"_"$ts" \
         --arxiv_tmp_dir /scratch-ssd/arxiv_data_temp \
         --arxiv_cache_dir /scratch-ssd/download_dache \
-        --arxiv_data_output_dir /scratch-ssd/arxiv_data_output
+        --arxiv_data_output_dir /scratch-ssd/arxiv_data_output \
+        --delete_tar_after_extracting True
     """
     args = parse_args()
+    logger.info("Parsed arguments: " + str(args))
+    print("Parsed arguments: ", args)
     os.makedirs(args.zip_save_dir, exist_ok=True)
     input_files = json.load(open(args.file_list_json))
     dataset = ArxivDataSet(list_of_files=input_files, shuffle_input=True, work_dir_prefix=args.work_dir_prefix,
                            arxiv_tmp_dir=args.arxiv_tmp_dir, arxiv_cache_dir=args.arxiv_cache_dir,
-                           arxiv_data_output_dir=args.arxiv_data_output_dir)
+                           arxiv_data_output_dir=args.arxiv_data_output_dir, get_raw_image=True,
+                           delete_tar_after_extracting=args.delete_tar_after_extracting)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=args.n_cpu)
     data_iterator = iter(data_loader)
 
@@ -100,6 +107,8 @@ if __name__ == "__main__":
         # if zip file reached threshold, rollover to the next one.
         if file_counter == args.images_per_zip:
             z.close()
+            print("Finished zip file number {}.".format(zip_file_id))
             file_counter = 0
             zip_file_id = zip_file_id + 1
             z = ZipFile(os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)), mode='w')
+    z.close()

@@ -111,7 +111,8 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
   --work_dir_prefix "$WORK_DIR_PREFIX" \
   --arxiv_tmp_dir "$ARXIV_DATA_TEMP" \
   --arxiv_cache_dir "$DOWNLOAD_CACHE" \
-  --arxiv_data_output_dir "$ARXIV_DATA_OUTPUT"
+  --arxiv_data_output_dir "$ARXIV_DATA_OUTPUT" \
+  --delete_tar_after_extracting True
 
 mkdir -p /work/"$SYSNAME"/sampanna/deepfigures-results/pregenerated_training_data/$SLURM_ARRAY_JOB_ID
 cp -r "$ZIP_SAVE_DIR" /work/"$SYSNAME"/sampanna/deepfigures-results/pregenerated_training_data/$SLURM_ARRAY_JOB_ID

@@ -70,6 +70,18 @@ def figure_json_to_yolo_v3_value(figure_json):
     return processed_img, rects_to_labels(rects, info_img[0], info_img[1])
 
 
+def figure_json_to_raw_data(figure_json):
+    img = cv2.imread(figure_json['image_path'])
+    rects = figure_json['rects']
+    labels = np.zeros((len(rects), 5))
+    for idx, rect in enumerate(rects):
+        labels[idx, 1] = rect['x1']
+        labels[idx, 2] = rect['x2']
+        labels[idx, 3] = rect['y1']
+        labels[idx, 4] = rect['y2']
+    return img, labels
+
+
 def rects_to_labels(rects, original_height, original_width):
     labels = np.zeros((len(rects), 5))
     # assert len(rects) > 0
@@ -86,11 +98,4 @@ def rects_to_labels(rects, original_height, original_width):
         labels[idx, 2] = yc / original_height
         labels[idx, 3] = w / original_width
         labels[idx, 4] = h / original_height
-    # assert labels is not None
     return labels
-
-# if __name__ == "__main__":
-#     import json
-#     figure_json = json.load(open("/home/sampanna/workspace/bdts2/deepfigures-results/delete_this.json"))
-#     out = figure_json_to_yolo_v3_value(figure_json)
-#     print(out)
