@@ -5,8 +5,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
+import torch
 import numpy as np
 import imgaug as ia
+
 from imgaug import augmenters as iaa
 from torchvision.datasets import CocoDetection
 from torchvision import transforms
@@ -35,7 +37,9 @@ dataset = TransformedCocoDataset(root='/home/sampanna/deepfigures-results/arxiv_
                                  annFile='/home/sampanna/deepfigures-results/arxiv_coco_dataset/annotations.json',
                                  iaa_pipeline=settings.seq)
 
-dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=True)
+train_set, val_set = torch.utils.data.random_split(dataset, [400, 100])
 
-for images, annos in dataloader:
+train_dataloader = DataLoader(dataset=train_set, batch_size=1, shuffle=True)
+
+for images, annos in train_dataloader:
     print(images, annos)

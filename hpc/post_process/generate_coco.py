@@ -121,7 +121,6 @@ for path in glob.glob(os.path.join(job_output_directory, '*/*.zip'), recursive=T
                                  width=img.size[1])
         dataset['images'].append(image_json)
 
-        # tnsr = torch.load(io.BytesIO(fp.read()))
         tnsr = torch.load(pt_path)
         for bb in tnsr:
             anno_json = build_annotation(bb=bb, annotation_id=current_annotation_id, image_id=current_image_id,
