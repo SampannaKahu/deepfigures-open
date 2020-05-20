@@ -48,7 +48,55 @@
     "data": {
         "truncate_data": false,
         "test_idl": "/work/host-input/figure_boundaries.json",
-        "train_idl": "/work/host-input/figure_boundaries.json"
+        "train_idl": "/work/host-input/figure_boundaries.json",
+        "augmentations": {
+            "train": {
+                "Affine": {
+                    "rotate_left": -5,
+                    "rotate_right": 5
+                },
+                "AdditiveGaussianNoise": {
+                    "scale_left": 10,
+                    "scale_right": 60
+                },
+                "SaltAndPepper": {
+                    "p": 0.1
+                },
+                "GaussianBlur": {
+                    "sigma": 0.5
+                },
+                "LinearContrast": {
+                    "alpha": 1
+                },
+                "PerspectiveTransform": {
+                    "scale": 0.025,
+                    "keep_size": true
+                }
+            },
+            "test": {
+                "Affine": {
+                    "rotate_left": -5,
+                    "rotate_right": 5
+                },
+                "AdditiveGaussianNoise": {
+                    "scale_left": 10,
+                    "scale_right": 60
+                },
+                "SaltAndPepper": {
+                    "p": 0.1
+                },
+                "GaussianBlur": {
+                    "sigma": 0.5
+                },
+                "LinearContrast": {
+                    "alpha": 1
+                },
+                "PerspectiveTransform": {
+                    "scale": 0.025,
+                    "keep_size": true
+                }
+            }
+        }
     },
     "focus_size": 1.8,
     "rezoom_change_loss": "center",

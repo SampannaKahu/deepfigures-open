@@ -13,6 +13,8 @@ from scipy import misc
 import tensorflow as tf
 import numpy as np
 from distutils.version import LooseVersion
+from imgaug import augmenters as iaa
+
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
     rnn_cell = tf.contrib.rnn
 else:
@@ -58,7 +60,7 @@ def deconv(x, output_shape, channels):
 
 
 def rezoom(
-    H, pred_boxes, early_feat, early_feat_channels, w_offsets, h_offsets
+        H, pred_boxes, early_feat, early_feat_channels, w_offsets, h_offsets
 ):
     '''
     Rezoom into a feature map at multiple interpolation points in a grid.
@@ -291,8 +293,8 @@ def build_forward_backward(H, x, phase, boxes, flags):
             H, x, phase, reuse
         )
     with tf.variable_scope(
-        'decoder', reuse={'train': None,
-                          'test': True}[phase]
+            'decoder', reuse={'train': None,
+                              'test': True}[phase]
     ):
         outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])
         outer_flags = tf.cast(
@@ -322,12 +324,12 @@ def build_forward_backward(H, x, phase, boxes, flags):
             pred_logits, [outer_size * H['rnn_len'], H['num_classes']]
         )
         confidences_loss = (
-            tf.reduce_sum(
-                tf.nn.sparse_softmax_cross_entropy_with_logits(
-                    logits=pred_logit_r, labels=true_classes
-                )
-            )
-        ) / outer_size * H['solver']['head_weights'][0]
+                               tf.reduce_sum(
+                                   tf.nn.sparse_softmax_cross_entropy_with_logits(
+                                       logits=pred_logit_r, labels=true_classes
+                                   )
+                               )
+                           ) / outer_size * H['solver']['head_weights'][0]
         residual = tf.reshape(
             perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4]
         )
@@ -337,12 +339,12 @@ def build_forward_backward(H, x, phase, boxes, flags):
         if H['use_rezoom']:
             if H['rezoom_change_loss'] == 'center':
                 error = (perm_truth[:, :, 0:2] - pred_boxes[:, :, 0:2]
-                        ) / tf.maximum(perm_truth[:, :, 2:4], 1.)
+                         ) / tf.maximum(perm_truth[:, :, 2:4], 1.)
                 square_error = tf.reduce_sum(tf.square(error), 2)
                 inside = tf.reshape(
                     tf.to_int64(
                         tf.logical_and(
-                            tf.less(square_error, 0.2**2),
+                            tf.less(square_error, 0.2 ** 2),
                             tf.greater(classes, 0)
                         )
                     ), [-1]
@@ -383,9 +385,9 @@ def build_forward_backward(H, x, phase, boxes, flags):
                     [outer_size, H['rnn_len'], 4]
                 )
                 delta_boxes_loss = (
-                    tf.reduce_sum(
-                        tf.minimum(tf.square(delta_residual), 10.**2)
-                    ) / outer_size * H['solver']['head_weights'][1] * 0.03
+                        tf.reduce_sum(
+                            tf.minimum(tf.square(delta_residual), 10. ** 2)
+                        ) / outer_size * H['solver']['head_weights'][1] * 0.03
                 )
                 boxes_loss = delta_boxes_loss
 
@@ -518,7 +520,7 @@ def build(H, q):
             test_pred_boxes = pred_boxes_r[0, :, :, :]
 
             def log_image(
-                np_img, np_confidences, np_boxes, np_global_step, pred_or_true
+                    np_img, np_confidences, np_boxes, np_global_step, pred_or_true
             ):
 
                 if np_img.shape[2] == 4:
@@ -536,7 +538,7 @@ def build(H, q):
                 img_path = os.path.join(
                     H['save_dir'], '%s_%s.jpg' % (
                         (np_global_step / H['logging']['display_iter']
-                        ) % num_images, pred_or_true
+                         ) % num_images, pred_or_true
                     )
                 )
                 misc.imsave(img_path, merged)
@@ -569,6 +571,35 @@ def build(H, q):
     )
 
 
+def build_augmentation_pipeline(H: dict, phase: str):
+    # If no augmentations, return zero-sum augmentations.
+    augmentations = H['data']['augmentations'][phase]
+    if not augmentations:
+        return iaa.Sequential([
+            iaa.Fliplr(p=1),
+            iaa.Fliplr(p=1)
+        ])
+
+    augmenter_list = []
+    for item in augmentations:
+        if item.lower() is "Affine":
+            augmenter_list.append(
+                iaa.Affine(rotate=(augmentations[item]["rotate_left"], augmentations[item]["rotate_right"])))
+        if item.lower() is "AdditiveGaussianNoise":
+            augmenter_list.append(iaa.AdditiveGaussianNoise(
+                scale=(augmentations[item]["scale_left"], augmentations[item]["scale_right"])))
+        if item.lower() is "SaltAndPepper":
+            augmenter_list.append(iaa.SaltAndPepper(augmentations[item]["p"]))
+        if item.lower() is "GaussianBlur":
+            augmenter_list.append(iaa.GaussianBlur(sigma=augmentations[item]["sigma"]))
+        if item.lower() is "LinearContrast":
+            augmenter_list.append(iaa.LinearContrast(alpha=augmentations[item]["alpha"]))
+        if item.lower() is "PerspectiveTransform":
+            augmenter_list.append(iaa.PerspectiveTransform(scale=augmentations[item]["alpha"],
+                                                           keep_size=augmentations[item]["keep_size"]))
+    return iaa.Sequential(augmenter_list)
+
+
 def train(H, test_images):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
@@ -591,9 +622,21 @@ def train(H, test_images):
         channels = H.get('image_channels', 3)
         print('Image channels: %d' % channels)
         shapes = (
-            [H['image_height'], H['image_width'],
-             channels], [grid_size, H['rnn_len'], H['num_classes']],
-            [grid_size, H['rnn_len'], 4],
+            [
+                H['image_height'],
+                H['image_width'],
+                channels
+            ],
+            [
+                grid_size,
+                H['rnn_len'],
+                H['num_classes']
+            ],
+            [
+                grid_size,
+                H['rnn_len'],
+                4
+            ],
         )
         q[phase] = tf.FIFOQueue(capacity=30, dtypes=dtypes, shapes=shapes)
         enqueue_op[phase] = q[phase].enqueue((x_in, confs_in, boxes_in))
@@ -622,8 +665,9 @@ def train(H, test_images):
         tf.train.start_queue_runners(sess=sess)
         for phase in ['train', 'test']:
             # enqueue once manually to avoid thread start delay
+            augmentation_transforms = build_augmentation_pipeline(H, phase)
             gen = train_utils.load_data_gen(
-                H, phase, jitter=H['solver']['use_jitter']
+                H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
             )
             d = next(gen)
             sess.run(enqueue_op[phase], feed_dict=make_feed(d))
@@ -646,7 +690,7 @@ def train(H, test_images):
                     [
                         x for x in tf.global_variables()
                         if x.name.startswith(H['slim_basename']) and
-                        H['solver']['opt'] not in x.name
+                           H['solver']['opt'] not in x.name
                     ]
                 )
             )
@@ -655,10 +699,10 @@ def train(H, test_images):
                 '%s/data/%s' %
                 (os.path.dirname(os.path.realpath(__file__)),
                  H['slim_ckpt']), [
-                     x for x in tf.global_variables()
-                     if x.name.startswith(H['slim_basename']) and
-                     H['solver']['opt'] not in x.name
-                 ]
+                    x for x in tf.global_variables()
+                    if x.name.startswith(H['slim_basename']) and
+                       H['solver']['opt'] not in x.name
+                ]
             )
             init_fn(sess)
 
@@ -668,8 +712,8 @@ def train(H, test_images):
         for i in range(max_iter):
             display_iter = H['logging']['display_iter']
             adjusted_lr = (
-                H['solver']['learning_rate'] * 0.5**
-                max(0, (i / H['solver']['learning_rate_step']) - 2)
+                    H['solver']['learning_rate'] * 0.5 **
+                    max(0, (i / H['solver']['learning_rate_step']) - 2)
             )
             lr_feed = {learning_rate: adjusted_lr}
 
@@ -682,7 +726,7 @@ def train(H, test_images):
                 # test network every N iterations; log additional info
                 if i > 0:
                     dt = (time.time() - start
-                         ) / (H['batch_size'] * display_iter)
+                          ) / (H['batch_size'] * display_iter)
                 start = time.time()
                 (train_loss, test_accuracy, summary_str, _, _) = sess.run(
                     [

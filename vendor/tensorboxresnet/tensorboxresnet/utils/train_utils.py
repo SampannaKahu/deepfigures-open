@@ -20,6 +20,9 @@ import functools
 from deepfigures.utils import image_util
 tensor_queue = multiprocessing.Queue(maxsize=8)
 
+import imgaug as ia
+from imgaug import augmenters as iaa
+
 
 def rescale_boxes(current_shape, anno, target_height, target_width):
     x_scale = target_width / float(current_shape[1])
@@ -34,7 +37,7 @@ def rescale_boxes(current_shape, anno, target_height, target_width):
     return anno
 
 
-def load_idl_tf(idlfile, H, jitter):
+def load_idl_tf(idlfile, H, jitter, augmentation_transforms):
     """Take the idlfile and net configuration and create a generator
     that outputs a jittered version of a random image from the annolist
     that is mean corrected."""
@@ -53,8 +56,9 @@ def load_idl_tf(idlfile, H, jitter):
         print('Starting epoch %d' % epoch)
         random.shuffle(annos)
         partial_load = functools.partial(
-            load_page_ann, H=H, epoch=epoch, jitter=jitter
+            load_page_ann, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms
         )
+        # TODO: Tweaking the number of processes might help improve training speed.
         with multiprocessing.pool.ThreadPool(processes=4) as p:
             map_result = p.map_async(partial_load, annos)
             while not map_result.ready():
@@ -66,7 +70,24 @@ def load_idl_tf(idlfile, H, jitter):
                 yield tensor_queue.get()
 
 
-def load_page_ann(anno, H, epoch, jitter) -> None:
+def apply_augmentations(I: np.ndarray, anno: al.Annotation, augmentation_transforms: iaa.Sequential):
+    """
+    :param I: I is an ndarray of numpy.
+    :param anno: anno is a single annotation from the idl file.
+    :return: a tuple containing the augmented image and the augmented anno.
+    """
+    bbs = [ia.BoundingBox(x1=rect.x1, y1=rect.y1, x2=rect.x2, y2=rect.y2) for rect in anno.rects]
+
+    I_aug, bbs_aug = augmentation_transforms(images=[I], bounding_boxes=[bbs])
+
+    anno_aug = al.Annotation()
+    anno_aug.imageName = anno.imageName
+    anno_aug.rects = [al.AnnoRect(x1=bb_aug.x1, y1=bb_aug.y1, x2=bb_aug.x2, y2=bb_aug.y2) for bb_aug in bbs_aug[0]]
+
+    return I_aug[0], anno_aug
+
+
+def load_page_ann(anno, H, epoch, jitter, augmentation_transforms) -> None:
     try:
         I = image_util.read_tensor(anno.imageName, maxsize=1e8)
     except image_util.FileTooLargeError:
@@ -76,6 +97,7 @@ def load_page_ann(anno, H, epoch, jitter) -> None:
         print("ERROR: Failure reading %s" % anno.imageName, flush=True)
         return
     assert (len(I.shape) == 3)
+    I, anno = apply_augmentations(I, anno, augmentation_transforms)
     if I.shape[0] != H["image_height"] or I.shape[1] != H["image_width"]:
         if epoch == 0:
             anno = rescale_boxes(
@@ -109,14 +131,15 @@ def make_sparse(n, d):
     return v
 
 
-def load_data_gen(H, phase, jitter):
+def load_data_gen(H, phase, jitter, augmentation_transforms):
     grid_size = H['grid_width'] * H['grid_height']
 
     data = load_idl_tf(
         H["data"]['%s_idl' % phase],
         H,
         jitter={'train': jitter,
-                'test': False}[phase]
+                'test': False}[phase],
+        augmentation_transforms=augmentation_transforms
     )
 
     for d in data:
@@ -144,16 +167,16 @@ def load_data_gen(H, phase, jitter):
 
 
 def add_rectangles(
-    H,
-    orig_image,
-    confidences,
-    boxes,
-    use_stitching=False,
-    rnn_len=1,
-    min_conf=0.1,
-    show_removed=True,
-    tau=0.25,
-    show_suppressed=True
+        H,
+        orig_image,
+        confidences,
+        boxes,
+        use_stitching=False,
+        rnn_len=1,
+        min_conf=0.1,
+        show_removed=True,
+        tau=0.25,
+        show_suppressed=True
 ):
     image = np.copy(orig_image[0])
     num_cells = H["grid_height"] * H["grid_width"]
@@ -322,7 +345,7 @@ def interp(w, i, channel_dim):
 
 
 def bilinear_select(
-    H, pred_boxes, early_feat, early_feat_channels, w_offset, h_offset
+        H, pred_boxes, early_feat, early_feat_channels, w_offset, h_offset
 ):
     '''
     Function used for rezooming high level feature maps. Uses bilinear interpolation
@@ -333,7 +356,7 @@ def bilinear_select(
 
     fine_stride = 8.  # pixels per 60x80 grid cell in 480x640 image
     coarse_stride = H['region_size'
-                     ]  # pixels per 15x20 grid cell in 480x640 image
+    ]  # pixels per 15x20 grid cell in 480x640 image
     batch_ids = []
     x_offsets = []
     y_offsets = []
@@ -353,14 +376,14 @@ def bilinear_select(
     scale_factor = coarse_stride / fine_stride  # scale difference between 15x20 and 60x80 features
 
     pred_x_center = (
-        pred_boxes_r[:, 0:1] + w_offset * pred_boxes_r[:, 2:3] + x_offsets
-    ) / fine_stride
+                            pred_boxes_r[:, 0:1] + w_offset * pred_boxes_r[:, 2:3] + x_offsets
+                    ) / fine_stride
     pred_x_center_clip = tf.clip_by_value(
         pred_x_center, 0, scale_factor * H['grid_width'] - 1
     )
     pred_y_center = (
-        pred_boxes_r[:, 1:2] + h_offset * pred_boxes_r[:, 3:4] + y_offsets
-    ) / fine_stride
+                            pred_boxes_r[:, 1:2] + h_offset * pred_boxes_r[:, 3:4] + y_offsets
+                    ) / fine_stride
     pred_y_center_clip = tf.clip_by_value(
         pred_y_center, 0, scale_factor * H['grid_height'] - 1
     )
