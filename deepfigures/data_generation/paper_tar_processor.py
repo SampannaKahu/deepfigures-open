@@ -109,6 +109,7 @@ def transform_figure_json(result_path: str = None):
         dir_name, file = os.path.split(key)
         correct_path = os.path.join(dir_name, 'black.pdf-images/ghostscript/dpi100', file)
 
+        # TODO: Do not ignore the images with no bounding boxes. The model can ignore it if if wants.
         if not len(value):
             continue
         figure_annotation = {
