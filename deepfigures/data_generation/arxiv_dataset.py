@@ -68,7 +68,8 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                  delete_tar_after_extracting: bool = False,
                  augment_typewriter_font=True,
                  augment_line_spacing_1_5=True,
-                 image_augmentation_transform_sequence=settings.seq) -> None:
+                 image_augmentation_transform_sequence=settings.seq,
+                 ignore_pages_with_no_figures: bool = False) -> None:
         """
         This class initializes the queue and the contexts for each worker.
         Irrespective of the number of workers in the DataLoader, this constructor will be
@@ -98,6 +99,7 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
         self.augment_typewriter_font = augment_typewriter_font
         self.augment_line_spacing_1_5 = augment_line_spacing_1_5
         self.image_augmentation_transform_sequence = image_augmentation_transform_sequence
+        self.ignore_pages_with_no_figures = ignore_pages_with_no_figures
 
         if not list_of_files:
             list_of_files = []
@@ -188,7 +190,8 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
                                                         work_dir_prefix=self.work_dir_prefix,
                                                         arxiv_data_output_dir=self.arxiv_data_output_dir,
                                                         augment_typewriter_font=True, augment_line_spacing_1_5=True,
-                                                        image_augmentation_transform_sequence=self.image_augmentation_transform_sequence)
+                                                        image_augmentation_transform_sequence=self.image_augmentation_transform_sequence,
+                                                        ignore_pages_with_no_figures=self.ignore_pages_with_no_figures)
                 try:
                     result_tuple = paper_tar_processor.process_paper_tar()
                     if result_tuple:
@@ -216,17 +219,19 @@ class ArxivDataSet(torch.utils.data.dataset.IterableDataset):
 if __name__ == '__main__':
 
     if settings.IN_DOCKER:
-        logging.basicConfig(filename='/work/host-output/logger_arxiv.log', level=logging.ERROR)
+        logging.basicConfig(filename='/work/host-output/logger_arxiv.log', level=logging.ERROR,
+                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     else:
-        logging.basicConfig(filename='logger_arxiv.log', level=logging.ERROR)
+        logging.basicConfig(filename='logger_arxiv.log', level=logging.INFO,
+                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     input_files = [
-        's3://arxiv/src/arXiv_src_0003_001.tar',
-        's3://arxiv/src/arXiv_src_0306_001.tar'
+        's3://arxiv/src/arXiv_src_0003_001.tar'
+        # 's3://arxiv/src/arXiv_src_0306_001.tar'
     ]
 
-    arxiv_dataset = ArxivDataSet(list_of_files=input_files)
-    teacher_train_loader = DataLoader(arxiv_dataset, shuffle=False, num_workers=2)
+    arxiv_dataset = ArxivDataSet(list_of_files=input_files, image_augmentation_transform_sequence=settings.no_op)
+    teacher_train_loader = DataLoader(arxiv_dataset, shuffle=False, num_workers=1)
     for item in teacher_train_loader:
         print("-----------------------------------------------------------")
         print("-----------------------------------------------------------")

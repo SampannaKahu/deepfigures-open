@@ -1,6 +1,4 @@
 import os
-import tarfile
-import logging
 
 from deepfigures import settings
 from deepfigures.utils import file_util, config, settings_utils
@@ -10,20 +8,14 @@ from deepfigures.extraction.figure_utils import Figure, BoxClass
 import tarfile
 import logging
 import re
-import time
-import functools
-import collections
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import json
 import glob
 import shutil
 
 import numpy as np
-from scipy.ndimage import imread
-from scipy.misc import imsave
 from skimage import measure
 from PIL import Image
-import scipy as sp
 import bs4
 
 import imageio
@@ -101,7 +93,7 @@ def clean_up_directory(directory: str = None):
     os.makedirs(directory)
 
 
-def transform_figure_json(result_path: str = None):
+def transform_figure_json(result_path: str = None, ignore_pages_with_no_figures: bool = False):
     figure_boundaries = []
     caption_boundaries = []
     contents = json.load(open(str(result_path)))
@@ -109,8 +101,7 @@ def transform_figure_json(result_path: str = None):
         dir_name, file = os.path.split(key)
         correct_path = os.path.join(dir_name, 'black.pdf-images/ghostscript/dpi100', file)
 
-        # TODO: Do not ignore the images with no bounding boxes. The model can ignore it if if wants.
-        if not len(value):
+        if not len(value) and ignore_pages_with_no_figures:
             continue
         figure_annotation = {
             "image_path": correct_path,
@@ -131,7 +122,8 @@ class PaperTarProcessor:
                  arxiv_data_output_dir: str = settings.ARXIV_DATA_OUTPUT_DIR,
                  augment_typewriter_font: bool = True,
                  augment_line_spacing_1_5: bool = True,
-                 image_augmentation_transform_sequence: iaa.Sequential = settings.no_op
+                 image_augmentation_transform_sequence: iaa.Sequential = settings.no_op,
+                 ignore_pages_with_no_figures: bool = False
                  ) -> None:
         super().__init__()
 
@@ -145,6 +137,7 @@ class PaperTarProcessor:
         self.augment_typewriter_font = augment_typewriter_font
         self.augment_line_spacing_1_5 = augment_line_spacing_1_5
         self.image_augmentation_transform_sequence = image_augmentation_transform_sequence
+        self.ignore_pages_with_no_figures = ignore_pages_with_no_figures
 
         self.ARXIV_SRC_DIR = os.path.join(
             self.arxiv_data_output_dir,
@@ -226,7 +219,7 @@ class PaperTarProcessor:
             config.JsonSerializable.serialize(figures_by_page),
             sort_keys=True
         )
-        figure_boundaries, caption_boundaries = transform_figure_json(result_path)
+        figure_boundaries, caption_boundaries = transform_figure_json(result_path, self.ignore_pages_with_no_figures)
         return result_path, figure_boundaries, caption_boundaries
 
     def generate_diffs(self, paper_src_dir: str, dpi: int = settings.DEFAULT_INFERENCE_DPI) -> (
@@ -296,12 +289,12 @@ class PaperTarProcessor:
         diff_names = []
         for (color_page, black_page) in zip(color_ims, black_ims):
             assert os.path.isfile(color_page) and os.path.isfile(black_page)
-            color_page_im = imread(color_page)
-            black_page_im = imread(black_page)
+            color_page_im = imageio.imread(color_page)
+            black_page_im = imageio.imread(black_page)
             assert color_page_im.shape == black_page_im.shape
             diff_page = figure_utils.im_diff(color_page_im, black_page_im)
             diff_name = result_dir + 'diff-' + os.path.basename(black_page)
-            imsave(diff_name, diff_page)
+            imageio.imwrite(uri=diff_name, im=diff_page)
             diff_names.append(diff_name)
         return diff_names, black_ims
 
@@ -424,8 +417,8 @@ class PaperTarProcessor:
                 pagenum + 1
         )
         try:
-            page_image = sp.ndimage.imread(page_image_name)
-            diff_im = imread(diff)
+            page_image = imageio.imread(page_image_name)
+            diff_im = imageio.imread(diff)
         except Image.DecompressionBombWarning as e:
             logging.warning('Image %s too large, failed to read' % page_image_name)
             logging.warning(e)

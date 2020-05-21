@@ -15,11 +15,8 @@ from typing import List, Optional, Tuple
 import json
 
 import numpy as np
-from scipy.ndimage import imread
-from scipy.misc import imsave
 from skimage import measure
 from PIL import Image
-import scipy as sp
 import bs4
 
 import imageio
@@ -170,12 +167,13 @@ def generate_diffs(paper_src_dir: str,
     diff_names = []
     for (color_page, black_page) in zip(color_ims, black_ims):
         assert os.path.isfile(color_page) and os.path.isfile(black_page)
-        color_page_im = imread(color_page)
-        black_page_im = imread(black_page)
+        color_page_im = imageio.imread(color_page)
+        black_page_im = imageio.imread(black_page)
         assert color_page_im.shape == black_page_im.shape
         diff_page = figure_utils.im_diff(color_page_im, black_page_im)
         diff_name = result_dir + 'diff-' + os.path.basename(black_page)
-        imsave(diff_name, diff_page)
+        imageio.imwrite(diff_name, diff_page)
+        # imageio.imwrite(diff_name, )
         diff_names.append(diff_name)
     return diff_names, black_ims
 
@@ -310,8 +308,8 @@ def consume_diff_generate_figures(diff) -> Optional[List[Figure]]:
             pagenum + 1
     )
     try:
-        page_image = sp.ndimage.imread(page_image_name)
-        diff_im = imread(diff)
+        page_image = imageio.imread(page_image_name)
+        diff_im = imageio.imread(diff)
     except Image.DecompressionBombWarning as e:
         logging.warning('Image %s too large, failed to read' % page_image_name)
         logging.warning(e)

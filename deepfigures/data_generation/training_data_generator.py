@@ -42,6 +42,8 @@ def parse_args():
                         help='Whether to augment the data with 1.5 line spacing.')
     parser.add_argument('--should_apply_image_based_augmentations', type=bool, default=False,
                         help='If set to true, applies all the default image-based augmentations.')
+    parser.add_argument('--ignore_pages_with_no_figures', type=bool, default=False,
+                        help='If set to true, ignores the pages of the PDFs which have no figures.')
 
     return parser.parse_args()
 
@@ -92,7 +94,8 @@ if __name__ == "__main__":
                            delete_tar_after_extracting=args.delete_tar_after_extracting,
                            augment_typewriter_font=args.augment_typewriter_font,
                            augment_line_spacing_1_5=args.augment_line_spacing_1_5,
-                           image_augmentation_transform_sequence=settings.no_op)
+                           image_augmentation_transform_sequence=settings.no_op,
+                           ignore_pages_with_no_figures=args.ignore_pages_with_no_figures)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=args.n_cpu)
     data_iterator = iter(data_loader)
 
