@@ -130,12 +130,12 @@ if __name__ == "__main__":
         # if zip file reached threshold, rollover to the next one.
         if file_counter == args.images_per_zip:
             z.close()
-            shutil.copyfile(src=os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)),
-                            dst=os.path.join(args.zip_dest_dir, get_zipfile_name(zip_file_id)))
+            shutil.move(src=os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)),
+                        dst=os.path.join(args.zip_dest_dir, get_zipfile_name(zip_file_id)))
             print("Finished zip file number {}.".format(zip_file_id))
             file_counter = 0
             zip_file_id = zip_file_id + 1
             z = ZipFile(os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)), mode='w')
     z.close()
-    shutil.copyfile(src=os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)),
-                    dst=os.path.join(args.zip_dest_dir, get_zipfile_name(zip_file_id)))
+    shutil.move(src=os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)),
+                dst=os.path.join(args.zip_dest_dir, get_zipfile_name(zip_file_id)))

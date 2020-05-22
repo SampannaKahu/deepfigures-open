@@ -21,12 +21,13 @@ DELETE_THIS="/tmp/delete_this"
 mkdir -p $DELETE_THIS
 i=0
 ZIP_SAVE_DIR=$DELETE_THIS
-ZIP_DEST_DIR=$DELETE_THIS
+ZIP_DEST_DIR="$DELETE_THIS"/dest
 NUM_CPUS_TIMES_2=1
 WORK_DIR_PREFIX=$DELETE_THIS
 ARXIV_DATA_TEMP=$DELETE_THIS
 DOWNLOAD_CACHE=$DELETE_THIS
 ARXIV_DATA_OUTPUT=$DELETE_THIS
+mkdir -p $ZIP_DEST_DIR
 cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '/' '{print $3"_"$4"_"$5}' | awk -F '"' '{print "/work/cascades/sampanna/deepfigures-results/download_cache/"$1}' | xargs cp -t "$DOWNLOAD_CACHE"
 /home/sampanna/.conda/envs/deepfigures/bin/python /home/sampanna/deepfigures-open/deepfigures/data_generation/training_data_generator.py \
   --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json \
