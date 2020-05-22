@@ -9,7 +9,7 @@ import time
 import argparse
 import os
 import threading
-from scipy import misc
+import imageio
 import tensorflow as tf
 import numpy as np
 from distutils.version import LooseVersion
@@ -30,39 +30,29 @@ from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
 
 def build_overfeat_inner(H, lstm_input):
-    '''
+    """
     build simple overfeat decoder
-    '''
+    """
     if H['rnn_len'] > 1:
         raise ValueError('rnn_len > 1 only supported with use_lstm == True')
     outputs = []
     initializer = tf.random_uniform_initializer(-0.1, 0.1)
     with tf.variable_scope('Overfeat', initializer=initializer):
-        w = tf.get_variable(
-            'ip', shape=[H['later_feat_channels'], H['lstm_size']]
-        )
+        w = tf.get_variable('ip', shape=[H['later_feat_channels'], H['lstm_size']])
         outputs.append(tf.matmul(lstm_input, w))
     return outputs
 
 
 def deconv(x, output_shape, channels):
-    k_h = 2
-    k_w = 2
-    w = tf.get_variable(
-        'w_deconv',
-        initializer=tf.random_normal_initializer(stddev=0.01),
-        shape=[k_h, k_w, channels[1], channels[0]]
-    )
-    y = tf.nn.conv2d_transpose(
-        x, w, output_shape, strides=[1, k_h, k_w, 1], padding='VALID'
-    )
-    return y
+    k_h, k_w = 2, 2
+    w = tf.get_variable('w_deconv',
+                        initializer=tf.random_normal_initializer(stddev=0.01),
+                        shape=[k_h, k_w, channels[1], channels[0]])
+    return tf.nn.conv2d_transpose(x, w, output_shape, strides=[1, k_h, k_w, 1], padding='VALID')
 
 
-def rezoom(
-        H, pred_boxes, early_feat, early_feat_channels, w_offsets, h_offsets
-):
-    '''
+def rezoom(H, pred_boxes, early_feat, early_feat_channels, w_offsets, h_offsets):
+    """
     Rezoom into a feature map at multiple interpolation points in a grid.
 
     If the predicted object center is at X, len(w_offsets) == 3, and len(h_offsets) == 5,
@@ -75,7 +65,7 @@ def rezoom(
     [o o o]
 
     Where each letter indexes into the feature map with bilinear interpolation
-    '''
+    """
 
     grid_size = H['grid_width'] * H['grid_height']
     outer_size = grid_size * H['batch_size']
@@ -90,9 +80,7 @@ def rezoom(
             )
 
     interp_indices = tf_concat(0, indices)
-    rezoom_features = train_utils.interp(
-        early_feat, interp_indices, early_feat_channels
-    )
+    rezoom_features = train_utils.interp(early_feat, interp_indices, early_feat_channels)
     rezoom_features_r = tf.reshape(
         rezoom_features, [
             len(w_offsets) * len(h_offsets), outer_size, H['rnn_len'],
@@ -135,9 +123,7 @@ def build_forward(H, x, phase, reuse):
                 ],
                 initializer=tf.random_normal_initializer(stddev=0.01)
             )
-            cnn_s = tf.nn.conv2d(
-                cnn, w, strides=[1, stride, stride, 1], padding='SAME'
-            )
+            cnn_s = tf.nn.conv2d(cnn, w, strides=[1, stride, stride, 1], padding='SAME')
             cnn_s_pool = tf.nn.avg_pool(
                 cnn_s[:, :, :, :256],
                 ksize=[1, pool_size, pool_size, 1],
@@ -176,10 +162,7 @@ def build_forward(H, x, phase, reuse):
     initializer = tf.random_uniform_initializer(-0.1, 0.1)
     with tf.variable_scope('decoder', reuse=reuse, initializer=initializer):
         scale_down = 0.01
-        lstm_input = tf.reshape(
-            cnn * scale_down,
-            (H['batch_size'] * grid_size, H['later_feat_channels'])
-        )
+        lstm_input = tf.reshape(cnn * scale_down, (H['batch_size'] * grid_size, H['later_feat_channels']))
         if H['use_lstm']:
             lstm_outputs = build_lstm_inner(H, lstm_input)
         else:
@@ -191,35 +174,17 @@ def build_forward(H, x, phase, reuse):
             output = lstm_outputs[k]
             if phase == 'train':
                 output = tf.nn.dropout(output, 0.5)
-            box_weights = tf.get_variable(
-                'box_ip%d' % k, shape=(H['lstm_size'], 4)
-            )
-            conf_weights = tf.get_variable(
-                'conf_ip%d' % k, shape=(H['lstm_size'], H['num_classes'])
-            )
-
-            pred_boxes_step = tf.reshape(
-                tf.matmul(output, box_weights) * 50, [outer_size, 1, 4]
-            )
-
+            box_weights = tf.get_variable('box_ip%d' % k, shape=(H['lstm_size'], 4))
+            conf_weights = tf.get_variable('conf_ip%d' % k, shape=(H['lstm_size'], H['num_classes']))
+            pred_boxes_step = tf.reshape(tf.matmul(output, box_weights) * 50, [outer_size, 1, 4])
             pred_boxes.append(pred_boxes_step)
-            pred_logits.append(
-                tf.reshape(
-                    tf.matmul(output, conf_weights),
-                    [outer_size, 1, H['num_classes']]
-                )
-            )
+            pred_logits.append(tf.reshape(tf.matmul(output, conf_weights), [outer_size, 1, H['num_classes']]))
 
         pred_boxes = tf_concat(1, pred_boxes)
         pred_logits = tf_concat(1, pred_logits)
-        pred_logits_squash = tf.reshape(
-            pred_logits, [outer_size * H['rnn_len'], H['num_classes']]
-        )
+        pred_logits_squash = tf.reshape(pred_logits, [outer_size * H['rnn_len'], H['num_classes']])
         pred_confidences_squash = tf.nn.softmax(pred_logits_squash)
-        pred_confidences = tf.reshape(
-            pred_confidences_squash,
-            [outer_size, H['rnn_len'], H['num_classes']]
-        )
+        pred_confidences = tf.reshape(pred_confidences_squash, [outer_size, H['rnn_len'], H['num_classes']])
 
         if H['use_rezoom']:
             pred_confs_deltas = []
@@ -227,33 +192,20 @@ def build_forward(H, x, phase, reuse):
             w_offsets = H['rezoom_w_coords']
             h_offsets = H['rezoom_h_coords']
             num_offsets = len(w_offsets) * len(h_offsets)
-            rezoom_features = rezoom(
-                H, pred_boxes, early_feat, early_feat_channels, w_offsets,
-                h_offsets
-            )
+            rezoom_features = rezoom(H, pred_boxes, early_feat, early_feat_channels, w_offsets, h_offsets)
             if phase == 'train':
                 rezoom_features = tf.nn.dropout(rezoom_features, 0.5)
             for k in range(H['rnn_len']):
-                delta_features = tf_concat(
-                    1, [lstm_outputs[k], rezoom_features[:, k, :] / 1000.]
-                )
+                delta_features = tf_concat(1, [lstm_outputs[k], rezoom_features[:, k, :] / 1000.])
                 dim = 128
-                delta_weights1 = tf.get_variable(
-                    'delta_ip1%d' % k,
-                    shape=[
-                        H['lstm_size'] + early_feat_channels * num_offsets, dim
-                    ]
-                )
+                delta_weights1 = tf.get_variable('delta_ip1%d' % k,
+                                                 shape=[H['lstm_size'] + early_feat_channels * num_offsets, dim])
                 ip1 = tf.nn.relu(tf.matmul(delta_features, delta_weights1))
                 if phase == 'train':
                     ip1 = tf.nn.dropout(ip1, 0.5)
-                delta_confs_weights = tf.get_variable(
-                    'delta_ip2%d' % k, shape=[dim, H['num_classes']]
-                )
+                delta_confs_weights = tf.get_variable('delta_ip2%d' % k, shape=[dim, H['num_classes']])
                 if H['reregress']:
-                    delta_boxes_weights = tf.get_variable(
-                        'delta_ip_boxes%d' % k, shape=[dim, 4]
-                    )
+                    delta_boxes_weights = tf.get_variable('delta_ip_boxes%d' % k, shape=[dim, 4])
                     pred_boxes_deltas.append(
                         tf.reshape(
                             tf.matmul(ip1, delta_boxes_weights) * 5,
@@ -276,34 +228,23 @@ def build_forward(H, x, phase, reuse):
 
 
 def build_forward_backward(H, x, phase, boxes, flags):
-    '''
+    """
     Call build_forward() and then setup the loss functions
-    '''
+    """
 
     grid_size = H['grid_width'] * H['grid_height']
     outer_size = grid_size * H['batch_size']
     reuse = {'train': None, 'test': True}[phase]
     if H['use_rezoom']:
-        (
-            pred_boxes, pred_logits, pred_confidences, pred_confs_deltas,
-            pred_boxes_deltas
-        ) = build_forward(H, x, phase, reuse)
+        (pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas) = build_forward(H, x, phase,
+                                                                                                          reuse)
     else:
-        pred_boxes, pred_logits, pred_confidences = build_forward(
-            H, x, phase, reuse
-        )
-    with tf.variable_scope(
-            'decoder', reuse={'train': None,
-                              'test': True}[phase]
-    ):
+        pred_boxes, pred_logits, pred_confidences = build_forward(H, x, phase, reuse)
+    with tf.variable_scope('decoder', reuse={'train': None, 'test': True}[phase]):
         outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])
-        outer_flags = tf.cast(
-            tf.reshape(flags, [outer_size, H['rnn_len']]), 'int32'
-        )
+        outer_flags = tf.cast(tf.reshape(flags, [outer_size, H['rnn_len']]), 'int32')
         if H['use_lstm']:
-            hungarian_module = tf.load_op_library(
-                'utils/hungarian/hungarian.so'
-            )
+            hungarian_module = tf.load_op_library('utils/hungarian/hungarian.so')
             assignments, classes, perm_truth, pred_mask = (
                 hungarian_module.hungarian(
                     pred_boxes, outer_boxes, outer_flags,
@@ -313,16 +254,9 @@ def build_forward_backward(H, x, phase, boxes, flags):
         else:
             classes = tf.reshape(flags, (outer_size, 1))
             perm_truth = tf.reshape(outer_boxes, (outer_size, 1, 4))
-            pred_mask = tf.reshape(
-                tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1)
-            )
-        true_classes = tf.reshape(
-            tf.cast(tf.greater(classes, 0), 'int64'),
-            [outer_size * H['rnn_len']]
-        )
-        pred_logit_r = tf.reshape(
-            pred_logits, [outer_size * H['rnn_len'], H['num_classes']]
-        )
+            pred_mask = tf.reshape(tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1))
+        true_classes = tf.reshape(tf.cast(tf.greater(classes, 0), 'int64'), [outer_size * H['rnn_len']])
+        pred_logit_r = tf.reshape(pred_logits, [outer_size * H['rnn_len'], H['num_classes']])
         confidences_loss = (
                                tf.reduce_sum(
                                    tf.nn.sparse_softmax_cross_entropy_with_logits(
@@ -330,12 +264,8 @@ def build_forward_backward(H, x, phase, boxes, flags):
                                    )
                                )
                            ) / outer_size * H['solver']['head_weights'][0]
-        residual = tf.reshape(
-            perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4]
-        )
-        boxes_loss = tf.reduce_sum(
-            tf.abs(residual)
-        ) / outer_size * H['solver']['head_weights'][1]
+        residual = tf.reshape(perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4])
+        boxes_loss = tf.reduce_sum(tf.abs(residual)) / outer_size * H['solver']['head_weights'][1]
         if H['use_rezoom']:
             if H['rezoom_change_loss'] == 'center':
                 error = (perm_truth[:, :, 0:2] - pred_boxes[:, :, 0:2]
@@ -357,27 +287,17 @@ def build_forward_backward(H, x, phase, boxes, flags):
                 inside = tf.reshape(tf.to_int64(tf.greater(iou, 0.5)), [-1])
             else:
                 assert H['rezoom_change_loss'] == False
-                inside = tf.reshape(
-                    tf.to_int64((tf.greater(classes, 0))), [-1]
-                )
-            new_confs = tf.reshape(
-                pred_confs_deltas,
-                [outer_size * H['rnn_len'], H['num_classes']]
-            )
+                inside = tf.reshape(tf.to_int64((tf.greater(classes, 0))), [-1])
+            new_confs = tf.reshape(pred_confs_deltas, [outer_size * H['rnn_len'], H['num_classes']])
             delta_confs_loss = tf.reduce_sum(
                 tf.nn.sparse_softmax_cross_entropy_with_logits(
                     logits=new_confs, labels=inside
                 )
             ) / outer_size * H['solver']['head_weights'][0] * 0.1
 
-            pred_logits_squash = tf.reshape(
-                new_confs, [outer_size * H['rnn_len'], H['num_classes']]
-            )
+            pred_logits_squash = tf.reshape(new_confs, [outer_size * H['rnn_len'], H['num_classes']])
             pred_confidences_squash = tf.nn.softmax(pred_logits_squash)
-            pred_confidences = tf.reshape(
-                pred_confidences_squash,
-                [outer_size, H['rnn_len'], H['num_classes']]
-            )
+            pred_confidences = tf.reshape(pred_confidences_squash, [outer_size, H['rnn_len'], H['num_classes']])
             loss = confidences_loss + boxes_loss + delta_confs_loss
             if H['reregress']:
                 delta_residual = tf.reshape(
@@ -390,19 +310,10 @@ def build_forward_backward(H, x, phase, boxes, flags):
                         ) / outer_size * H['solver']['head_weights'][1] * 0.03
                 )
                 boxes_loss = delta_boxes_loss
-
-                tf.summary.histogram(
-                    phase + '/delta_hist0_x', pred_boxes_deltas[:, 0, 0]
-                )
-                tf.summary.histogram(
-                    phase + '/delta_hist0_y', pred_boxes_deltas[:, 0, 1]
-                )
-                tf.summary.histogram(
-                    phase + '/delta_hist0_w', pred_boxes_deltas[:, 0, 2]
-                )
-                tf.summary.histogram(
-                    phase + '/delta_hist0_h', pred_boxes_deltas[:, 0, 3]
-                )
+                tf.summary.histogram(phase + '/delta_hist0_x', pred_boxes_deltas[:, 0, 0])
+                tf.summary.histogram(phase + '/delta_hist0_y', pred_boxes_deltas[:, 0, 1])
+                tf.summary.histogram(phase + '/delta_hist0_w', pred_boxes_deltas[:, 0, 2])
+                tf.summary.histogram(phase + '/delta_hist0_h', pred_boxes_deltas[:, 0, 3])
                 loss += delta_boxes_loss
         else:
             loss = confidences_loss + boxes_loss
@@ -411,73 +322,51 @@ def build_forward_backward(H, x, phase, boxes, flags):
 
 
 def build(H, q):
-    '''
+    """
     Build full model for training, including forward / backward passes,
     optimizers, and summary statistics.
-    '''
+    """
     arch = H
     solver = H["solver"]
-
     os.environ['CUDA_VISIBLE_DEVICES'] = str(solver.get('gpu', ''))
-
     gpu_options = tf.GPUOptions()
     config = tf.ConfigProto(gpu_options=gpu_options)
-
     learning_rate = tf.placeholder(tf.float32)
+
     if solver['opt'] == 'RMS':
-        opt = tf.train.RMSPropOptimizer(
-            learning_rate=learning_rate, decay=0.9, epsilon=solver['epsilon']
-        )
+        opt = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.9, epsilon=solver['epsilon'])
     elif solver['opt'] == 'Adam':
-        opt = tf.train.AdamOptimizer(
-            learning_rate=learning_rate, epsilon=solver['epsilon']
-        )
+        opt = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon=solver['epsilon'])
     elif solver['opt'] == 'SGD':
         opt = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
     else:
         raise ValueError('Unrecognized opt type')
+
     loss, accuracy, confidences_loss, boxes_loss = {}, {}, {}, {}
     for phase in ['train', 'test']:
         # generate predictions and losses from forward pass
         x, confidences, boxes = q[phase].dequeue_many(arch['batch_size'])
         flags = tf.argmax(confidences, 3)
-
         grid_size = H['grid_width'] * H['grid_height']
 
-        (
-            pred_boxes, pred_confidences, loss[phase], confidences_loss[phase],
-            boxes_loss[phase]
-        ) = build_forward_backward(H, x, phase, boxes, flags)
-        pred_confidences_r = tf.reshape(
-            pred_confidences,
-            [H['batch_size'], grid_size, H['rnn_len'], arch['num_classes']]
-        )
-        pred_boxes_r = tf.reshape(
-            pred_boxes, [H['batch_size'], grid_size, H['rnn_len'], 4]
-        )
+        pred_boxes, pred_confidences, loss[phase], confidences_loss[phase], boxes_loss[phase] = build_forward_backward(
+            H, x, phase, boxes, flags)
+        pred_confidences_r = tf.reshape(tensor=pred_confidences,
+                                        shape=[H['batch_size'], grid_size, H['rnn_len'], arch['num_classes']])
+        pred_boxes_r = tf.reshape(pred_boxes, [H['batch_size'], grid_size, H['rnn_len'], 4])
 
         # Set up summary operations for tensorboard
-        a = tf.equal(
-            tf.argmax(confidences[:, :, 0, :], 2),
-            tf.argmax(pred_confidences_r[:, :, 0, :], 2)
-        )
-        accuracy[phase] = tf.reduce_mean(
-            tf.cast(a, 'float32'), name=phase + '/accuracy'
-        )
+        a = tf.equal(tf.argmax(confidences[:, :, 0, :], 2), tf.argmax(pred_confidences_r[:, :, 0, :], 2))
+        accuracy[phase] = tf.reduce_mean(tf.cast(a, 'float32'), name=phase + '/accuracy')
 
         if phase == 'train':
             global_step = tf.Variable(0, trainable=False)
-
             tvars = tf.trainable_variables()
             if H['clip_norm'] <= 0:
                 grads = tf.gradients(loss['train'], tvars)
             else:
-                grads, norm = tf.clip_by_global_norm(
-                    tf.gradients(loss['train'], tvars), H['clip_norm']
-                )
-            train_op = opt.apply_gradients(
-                zip(grads, tvars), global_step=global_step
-            )
+                grads, norm = tf.clip_by_global_norm(tf.gradients(loss['train'], tvars), H['clip_norm'])
+            train_op = opt.apply_gradients(zip(grads, tvars), global_step=global_step)
         elif phase == 'test':
             moving_avg = tf.train.ExponentialMovingAverage(0.95)
             smooth_op = moving_avg.apply(
@@ -493,21 +382,11 @@ def build(H, q):
 
             for p in ['train', 'test']:
                 tf.summary.scalar('%s/accuracy' % p, accuracy[p])
-                tf.summary.scalar(
-                    '%s/accuracy/smooth' % p, moving_avg.average(accuracy[p])
-                )
-                tf.summary.scalar(
-                    "%s/confidences_loss" % p, confidences_loss[p]
-                )
-                tf.summary.scalar(
-                    "%s/confidences_loss/smooth" % p,
-                    moving_avg.average(confidences_loss[p])
-                )
+                tf.summary.scalar('%s/accuracy/smooth' % p, moving_avg.average(accuracy[p]))
+                tf.summary.scalar("%s/confidences_loss" % p, confidences_loss[p])
+                tf.summary.scalar("%s/confidences_loss/smooth" % p, moving_avg.average(confidences_loss[p]))
                 tf.summary.scalar("%s/regression_loss" % p, boxes_loss[p])
-                tf.summary.scalar(
-                    "%s/regression_loss/smooth" % p,
-                    moving_avg.average(boxes_loss[p])
-                )
+                tf.summary.scalar("%s/regression_loss/smooth" % p, moving_avg.average(boxes_loss[p]))
 
         if phase == 'test':
             test_image = x
@@ -519,56 +398,32 @@ def build(H, q):
             test_pred_confidences = pred_confidences_r[0, :, :, :]
             test_pred_boxes = pred_boxes_r[0, :, :, :]
 
-            def log_image(
-                    np_img, np_confidences, np_boxes, np_global_step, pred_or_true
-            ):
+            def log_image(np_img, np_confidences, np_boxes, np_global_step, pred_or_true):
 
                 if np_img.shape[2] == 4:
                     np_img = np_img[:, :, [0, 1, 3]]
-                merged = train_utils.add_rectangles(
-                    H,
-                    np_img,
-                    np_confidences,
-                    np_boxes,
-                    use_stitching=True,
-                    rnn_len=H['rnn_len']
-                )[0]
+
+                merged = train_utils.add_rectangles(H, np_img, np_confidences, np_boxes, use_stitching=True,
+                                                    rnn_len=H['rnn_len'])[0]
 
                 num_images = 5000
-                img_path = os.path.join(
-                    H['save_dir'], '%s_%s.jpg' % (
-                        (np_global_step / H['logging']['display_iter']
-                         ) % num_images, pred_or_true
-                    )
-                )
-                misc.imsave(img_path, merged)
+                img_path = os.path.join(H['save_dir'], '%s_%s.jpg' % (
+                    (np_global_step / H['logging']['display_iter']) % num_images, pred_or_true))
+                imageio.imwrite(img_path, merged)
                 return merged
 
-            pred_log_img = tf.py_func(
-                log_image, [
-                    test_image, test_pred_confidences, test_pred_boxes,
-                    global_step, 'pred'
-                ], [tf.float32]
-            )
-            true_log_img = tf.py_func(
-                log_image, [
-                    test_image, test_true_confidences, test_true_boxes,
-                    global_step, 'true'
-                ], [tf.float32]
-            )
-            tf.summary.image(
-                phase + '/pred_boxes', pred_log_img, max_outputs=10
-            )
-            tf.summary.image(
-                phase + '/true_boxes', true_log_img, max_outputs=10
-            )
+            pred_log_img = tf.py_func(log_image,
+                                      [test_image, test_pred_confidences, test_pred_boxes, global_step, 'pred'],
+                                      [tf.float32])
+            true_log_img = tf.py_func(log_image,
+                                      [test_image, test_true_confidences, test_true_boxes, global_step, 'true'],
+                                      [tf.float32])
+            tf.summary.image(phase + '/pred_boxes', pred_log_img, max_outputs=10)
+            tf.summary.image(phase + '/true_boxes', true_log_img, max_outputs=10)
 
     summary_op = tf.summary.merge_all()
 
-    return (
-        config, loss, accuracy, summary_op, train_op, smooth_op, global_step,
-        learning_rate
-    )
+    return config, loss, accuracy, summary_op, train_op, smooth_op, global_step, learning_rate
 
 
 def build_augmentation_pipeline(H: dict, phase: str):
@@ -711,22 +566,16 @@ def train(H, test_images):
         max_iter = H['solver'].get('max_iter', 10000000)
         for i in range(max_iter):
             display_iter = H['logging']['display_iter']
-            adjusted_lr = (
-                    H['solver']['learning_rate'] * 0.5 **
-                    max(0, (i / H['solver']['learning_rate_step']) - 2)
-            )
+            adjusted_lr = (H['solver']['learning_rate'] * 0.5 ** max(0, (i / H['solver']['learning_rate_step']) - 2))
             lr_feed = {learning_rate: adjusted_lr}
 
             if i % display_iter != 0:
                 # train network
-                batch_loss_train, _ = sess.run(
-                    [loss['train'], train_op], feed_dict=lr_feed
-                )
+                batch_loss_train, _ = sess.run([loss['train'], train_op], feed_dict=lr_feed)
             else:
                 # test network every N iterations; log additional info
                 if i > 0:
-                    dt = (time.time() - start
-                          ) / (H['batch_size'] * display_iter)
+                    dt = (time.time() - start) / (H['batch_size'] * display_iter)
                 start = time.time()
                 (train_loss, test_accuracy, summary_str, _, _) = sess.run(
                     [
@@ -748,16 +597,9 @@ def train(H, test_images):
                         'Time/image (ms): %.1f',
                     ]
                 )
-                print(
-                    print_str % (
-                        i, adjusted_lr, train_loss, test_accuracy * 100,
-                        dt * 1000 if i > 0 else 0
-                    )
-                )
+                print(print_str % (i, adjusted_lr, train_loss, test_accuracy * 100, dt * 1000 if i > 0 else 0))
 
-            if global_step.eval() % H['logging'][
-                'save_iter'
-            ] == 0 or global_step.eval() == max_iter - 1:
+            if global_step.eval() % H['logging']['save_iter'] == 0 or global_step.eval() == max_iter - 1:
                 saver.save(sess, ckpt_file, global_step=global_step)
 
 
