@@ -1,6 +1,7 @@
 import os
 import cv2
 import json
+import shutil
 import argparse
 import logging
 import torch
@@ -25,6 +26,9 @@ def parse_args():
     parser.add_argument('--images_per_zip', type=int, default=500, help='Maximum number of images per zip file.')
     parser.add_argument('--zip_save_dir', type=str, default='/tmp',
                         help='Provide the path where all the generated zips will be saved.')
+    parser.add_argument('--zip_dest_dir', type=str,
+                        default='/work/cascades/sampanna/deepfigures-results/pregenerated_training_data',
+                        help='Provide the path where all the generated zips will be copied after then are generated.')
     parser.add_argument('--work_dir_prefix', type=str, default=settings.HOSTNAME,
                         help='The prefix for the work directory of each instance of ArxivDataset.')
     parser.add_argument('--arxiv_tmp_dir', type=str, default=settings.ARXIV_DATA_TMP_DIR,
@@ -126,8 +130,10 @@ if __name__ == "__main__":
         # if zip file reached threshold, rollover to the next one.
         if file_counter == args.images_per_zip:
             z.close()
+            shutil.copyfile(src=os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)), dst=args.zip_dest_dir)
             print("Finished zip file number {}.".format(zip_file_id))
             file_counter = 0
             zip_file_id = zip_file_id + 1
             z = ZipFile(os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)), mode='w')
     z.close()
+    shutil.copyfile(src=os.path.join(args.zip_save_dir, get_zipfile_name(zip_file_id)), dst=args.zip_dest_dir)

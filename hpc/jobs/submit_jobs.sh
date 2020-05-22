@@ -21,6 +21,7 @@ DELETE_THIS="/tmp/delete_this"
 mkdir -p $DELETE_THIS
 i=0
 ZIP_SAVE_DIR=$DELETE_THIS
+ZIP_DEST_DIR=$DELETE_THIS
 NUM_CPUS_TIMES_2=1
 WORK_DIR_PREFIX=$DELETE_THIS
 ARXIV_DATA_TEMP=$DELETE_THIS
@@ -31,6 +32,7 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
   --file_list_json /home/sampanna/deepfigures-open/hpc/files_random_40/files_"$i".json \
   --images_per_zip=2 \
   --zip_save_dir="$ZIP_SAVE_DIR" \
+  --zip_dest_dir="$ZIP_DEST_DIR" \
   --n_cpu=$NUM_CPUS_TIMES_2 \
   --work_dir_prefix "$WORK_DIR_PREFIX" \
   --arxiv_tmp_dir "$ARXIV_DATA_TEMP" \
