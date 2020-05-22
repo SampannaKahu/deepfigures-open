@@ -600,12 +600,13 @@ def build_augmentation_pipeline(H: dict, phase: str):
     return iaa.Sequential(augmenter_list)
 
 
-def train(H, test_images):
+def train(H: dict, test_images):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
     '''
 
-    if not os.path.exists(H['save_dir']): os.makedirs(H['save_dir'])
+    if not os.path.exists(H['save_dir']):
+        os.makedirs(H['save_dir'])
 
     ckpt_file = H['save_dir'] + '/save.ckpt'
     with open(H['save_dir'] + '/hypes.json', 'w') as f:
@@ -658,7 +659,7 @@ def train(H, test_images):
         learning_rate
     ) = build(H, q)
 
-    saver = tf.train.Saver(max_to_keep=None)
+    saver = tf.train.Saver(max_to_keep=H.get('max_checkpoints_to_keep', 100))
     writer = tf.summary.FileWriter(logdir=H['save_dir'], flush_secs=10)
 
     with tf.Session(config=config) as sess:

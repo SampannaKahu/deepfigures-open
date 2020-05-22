@@ -106,5 +106,6 @@
   "slim_basename": "resnet_v1_101",
   "avg_pool_size": 5,
   "slim_ckpt": "",
-  "use_rezoom": true
+  "use_rezoom": true,
+  "max_checkpoints_to_keep": 50
 }
