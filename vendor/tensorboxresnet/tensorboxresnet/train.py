@@ -769,15 +769,28 @@ def main():
     additional arguments as needed.
     '''
     print("IS GPU AVAILABLE: {}".format(tf.test.is_gpu_available(cuda_only=False, min_cuda_compute_capability=None)))
+    if 'CUDA_VISIBLE_DEVICES' not in os.environ:
+        print("The environment variable CUDA_VISIBLE_DEVICES is not set. Exiting.")
+        return
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', default=None, type=str)
-    parser.add_argument('--gpu', default=None, type=int)
+    parser.add_argument('--gpu', default=int(os.environ.get('CUDA_VISIBLE_DEVICES', -1)), type=int)
     parser.add_argument('--hypes', required=True, type=str)
     parser.add_argument('--max_iter', required=False, type=int, default=None)
     parser.add_argument('--logdir', default='output', type=str)
+    parser.add_argument('--experiment_name', default='arxiv_experiment', type=str)
+    parser.add_argument('--train_idl_path', default=None, type=str)
+    parser.add_argument('--train_images_dir', default=None, type=str)
+    parser.add_argument('--test_idl_path', default=None, type=str)
+    parser.add_argument('--test_images_dir', default=None, type=str)
+    parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
+    parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
     args = parser.parse_args()
+    print("Arguments to the train.py script: {}".format(args))
     with open(args.hypes, 'r') as f:
         H = json.load(f)
+    if args.experiment_name:
+        H['exp_name'] = args.experiment_name
     if args.gpu is not None:
         H['solver']['gpu'] = args.gpu
     if args.max_iter is not None:
@@ -785,10 +798,21 @@ def main():
     if len(H.get('exp_name', '')) == 0:
         H['exp_name'] = args.hypes.split('/')[-1].replace('.json', '')
     H['save_dir'] = args.logdir + '/%s_%s' % (
-        H['exp_name'], datetime.datetime.now().strftime('%Y_%m_%d_%H.%M')
+        H['exp_name'], args.timestamp
     )
     if args.weights is not None:
         H['solver']['weights'] = args.weights
+    if args.train_idl_path is not None:
+        H['data']['train_idl'] = args.train_idl_path
+    if args.train_images_dir is not None:
+        H['data']['train_images_dir'] = args.train_images_dir
+    if args.test_idl_path is not None:
+        H['data']['test_idl'] = args.test_idl_path
+    if args.test_images_dir is not None:
+        H['data']['test_images_dir'] = args.test_images_dir
+    if args.max_checkpoints_to_keep is not None:
+        H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
+    print("Beginning training with hyperparameters: {H}".format(H=H))
     train(H, test_images=[])
 
 

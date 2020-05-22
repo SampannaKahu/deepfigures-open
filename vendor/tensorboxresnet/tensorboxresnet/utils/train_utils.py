@@ -18,6 +18,7 @@ from tensorboxresnet.utils.stitch_wrapper import stitch_rects
 import functools
 
 from deepfigures.utils import image_util
+
 tensor_queue = multiprocessing.Queue(maxsize=8)
 
 import imgaug as ia
@@ -37,7 +38,7 @@ def rescale_boxes(current_shape, anno, target_height, target_width):
     return anno
 
 
-def load_idl_tf(idlfile, H, jitter, augmentation_transforms):
+def load_idl_tf(idlfile, images_dir, H, jitter, augmentation_transforms):
     """Take the idlfile and net configuration and create a generator
     that outputs a jittered version of a random image from the annolist
     that is mean corrected."""
@@ -45,9 +46,7 @@ def load_idl_tf(idlfile, H, jitter, augmentation_transforms):
     annolist = al.parse(idlfile)
     annos = []
     for anno in annolist:
-        anno.imageName = os.path.join(
-            os.path.dirname(os.path.realpath(idlfile)), anno.imageName
-        )
+        anno.imageName = os.path.join(images_dir, anno.imageName)
         annos.append(anno)
     random.seed(0)
     if H['data']['truncate_data']:
@@ -136,6 +135,7 @@ def load_data_gen(H, phase, jitter, augmentation_transforms):
 
     data = load_idl_tf(
         H["data"]['%s_idl' % phase],
+        H["data"]['%s_images_dir' % phase],
         H,
         jitter={'train': jitter,
                 'test': False}[phase],
