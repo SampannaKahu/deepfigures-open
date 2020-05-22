@@ -109,39 +109,7 @@ def build_forward(H, x, phase, reuse):
     early_feat_channels = H['early_feat_channels']
     early_feat = early_feat[:, :, :, :early_feat_channels]
 
-    if H['deconv']:
-        size = 3
-        stride = 2
-        pool_size = 5
-
-        with tf.variable_scope("deconv", reuse=reuse):
-            w = tf.get_variable(
-                'conv_pool_w',
-                shape=[
-                    size, size, H['later_feat_channels'],
-                    H['later_feat_channels']
-                ],
-                initializer=tf.random_normal_initializer(stddev=0.01)
-            )
-            cnn_s = tf.nn.conv2d(cnn, w, strides=[1, stride, stride, 1], padding='SAME')
-            cnn_s_pool = tf.nn.avg_pool(
-                cnn_s[:, :, :, :256],
-                ksize=[1, pool_size, pool_size, 1],
-                strides=[1, 1, 1, 1],
-                padding='SAME'
-            )
-
-            cnn_s_with_pool = tf_concat(3, [cnn_s_pool, cnn_s[:, :, :, 256:]])
-            cnn_deconv = deconv(
-                cnn_s_with_pool,
-                output_shape=[
-                    H['batch_size'], H['grid_height'], H['grid_width'], 256
-                ],
-                channels=[H['later_feat_channels'], 256]
-            )
-            cnn = tf_concat(3, (cnn_deconv, cnn[:, :, :, 256:]))
-
-    elif H['avg_pool_size'] > 1:
+    if H['avg_pool_size'] > 1:
         pool_size = H['avg_pool_size']
         cnn1 = cnn[:, :, :, :700]
         cnn2 = cnn[:, :, :, 700:]
@@ -163,10 +131,7 @@ def build_forward(H, x, phase, reuse):
     with tf.variable_scope('decoder', reuse=reuse, initializer=initializer):
         scale_down = 0.01
         lstm_input = tf.reshape(cnn * scale_down, (H['batch_size'] * grid_size, H['later_feat_channels']))
-        if H['use_lstm']:
-            lstm_outputs = build_lstm_inner(H, lstm_input)
-        else:
-            lstm_outputs = build_overfeat_inner(H, lstm_input)
+        lstm_outputs = build_overfeat_inner(H, lstm_input)
 
         pred_boxes = []
         pred_logits = []
@@ -204,14 +169,8 @@ def build_forward(H, x, phase, reuse):
                 if phase == 'train':
                     ip1 = tf.nn.dropout(ip1, 0.5)
                 delta_confs_weights = tf.get_variable('delta_ip2%d' % k, shape=[dim, H['num_classes']])
-                if H['reregress']:
-                    delta_boxes_weights = tf.get_variable('delta_ip_boxes%d' % k, shape=[dim, 4])
-                    pred_boxes_deltas.append(
-                        tf.reshape(
-                            tf.matmul(ip1, delta_boxes_weights) * 5,
-                            [outer_size, 1, 4]
-                        )
-                    )
+                delta_boxes_weights = tf.get_variable('delta_ip_boxes%d' % k, shape=[dim, 4])
+                pred_boxes_deltas.append(tf.reshape(tf.matmul(ip1, delta_boxes_weights) * 5, [outer_size, 1, 4]))
                 scale = H.get('rezoom_conf_scale', 50)
                 pred_confs_deltas.append(
                     tf.reshape(
@@ -220,8 +179,7 @@ def build_forward(H, x, phase, reuse):
                     )
                 )
             pred_confs_deltas = tf_concat(1, pred_confs_deltas)
-            if H['reregress']:
-                pred_boxes_deltas = tf_concat(1, pred_boxes_deltas)
+            pred_boxes_deltas = tf_concat(1, pred_boxes_deltas)
             return pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas
 
     return pred_boxes, pred_logits, pred_confidences
@@ -235,26 +193,12 @@ def build_forward_backward(H, x, phase, boxes, flags):
     grid_size = H['grid_width'] * H['grid_height']
     outer_size = grid_size * H['batch_size']
     reuse = {'train': None, 'test': True}[phase]
-    if H['use_rezoom']:
-        (pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas) = build_forward(H, x, phase,
-                                                                                                          reuse)
-    else:
-        pred_boxes, pred_logits, pred_confidences = build_forward(H, x, phase, reuse)
+    pred_boxes, pred_logits, pred_confidences, pred_confs_deltas, pred_boxes_deltas = build_forward(H, x, phase, reuse)
     with tf.variable_scope('decoder', reuse={'train': None, 'test': True}[phase]):
         outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])
-        outer_flags = tf.cast(tf.reshape(flags, [outer_size, H['rnn_len']]), 'int32')
-        if H['use_lstm']:
-            hungarian_module = tf.load_op_library('utils/hungarian/hungarian.so')
-            assignments, classes, perm_truth, pred_mask = (
-                hungarian_module.hungarian(
-                    pred_boxes, outer_boxes, outer_flags,
-                    H['solver']['hungarian_iou']
-                )
-            )
-        else:
-            classes = tf.reshape(flags, (outer_size, 1))
-            perm_truth = tf.reshape(outer_boxes, (outer_size, 1, 4))
-            pred_mask = tf.reshape(tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1))
+        classes = tf.reshape(flags, (outer_size, 1))
+        perm_truth = tf.reshape(outer_boxes, (outer_size, 1, 4))
+        pred_mask = tf.reshape(tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1))
         true_classes = tf.reshape(tf.cast(tf.greater(classes, 0), 'int64'), [outer_size * H['rnn_len']])
         pred_logit_r = tf.reshape(pred_logits, [outer_size * H['rnn_len'], H['num_classes']])
         confidences_loss = (
@@ -266,57 +210,40 @@ def build_forward_backward(H, x, phase, boxes, flags):
                            ) / outer_size * H['solver']['head_weights'][0]
         residual = tf.reshape(perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4])
         boxes_loss = tf.reduce_sum(tf.abs(residual)) / outer_size * H['solver']['head_weights'][1]
-        if H['use_rezoom']:
-            if H['rezoom_change_loss'] == 'center':
-                error = (perm_truth[:, :, 0:2] - pred_boxes[:, :, 0:2]
-                         ) / tf.maximum(perm_truth[:, :, 2:4], 1.)
-                square_error = tf.reduce_sum(tf.square(error), 2)
-                inside = tf.reshape(
-                    tf.to_int64(
-                        tf.logical_and(
-                            tf.less(square_error, 0.2 ** 2),
-                            tf.greater(classes, 0)
-                        )
-                    ), [-1]
+        error = (perm_truth[:, :, 0:2] - pred_boxes[:, :, 0:2]
+                 ) / tf.maximum(perm_truth[:, :, 2:4], 1.)
+        square_error = tf.reduce_sum(tf.square(error), 2)
+        inside = tf.reshape(
+            tf.to_int64(
+                tf.logical_and(
+                    tf.less(square_error, 0.2 ** 2),
+                    tf.greater(classes, 0)
                 )
-            elif H['rezoom_change_loss'] == 'iou':
-                iou = train_utils.iou(
-                    train_utils.to_x1y1x2y2(tf.reshape(pred_boxes, [-1, 4])),
-                    train_utils.to_x1y1x2y2(tf.reshape(perm_truth, [-1, 4]))
-                )
-                inside = tf.reshape(tf.to_int64(tf.greater(iou, 0.5)), [-1])
-            else:
-                assert H['rezoom_change_loss'] == False
-                inside = tf.reshape(tf.to_int64((tf.greater(classes, 0))), [-1])
-            new_confs = tf.reshape(pred_confs_deltas, [outer_size * H['rnn_len'], H['num_classes']])
-            delta_confs_loss = tf.reduce_sum(
-                tf.nn.sparse_softmax_cross_entropy_with_logits(
-                    logits=new_confs, labels=inside
-                )
-            ) / outer_size * H['solver']['head_weights'][0] * 0.1
-
-            pred_logits_squash = tf.reshape(new_confs, [outer_size * H['rnn_len'], H['num_classes']])
-            pred_confidences_squash = tf.nn.softmax(pred_logits_squash)
-            pred_confidences = tf.reshape(pred_confidences_squash, [outer_size, H['rnn_len'], H['num_classes']])
-            loss = confidences_loss + boxes_loss + delta_confs_loss
-            if H['reregress']:
-                delta_residual = tf.reshape(
-                    perm_truth - (pred_boxes + pred_boxes_deltas) * pred_mask,
-                    [outer_size, H['rnn_len'], 4]
-                )
-                delta_boxes_loss = (
-                        tf.reduce_sum(
-                            tf.minimum(tf.square(delta_residual), 10. ** 2)
-                        ) / outer_size * H['solver']['head_weights'][1] * 0.03
-                )
-                boxes_loss = delta_boxes_loss
-                tf.summary.histogram(phase + '/delta_hist0_x', pred_boxes_deltas[:, 0, 0])
-                tf.summary.histogram(phase + '/delta_hist0_y', pred_boxes_deltas[:, 0, 1])
-                tf.summary.histogram(phase + '/delta_hist0_w', pred_boxes_deltas[:, 0, 2])
-                tf.summary.histogram(phase + '/delta_hist0_h', pred_boxes_deltas[:, 0, 3])
-                loss += delta_boxes_loss
-        else:
-            loss = confidences_loss + boxes_loss
+            ), [-1]
+        )
+        new_confs = tf.reshape(pred_confs_deltas, [outer_size * H['rnn_len'], H['num_classes']])
+        delta_confs_loss = tf.reduce_sum(
+            tf.nn.sparse_softmax_cross_entropy_with_logits(
+                logits=new_confs, labels=inside
+            )
+        ) / outer_size * H['solver']['head_weights'][0] * 0.1
+        pred_logits_squash = tf.reshape(new_confs, [outer_size * H['rnn_len'], H['num_classes']])
+        pred_confidences_squash = tf.nn.softmax(pred_logits_squash)
+        pred_confidences = tf.reshape(pred_confidences_squash, [outer_size, H['rnn_len'], H['num_classes']])
+        loss = confidences_loss + boxes_loss + delta_confs_loss
+        delta_residual = tf.reshape(perm_truth - (pred_boxes + pred_boxes_deltas) * pred_mask,
+                                    [outer_size, H['rnn_len'], 4])
+        delta_boxes_loss = (
+                tf.reduce_sum(
+                    tf.minimum(tf.square(delta_residual), 10. ** 2)
+                ) / outer_size * H['solver']['head_weights'][1] * 0.03
+        )
+        boxes_loss = delta_boxes_loss
+        tf.summary.histogram(phase + '/delta_hist0_x', pred_boxes_deltas[:, 0, 0])
+        tf.summary.histogram(phase + '/delta_hist0_y', pred_boxes_deltas[:, 0, 1])
+        tf.summary.histogram(phase + '/delta_hist0_w', pred_boxes_deltas[:, 0, 2])
+        tf.summary.histogram(phase + '/delta_hist0_h', pred_boxes_deltas[:, 0, 3])
+        loss += delta_boxes_loss
 
     return pred_boxes, pred_confidences, loss, confidences_loss, boxes_loss
 
