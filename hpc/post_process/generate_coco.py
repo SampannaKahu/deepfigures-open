@@ -6,16 +6,23 @@ import logging
 import torch
 import json
 from PIL import Image
+from coco_to_figure_boundaries import coco_to_fig_boundaries
+from figure_boundaries_train_test_split import split_train_test
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     filename=os.path.basename(__file__).split('.')[0] + '.log')
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
-job_output_directory = '/home/sampanna/deepfigures-results/pregenerated_training_data'
+# job_output_directory = '/home/sampanna/deepfigures-results/pregenerated_training_data'
+job_output_directory = '/home/sampanna/deepfigures-results/372902_temp'
 dataset_dir = '/home/sampanna/deepfigures-results/arxiv_coco_dataset'
 image_save_dir = os.path.join(dataset_dir, 'images')
 annotation_save_path = os.path.join(dataset_dir, 'annotations.json')
+figure_boundaries_save_path = os.path.join(dataset_dir, 'figure_boundaries.json')
+figure_boundaries_train_save_path = os.path.join(dataset_dir, 'figure_boundaries_train.json')
+figure_boundaries_test_save_path = os.path.join(dataset_dir, 'figure_boundaries_test.json')
+test_split_percent = 20
 tmp_extract_dir = os.path.join(dataset_dir, 'tmp')
 
 
@@ -138,4 +145,8 @@ for path in glob.glob(os.path.join(job_output_directory, '*/*.zip'), recursive=T
     logger.info("After processing zipfile path: {}, current image id: {}, current annotation id: {}".format(path,
                                                                                                             current_image_id,
                                                                                                             current_annotation_id))
-    break
+coco_to_fig_boundaries(figure_boundaries_save_path=figure_boundaries_save_path,
+                       coco_annotation_file=annotation_save_path)
+split_train_test(figure_boundaries_path=figure_boundaries_save_path,
+                 train_output_path=figure_boundaries_train_save_path,
+                 test_output_path=figure_boundaries_test_save_path, test_split_percent=test_split_percent)
