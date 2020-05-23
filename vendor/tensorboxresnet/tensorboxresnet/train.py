@@ -30,6 +30,22 @@ np.random.seed(0)
 
 from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
+log_dir = '/home/sampanna/job_logs'
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.DEBUG)
+console_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(console_handler)
+
+file_handler = logging.FileHandler(
+    filename=os.path.join(log_dir, os.path.basename(__file__).split('.')[0] + '.log'))
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(file_handler)
+
 
 def build_overfeat_inner(H, lstm_input):
     '''
@@ -623,7 +639,7 @@ def train(H: dict, test_images):
         dtypes = [tf.float32, tf.float32, tf.float32]
         grid_size = H['grid_width'] * H['grid_height']
         channels = H.get('image_channels', 3)
-        print('Image channels: %d' % channels)
+        logger.info('Image channels: %d' % channels)
         shapes = (
             [
                 H['image_height'],
@@ -685,7 +701,7 @@ def train(H: dict, test_images):
         writer.add_graph(sess.graph)
         weights_str = H['solver']['weights']
         if len(weights_str) > 0:
-            print('Restoring from: %s' % weights_str)
+            logger.info('Restoring from: %s' % weights_str)
             saver.restore(sess, weights_str)
         elif H['slim_ckpt'] == '':
             sess.run(
@@ -751,7 +767,7 @@ def train(H: dict, test_images):
                         'Time/image (ms): %.1f',
                     ]
                 )
-                print(
+                logger.info(
                     print_str % (
                         i, adjusted_lr, train_loss, test_accuracy * 100,
                         dt * 1000 if i > 0 else 0
@@ -764,32 +780,16 @@ def train(H: dict, test_images):
                 saver.save(sess, ckpt_file, global_step=global_step)
 
 
-def setup_logging(log_dir: str = ''):
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    logger.addHandler(console_handler)
-
-    file_handler = logging.FileHandler(
-        filename=os.path.join(log_dir, os.path.basename(__file__).split('.')[0] + '.log'))
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    logger.addHandler(file_handler)
-    return logger
-
-
 def main():
     '''
     Parse command line arguments and return the hyperparameter dictionary H.
     H first loads the --hypes hypes.json file and is further updated with
     additional arguments as needed.
     '''
-    print("IS GPU AVAILABLE: {}".format(tf.test.is_gpu_available(cuda_only=False, min_cuda_compute_capability=None)))
+    logger.info(
+        "IS GPU AVAILABLE: {}".format(tf.test.is_gpu_available(cuda_only=False, min_cuda_compute_capability=None)))
     if 'CUDA_VISIBLE_DEVICES' not in os.environ:
-        print("The environment variable CUDA_VISIBLE_DEVICES is not set. Exiting.")
+        logger.info("The environment variable CUDA_VISIBLE_DEVICES is not set. Exiting.")
         return
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', default=None, type=str)
@@ -806,8 +806,6 @@ def main():
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
     args = parser.parse_args()
 
-    logger = setup_logging(log_dir=args.logdir)
-
     logger.info("Arguments to the train.py script: {}".format(args))
     with open(args.hypes, 'r') as f:
         H = json.load(f)
@@ -819,9 +817,7 @@ def main():
         H['solver']['max_iter'] = args.max_iter
     if len(H.get('exp_name', '')) == 0:
         H['exp_name'] = args.hypes.split('/')[-1].replace('.json', '')
-    H['save_dir'] = args.logdir + '/%s_%s' % (
-        H['exp_name'], args.timestamp
-    )
+    H['save_dir'] = args.logdir + '/%s_%s' % (H['exp_name'], args.timestamp)
     if args.weights is not None:
         H['solver']['weights'] = args.weights
     if args.train_idl_path is not None:
