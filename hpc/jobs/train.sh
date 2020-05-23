@@ -10,6 +10,9 @@
 #SBATCH -A waingram_lab
 
 module purge
+module load gcc/7.3.0
+module load cuda/10.2.89
+module load cudnn/7.5
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"

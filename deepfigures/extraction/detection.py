@@ -5,8 +5,7 @@ import os
 from typing import List, Tuple, Iterable
 
 import cv2  # Need to import OpenCV before tensorflow to avoid import error
-from scipy.misc import imread, imsave
-#from scipy.misc.pilutil import imread, imsave
+import imageio
 import numpy as np
 
 from deepfigures.extraction import (
@@ -58,7 +57,7 @@ def extract_figures_json(
     :returns: path to the JSON file containing the detection results.
     """
     page_images_array = np.array([
-        imread(page_image_path)
+        imageio.imread(page_image_path)
         for page_image_path in page_image_paths
     ])
     detector = get_detector()

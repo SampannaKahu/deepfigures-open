@@ -8,12 +8,14 @@ import random
 import time
 import argparse
 import os
+import sys
 import threading
-from scipy import misc
+import imageio
 import tensorflow as tf
 import numpy as np
 from distutils.version import LooseVersion
 from imgaug import augmenters as iaa
+import logging
 
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
     rnn_cell = tf.contrib.rnn
@@ -541,7 +543,7 @@ def build(H, q):
                          ) % num_images, pred_or_true
                     )
                 )
-                misc.imsave(img_path, merged)
+                imageio.imread(img_path, merged)
                 return merged
 
             pred_log_img = tf.py_func(
@@ -762,6 +764,23 @@ def train(H: dict, test_images):
                 saver.save(sess, ckpt_file, global_step=global_step)
 
 
+def setup_logging(log_dir: str = ''):
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.DEBUG)
+    console_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(console_handler)
+
+    file_handler = logging.FileHandler(
+        filename=os.path.join(log_dir, os.path.basename(__file__).split('.')[0] + '.log'))
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(file_handler)
+    return logger
+
+
 def main():
     '''
     Parse command line arguments and return the hyperparameter dictionary H.
@@ -777,7 +796,7 @@ def main():
     parser.add_argument('--gpu', default=int(os.environ.get('CUDA_VISIBLE_DEVICES', -1)), type=int)
     parser.add_argument('--hypes', required=True, type=str)
     parser.add_argument('--max_iter', required=False, type=int, default=None)
-    parser.add_argument('--logdir', default='output', type=str)
+    parser.add_argument('--logdir', default='/home/sampanna/job_logs', type=str)
     parser.add_argument('--experiment_name', default='arxiv_experiment', type=str)
     parser.add_argument('--train_idl_path', default=None, type=str)
     parser.add_argument('--train_images_dir', default=None, type=str)
@@ -786,7 +805,10 @@ def main():
     parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
     args = parser.parse_args()
-    print("Arguments to the train.py script: {}".format(args))
+
+    logger = setup_logging(log_dir=args.logdir)
+
+    logger.info("Arguments to the train.py script: {}".format(args))
     with open(args.hypes, 'r') as f:
         H = json.load(f)
     if args.experiment_name:
@@ -812,7 +834,7 @@ def main():
         H['data']['test_images_dir'] = args.test_images_dir
     if args.max_checkpoints_to_keep is not None:
         H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
-    print("Beginning training with hyperparameters: {H}".format(H=H))
+    logger.info("Beginning training with hyper-parameters: {H}".format(H=H))
     train(H, test_images=[])
 
 

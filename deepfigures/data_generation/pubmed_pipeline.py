@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 import cv2
 import editdistance
 import numpy as np
-import scipy as sp
+from scipy.misc.pilutil import imresize
 from PIL import Image
 from botocore.vendored.requests.exceptions import ReadTimeout
 
@@ -417,7 +417,7 @@ def find_template_in_image(fig_im: np.ndarray, page_im: np.ndarray, scales: List
     width ratio).
     """
     try:
-        template = sp.misc.imresize(fig_im, SCALE_FACTOR)
+        template = imresize(fig_im, SCALE_FACTOR)
     except ValueError:
         # This may cause some very small images to have size 0 which causes a ValueError
         return None
@@ -435,7 +435,7 @@ def find_template_in_image(fig_im: np.ndarray, page_im: np.ndarray, scales: List
     # loop over the scales of the image
     for scale in (scales)[::-1]:
         # resize the image according to the scale, and keep track of the ratio of the resizing.
-        page_resized = sp.misc.imresize(
+        page_resized = imresize(
             page_im, template_page_size_ratio / scale
         )
         r = page_im.shape[1] / float(page_resized.shape[1])

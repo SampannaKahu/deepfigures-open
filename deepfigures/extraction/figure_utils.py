@@ -6,7 +6,6 @@ from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 from matplotlib import axes
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
 from scipy import optimize
 from deepfigures.utils import file_util
 from deepfigures.extraction.renderers import PDFRenderer
@@ -17,7 +16,7 @@ from deepfigures.settings import PDFLATEX_EXECUTABLE_PATH
 
 
 def call_pdflatex(
-    src_tex: str, src_dir: str, dest_dir: str, timeout: int=1200
+        src_tex: str, src_dir: str, dest_dir: str, timeout: int = 1200
 ) -> str:
     """
     Call pdflatex on the tex source file src_tex, save its output to dest_dir, and return the path of the
@@ -95,7 +94,7 @@ S = TypeVar('S')
 
 
 def group_by(l: Iterable[T],
-             key: Callable[[T], S]=lambda x: x) -> Dict[S, List[T]]:
+             key: Callable[[T], S] = lambda x: x) -> Dict[S, List[T]]:
     """Like itertools.groupby but doesn't require first sorting by the key function. Returns a dict."""
     d = collections.defaultdict(list)
     assert (callable(key))
@@ -105,7 +104,7 @@ def group_by(l: Iterable[T],
 
 
 def ordered_group_by(l: Iterable[T],
-                     key: Callable[[T], S]=lambda x: x) -> Dict[S, List[T]]:
+                     key: Callable[[T], S] = lambda x: x) -> Dict[S, List[T]]:
     """Keys are returned in order of first occurrence."""
     d = collections.OrderedDict()
     assert (callable(key))
@@ -118,11 +117,11 @@ def ordered_group_by(l: Iterable[T],
 
 
 def group_figures_by_pagenum(figs: Iterable[Figure]
-                            ) -> Dict[int, List[Figure]]:
+                             ) -> Dict[int, List[Figure]]:
     return group_by(figs, lambda x: x.page)
 
 
-def make_axes(size: Tuple[float, float]=(20, 20)) -> axes.Subplot:
+def make_axes(size: Tuple[float, float] = (20, 20)) -> axes.Subplot:
     fig, ax = plt.subplots(1, figsize=size)
     return ax
 
@@ -134,14 +133,14 @@ def pagename_to_pagenum(pagename: str) -> int:
     ) - 1
 
 
-def pagenum_to_pagename(pdf: str, pagenum: int, dpi: int=DEFAULT_INFERENCE_DPI) -> str:
+def pagenum_to_pagename(pdf: str, pagenum: int, dpi: int = DEFAULT_INFERENCE_DPI) -> str:
     """Takes a pdf and a page with 0-indexed number and returns the 1-indexed page image name."""
     return os.path.join(
         os.path.dirname(pdf),
         (PDFRenderer.IMAGE_FILENAME_PREFIX_TEMPLATE +
-            '{page_num:04d}.png').format(
-                pdf_name=os.path.split(pdf)[-1], dpi=dpi, page_num=pagenum + 1
-            ))
+         '{page_num:04d}.png').format(
+            pdf_name=os.path.split(pdf)[-1], dpi=dpi, page_num=pagenum + 1
+        ))
 
 
 def pagename_to_pdf(pagename: str) -> str:

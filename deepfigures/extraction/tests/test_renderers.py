@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 import numpy as np
-from scipy.misc import imread
+from scipy.misc.pilutil import imread
 import pytest
 
 from deepfigures.extraction import renderers

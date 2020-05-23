@@ -1,15 +1,17 @@
 import os
 import typing
 import numpy as np
-from scipy import misc
+from scipy.misc.pilutil import imresize
+import imageio
 from deepfigures.utils import file_util
 import logging
+
 
 class FileTooLargeError(Exception):
     pass
 
 
-def read_tensor(path: str, maxsize: int=None) -> typing.Optional[np.ndarray]:
+def read_tensor(path: str, maxsize: int = None) -> typing.Optional[np.ndarray]:
     """
     Load a saved a tensor, saved either as an image file for standard RGB images or as a numpy archive for more general
     tensors.
@@ -21,7 +23,7 @@ def read_tensor(path: str, maxsize: int=None) -> typing.Optional[np.ndarray]:
     (_, ext) = os.path.splitext(path)
     ext = ext.lower()
     if ext in {'.png', '.jpg', '.jpeg'}:
-        res = misc.imread(path, mode='RGB')
+        res = imageio.imread(path, mode='RGB')
         assert len(res.shape) == 3
         assert res.shape[2] == 3
         return res
@@ -49,7 +51,7 @@ def imresize_multichannel(im: np.ndarray, target_size: typing.Tuple[int, int],
                           **kwargs) -> np.ndarray:
     n_channels = im.shape[2]
     resized_channels = [
-        misc.imresize(im[:, :, n], target_size, **kwargs) for n in range(n_channels)
+        imresize(im[:, :, n], target_size, **kwargs) for n in range(n_channels)
     ]
     return np.stack(resized_channels, axis=2)
 
@@ -57,6 +59,6 @@ def imresize_multichannel(im: np.ndarray, target_size: typing.Tuple[int, int],
 def imrescale_multichannel(im: np.ndarray, scale_factor: float, **kwargs) -> np.ndarray:
     n_channels = im.shape[2]
     resized_channels = [
-        misc.imresize(im[:, :, n], scale_factor, **kwargs) for n in range(n_channels)
+        imresize(im[:, :, n], scale_factor, **kwargs) for n in range(n_channels)
     ]
     return np.stack(resized_channels, axis=2)
