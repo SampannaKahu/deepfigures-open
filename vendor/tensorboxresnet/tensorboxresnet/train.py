@@ -15,7 +15,7 @@ import tensorflow as tf
 import numpy as np
 from distutils.version import LooseVersion
 from imgaug import augmenters as iaa
-import logging
+import logging.config
 
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
     rnn_cell = tf.contrib.rnn
@@ -30,21 +30,24 @@ np.random.seed(0)
 
 from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
-log_dir = '/home/sampanna/job_logs'
+# log_dir = '/home/sampanna/job_logs'
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+# logger = logging.getLogger()
+# logger.setLevel(logging.DEBUG)
+#
+# console_handler = logging.StreamHandler(sys.stdout)
+# console_handler.setLevel(logging.DEBUG)
+# console_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+# logger.addHandler(console_handler)
+#
+# file_handler = logging.FileHandler(
+#     filename=os.path.join(log_dir, os.path.basename(__file__).split('.')[0] + '.log'))
+# file_handler.setLevel(logging.DEBUG)
+# file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+# logger.addHandler(file_handler)
 
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.DEBUG)
-console_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger.addHandler(console_handler)
-
-file_handler = logging.FileHandler(
-    filename=os.path.join(log_dir, os.path.basename(__file__).split('.')[0] + '.log'))
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger.addHandler(file_handler)
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger(__name__)
 
 
 def build_overfeat_inner(H, lstm_input):

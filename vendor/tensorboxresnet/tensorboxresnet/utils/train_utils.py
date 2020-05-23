@@ -24,6 +24,9 @@ tensor_queue = multiprocessing.Queue(maxsize=8)
 import imgaug as ia
 from imgaug import augmenters as iaa
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def rescale_boxes(current_shape, anno, target_height, target_width):
     x_scale = target_width / float(current_shape[1])
@@ -52,7 +55,7 @@ def load_idl_tf(idlfile, images_dir, H, jitter, augmentation_transforms):
     if H['data']['truncate_data']:
         annos = annos[:10]
     for epoch in itertools.count():
-        print('Starting epoch %d' % epoch)
+        logger.info('Starting epoch %d' % epoch)
         random.shuffle(annos)
         partial_load = functools.partial(
             load_page_ann, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms
@@ -90,10 +93,11 @@ def load_page_ann(anno, H, epoch, jitter, augmentation_transforms) -> None:
     try:
         I = image_util.read_tensor(anno.imageName, maxsize=1e8)
     except image_util.FileTooLargeError:
-        print('ERROR: %s too large' % anno.imageName, flush=True)
+        logger.error('ERROR: %s too large' % anno.imageName, flush=True)
         return
     if I is None:
-        print("ERROR: Failure reading %s" % anno.imageName, flush=True)
+        logger.error("ERROR: Failure reading %s" % anno.imageName, flush=True)
+        logger.error("ERROR: Failure reading %s" % anno.imageName, flush=True)
         return
     assert (len(I.shape) == 3)
     I, anno = apply_augmentations(I, anno, augmentation_transforms)
