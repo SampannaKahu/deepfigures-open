@@ -562,7 +562,7 @@ def build(H, q):
                          ) % num_images, pred_or_true
                     )
                 )
-                imageio.imread(img_path, merged)
+                imageio.imwrite(img_path, merged)
                 return merged
 
             pred_log_img = tf.py_func(

@@ -23,7 +23,7 @@ def read_tensor(path: str, maxsize: int = None) -> typing.Optional[np.ndarray]:
     (_, ext) = os.path.splitext(path)
     ext = ext.lower()
     if ext in {'.png', '.jpg', '.jpeg'}:
-        res = imageio.imread(path, mode='RGB')
+        res = imageio.imread(path, pilmode='RGB')
         assert len(res.shape) == 3
         assert res.shape[2] == 3
         return res

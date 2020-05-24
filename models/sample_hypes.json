@@ -22,7 +22,7 @@
     "gpu": 0,
     "learning_rate": 0.001,
     "hungarian_iou": 0.25,
-    "weights": "/work/host-input/weights/save.ckpt-500000",
+    "weights": "/home/sampanna/deepfigures-results/weights/save.ckpt-500000",
     "opt": "RMS",
     "head_weights": [
       1.0,
@@ -48,10 +48,10 @@
   "use_lstm": false,
   "data": {
     "truncate_data": false,
-    "train_idl": "/home/sampanna/deepfigures-results/figure_boundaries_train.json",
-    "train_images_dir": "/home/sampanna/deepfigures-results/images",
-    "test_idl": "/home/sampanna/deepfigures-results/figure_boundaries_test.json",
-    "test_images_dir": "/home/sampanna/deepfigures-results/images",
+    "train_idl": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/figure_boundaries_train.json",
+    "train_images_dir": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/images",
+    "test_idl": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/figure_boundaries_test.json",
+    "test_images_dir": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/images",
     "augmentations": {
       "train": {
         "Affine": {
