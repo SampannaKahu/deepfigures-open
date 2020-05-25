@@ -42,3 +42,9 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
   --delete_tar_after_extracting True \
   --augment_typewriter_font True \
   --augment_line_spacing_1_5 True
+
+# For training the model
+# cascades
+sbatch --ignore-pbs train.sh
+# newriver
+qsub train.sh
