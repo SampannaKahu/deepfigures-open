@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-#PBS -l nodes=1,ppn=28,gpus=1
+#PBS -l nodes=1:ppn=28:gpus=1
 #PBS -l walltime=143:59:59
 #PBS -q p100_normal_q
 #PBS -A waingram_lab

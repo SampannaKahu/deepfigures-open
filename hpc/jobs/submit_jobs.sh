@@ -47,4 +47,4 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
 # cascades
 sbatch --ignore-pbs train.sh
 # newriver
-qsub train.sh
+qsub -k oe train.sh
