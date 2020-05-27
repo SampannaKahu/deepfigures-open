@@ -47,7 +47,7 @@ from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 # logger.addHandler(file_handler)
 
 
-logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log.config')
+logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
 logging.config.fileConfig(logging_config_file_path)
 logger = logging.getLogger(__name__)
 
