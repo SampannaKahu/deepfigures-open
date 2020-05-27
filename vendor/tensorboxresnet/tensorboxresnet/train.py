@@ -633,7 +633,7 @@ def train(H: dict, test_images):
 
     ckpt_file = H['save_dir'] + '/save.ckpt'
     with open(H['save_dir'] + '/hypes.json', 'w') as f:
-        json.dump(H, f, indent=4)
+        json.dump(H, f, indent=2)
 
     x_in = tf.placeholder(tf.float32)
     confs_in = tf.placeholder(tf.float32)

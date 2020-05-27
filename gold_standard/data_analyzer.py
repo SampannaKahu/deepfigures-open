@@ -38,4 +38,4 @@ for metadata_path in list(glob.glob("data/etds/*.json")):
 
 pp.pprint(handle_dict)
 
-json.dump(handle_dict, open('data/dates.json', mode='w'))
+json.dump(handle_dict, open('data/dates.json', mode='w'), indent=2)

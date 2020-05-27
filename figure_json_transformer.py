@@ -30,7 +30,7 @@ for filename in Path(figure_json_path).rglob('*.json'):
         figure_boundaries.append(figure_annotation)
         caption_boundaries.append(caption_annotation)
 
-json.dump(figure_boundaries, open(output_figure_boundaries_path, mode='w'))
-json.dump(caption_boundaries, open(output_caption_boundaries_path, mode='w'))
+json.dump(figure_boundaries, open(output_figure_boundaries_path, mode='w'), indent=2)
+json.dump(caption_boundaries, open(output_caption_boundaries_path, mode='w'), indent=2)
 
 # annolist = al.parse(output_figure_boundaries_path, abs_path=False)

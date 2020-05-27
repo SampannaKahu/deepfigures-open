@@ -3,6 +3,8 @@ import logging
 
 # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
 # logger.setLevel(logging.DEBUG)
 
 
@@ -28,7 +30,7 @@ def coco_to_fig_boundaries(figure_boundaries_save_path: str, coco_annotation_fil
         else:
             image_id_to_figure_json_map[figure['image_id']] = figure_json
 
-    json.dump(list(image_id_to_figure_json_map.values()), open(figure_boundaries_save_path, mode='w'))
+    json.dump(list(image_id_to_figure_json_map.values()), open(figure_boundaries_save_path, mode='w'), indent=2)
 
 
 if __name__ == "__main__":

@@ -106,4 +106,4 @@ for image_name in image_name_to_row_list_dict:
         annotation_id = annotation_id + 1
     image_id = image_id + 1
 
-json.dump(dataset, open(os.path.join(dataset_dir, 'annotations.json'), mode='w'))
+json.dump(dataset, open(os.path.join(dataset_dir, 'annotations.json'), mode='w'), indent=2)

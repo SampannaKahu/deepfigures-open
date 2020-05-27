@@ -98,6 +98,6 @@ if __name__ == "__main__":
         handles = download_handles_in_collection(handle)
         if handles:
             with open(util.get_file_path(handle), mode='w') as fp:
-                json.dump(handles, fp)
+                json.dump(handles, fp, indent=2)
         else:
             logger.error("Got empty list for {}. Skipping saving.".format(handle))

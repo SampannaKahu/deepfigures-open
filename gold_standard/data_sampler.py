@@ -94,7 +94,7 @@ for dept in mit_index:
                 if pdf_to_images(_handle_str):
                     logger.info('Successfully converted etd {} to images.'.format(_handle_str))
                     sampled_etds.append(_handle_str)
-                    json.dump(sampled_etds, open(SAMPLED_ETD_PATH, mode='w'))
+                    json.dump(sampled_etds, open(SAMPLED_ETD_PATH, mode='w'), indent=2)
                     break
                 else:
                     logger.warning("Failed to convert etd {} to images. Skipping".format(_handle_str))
@@ -102,4 +102,4 @@ for dept in mit_index:
 print(len(sampled_etds))
 print(sampled_etds)
 
-json.dump(sampled_etds, open(SAMPLED_ETD_PATH, mode='w'))
+json.dump(sampled_etds, open(SAMPLED_ETD_PATH, mode='w'), indent=2)
