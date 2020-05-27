@@ -17,33 +17,69 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-if [ "$SYSNAME" = "cascades" ]; then
-  module purge
-  module load gcc/7.3.0
-  module load cuda/10.2.89
-  module load cudnn/7.5
-fi
-
-if [ "$SYSNAME" = "newriver" ]; then
-  module purge
-  module load gcc/6.1a.0
-  module load cuda/10.1.168
-  module load cudnn/7.1
-fi
+EXPERIMENT_NAME=debug_1
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"
 }
 ts=$(current_timestamp)
 
-if [ -z ${CUDA_VISIBLE_DEVICES+x} ]; then
-  echo "CUDA_VISIBLE_DEVICES is not set. Defaulting to 0."
+#if [ -z ${CUDA_VISIBLE_DEVICES+x} ]; then
+#  echo "CUDA_VISIBLE_DEVICES is not set. Defaulting to 0."
+#  CUDA_VISIBLE_DEVICES=0
+#fi
+
+if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
+  PYTHON=/home/sampanna/anaconda3/envs/deepfigures_3/bin/python
+  DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
+  SOURCE_CODE=/home/sampanna/deepfigures-open
+  CUDA_VISIBLE_DEVICES=0
+elif [ "$SYSNAME" = "cascades" ]; then
+  module purge
+  module load gcc/7.3.0
+  module load cuda/9.0.176
+  module load cudnn/7.1
+  PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
+  DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
+  SOURCE_CODE=/home/sampanna/delete_this/deepfigures-open
+elif [ "$SYSNAME" = "newriver" ]; then
+  module purge
+  module load gcc/6.1a.0
+  module load cuda/9.0.176
+  module load cudnn/7.1
+  PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
+  DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
+  SOURCE_CODE=/home/sampanna/delete_this/deepfigures-open
+elif [ "$HOSTNAME" = "xps15" ]; then
+  PYTHON=/home/sampanna/anaconda3/envs/deepfigures_3/bin/python
+  DEEPFIGURES_RESULTS=/home/sampanna/workspace/bdts2/deepfigures-results
+  SOURCE_CODE=/home/sampanna/workspace/bdts2/deepfigures-open
+  CUDA_VISIBLE_DEVICES=0
+else
+  PYTHON=/home/sampanna/anaconda3/envs/deepfigures_3/bin/python
+  DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
+  SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
 fi
 
-EXPERIMENT_NAME=debug_1
-DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
-SOURCE_CODE=/home/sampanna/delete_this/deepfigures-open
+#
+#if [ "$SYSNAME" = "cascades" ]; then
+#  module purge
+#  module load gcc/7.3.0
+#  module load cuda/9.0.176
+#  module load cudnn/7.1
+#  PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
+#fi
+#
+#if [ "$SYSNAME" = "newriver" ]; then
+#  module purge
+#  module load gcc/6.1a.0
+#  module load cuda/9.0.176
+#  module load cudnn/7.1
+#  PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
+#fi
+#
+
 WEIGHTS_PATH=$DEEPFIGURES_RESULTS/weights/save.ckpt-500000
 HYPES_PATH=$SOURCE_CODE/models/sample_hypes.json
 MAX_ITER=10000000
@@ -55,7 +91,7 @@ TEST_IDL_PATH=$DATASET_DIR/figure_boundaries_test.json
 TEST_IMAGES_DIR=$DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=100
 
-/home/sampanna/.conda/envs/deepfigures_2/bin/python $SOURCE_CODE/vendor/tensorboxresnet/tensorboxresnet/train.py \
+$PYTHON $SOURCE_CODE/vendor/tensorboxresnet/tensorboxresnet/train.py \
   --weights "$WEIGHTS_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \
