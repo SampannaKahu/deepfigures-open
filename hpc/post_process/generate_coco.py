@@ -166,8 +166,8 @@ for batch in batches:
     logger.info("Successfully saved annotations after processing zipfile batch paths: {}".format(batch))
     logger.info("Current image id: {}, current annotation id: {}".format(current_image_id, current_annotation_id))
 
-coco_to_fig_boundaries(figure_boundaries_save_path=figure_boundaries_save_path,
-                       coco_annotation_file=annotation_save_path)
+coco_to_fig_boundaries(coco_annotation_file=annotation_save_path,
+                       figure_boundaries_save_path=figure_boundaries_save_path)
 split_train_test(figure_boundaries_path=figure_boundaries_save_path,
                  train_output_path=figure_boundaries_train_save_path,
                  test_output_path=figure_boundaries_test_save_path, test_split_percent=test_split_percent)
