@@ -285,40 +285,40 @@ def load_data_gen(H, phase, jitter, augmentation_transforms):
         yield output
 
 
-def load_data_gen(H, phase, jitter, augmentation_transforms):
-    grid_size = H['grid_width'] * H['grid_height']
-
-    data = load_idl_tf(
-        H["data"]['%s_idl' % phase],
-        H["data"]['%s_images_dir' % phase],
-        H,
-        jitter={'train': jitter,
-                'test': False}[phase],
-        augmentation_transforms=augmentation_transforms
-    )
-
-    for d in data:
-        output = {}
-
-        rnn_len = H["rnn_len"]
-        flags = d['flags'][0, :, 0, 0:rnn_len, 0]
-        boxes = np.transpose(d['boxes'][0, :, :, 0:rnn_len, 0], (0, 2, 1))
-        assert (flags.shape == (grid_size, rnn_len))
-        assert (boxes.shape == (grid_size, rnn_len, 4))
-
-        output['image'] = d['image']
-        output['confs'] = np.array(
-            [
-                [
-                    make_sparse(int(detection), d=H['num_classes'])
-                    for detection in cell
-                ] for cell in flags
-            ]
-        )
-        output['boxes'] = boxes
-        output['flags'] = flags
-
-        yield output
+# def load_data_gen(H, phase, jitter, augmentation_transforms):
+#     grid_size = H['grid_width'] * H['grid_height']
+#
+#     data = load_idl_tf(
+#         H["data"]['%s_idl' % phase],
+#         H["data"]['%s_images_dir' % phase],
+#         H,
+#         jitter={'train': jitter,
+#                 'test': False}[phase],
+#         augmentation_transforms=augmentation_transforms
+#     )
+#
+#     for d in data:
+#         output = {}
+#
+#         rnn_len = H["rnn_len"]
+#         flags = d['flags'][0, :, 0, 0:rnn_len, 0]
+#         boxes = np.transpose(d['boxes'][0, :, :, 0:rnn_len, 0], (0, 2, 1))
+#         assert (flags.shape == (grid_size, rnn_len))
+#         assert (boxes.shape == (grid_size, rnn_len, 4))
+#
+#         output['image'] = d['image']
+#         output['confs'] = np.array(
+#             [
+#                 [
+#                     make_sparse(int(detection), d=H['num_classes'])
+#                     for detection in cell
+#                 ] for cell in flags
+#             ]
+#         )
+#         output['boxes'] = boxes
+#         output['flags'] = flags
+#
+#         yield output
 
 
 def add_rectangles(
