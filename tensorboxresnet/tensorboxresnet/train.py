@@ -28,7 +28,7 @@ else:
 random.seed(0)
 np.random.seed(0)
 
-from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
+from tensorboxresnet.tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
 # log_dir = '/home/sampanna/job_logs'
 
@@ -49,7 +49,7 @@ from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
 logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
 logging.config.fileConfig(logging_config_file_path)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def build_overfeat_inner(H, lstm_input):
@@ -644,7 +644,7 @@ def train(H: dict, test_images):
         dtypes = [tf.float32, tf.float32, tf.float32]
         grid_size = H['grid_width'] * H['grid_height']
         channels = H.get('image_channels', 3)
-        logger.info('Image channels: %d' % channels)
+        # logger.info('Image channels: %d' % channels)
         shapes = (
             [
                 H['image_height'],
@@ -683,13 +683,16 @@ def train(H: dict, test_images):
     ) = build(H, q)
 
     saver = tf.train.Saver(max_to_keep=H.get('max_checkpoints_to_keep', 100))
+    logger.info("Initializing the saver: {}".format(saver))
     writer = tf.summary.FileWriter(logdir=H['save_dir'], flush_secs=10)
+    logger.info("Initializing the writer: {}".format(writer))
 
     with tf.Session(config=config) as sess:
         tf.train.start_queue_runners(sess=sess)
         for phase in ['train', 'test']:
             # enqueue once manually to avoid thread start delay
             augmentation_transforms = build_augmentation_pipeline(H, phase)
+            logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
             gen = train_utils.load_data_gen(
                 H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
             )
