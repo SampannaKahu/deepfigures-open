@@ -1,4 +1,5 @@
 import os
+import uuid
 import shutil
 import zipfile
 import glob
@@ -14,8 +15,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
-job_output_directory = '/home/sampanna/deepfigures-results/372902_temp'
-dataset_dir = '/home/sampanna/deepfigures-results/arxiv_coco_dataset'
+job_output_directory = '/home/sampanna/deepfigures-results/377266'
+dataset_dir = '/home/sampanna/deepfigures-results/37266_figure_boundaries'
 image_save_dir = os.path.join(dataset_dir, 'images')
 figure_boundaries_save_path = os.path.join(dataset_dir, 'figure_boundaries.json')
 figure_boundaries_train_save_path = os.path.join(dataset_dir, 'figure_boundaries_train.json')
@@ -33,7 +34,8 @@ def unzip_zip_file(zip_file_path: str, extract_dir: str = tmp_extract_dir) -> ty
     :param extract_dir: The directory to extract the data into.
     :return: the list of path of the contents of the zip (all, png and pt)
     """
-    process_unzip_dir = os.path.join(extract_dir, str(os.getpid()))
+    logger.info("Unzipping {}".format(zip_file_path))
+    process_unzip_dir = os.path.join(extract_dir, str(os.getpid()) + '_' + str(uuid.uuid1()).replace('-', '_'))
     os.makedirs(process_unzip_dir, exist_ok=True)
     zip = zipfile.ZipFile(zip_file_path)
     zip.extractall(path=process_unzip_dir)
@@ -62,12 +64,13 @@ os.makedirs(tmp_extract_dir, exist_ok=True)
 current_image_id = 1
 figure_boundaries = []
 
-zip_paths = glob.glob(os.path.join(job_output_directory, '*/*.zip'), recursive=True)
-batch_size = 7
+zip_paths = glob.glob(os.path.join(job_output_directory, '**.zip'), recursive=True)
+batch_size = 100
+pool_size = 8
 batches = [zip_paths[i:i + batch_size] for i in range(0, len(zip_paths), batch_size)]
 for batch in batches:
-    p = Pool(batch_size)
-    result_list = p.map(unzip_zip_file, batch)
+    with Pool(batch_size) as pool:
+        result_list = pool.map(unzip_zip_file, batch)
     png_paths = []
     pt_paths = []
     for result_tuple in result_list:
@@ -99,6 +102,9 @@ for batch in batches:
     logger.info("Successfully saved annotations after processing zipfile batch paths: {}".format(batch))
     logger.info("Current image id: {}".format(current_image_id))
 
+shutil.rmtree(tmp_extract_dir, ignore_errors=True)
 split_train_test(figure_boundaries_path=figure_boundaries_save_path,
                  train_output_path=figure_boundaries_train_save_path,
                  test_output_path=figure_boundaries_test_save_path, test_split_percent=test_split_percent)
+
+print("All done.")

@@ -1,4 +1,5 @@
 import os
+import uuid
 import shutil
 import zipfile
 import glob
@@ -98,7 +99,7 @@ def unzip_zip_file(zip_file_path: str, extract_dir: str = tmp_extract_dir) -> ty
     :param extract_dir: The directory to extract the data into.
     :return: the list of path of the contents of the zip (all, png and pt)
     """
-    process_unzip_dir = os.path.join(extract_dir, str(os.getpid()))
+    process_unzip_dir = os.path.join(extract_dir, str(os.getpid()) + '_' + str(uuid.uuid1()).replace('-', '_'))
     os.makedirs(process_unzip_dir, exist_ok=True)
     zip = zipfile.ZipFile(zip_file_path)
     zip.extractall(path=process_unzip_dir)
@@ -124,11 +125,12 @@ current_image_id = max([image['id'] for image in dataset['images']], default=0) 
 current_annotation_id = max([annotation['id'] for annotation in dataset['annotations']], default=0) + 1
 
 zip_paths = glob.glob(os.path.join(job_output_directory, '*/*.zip'), recursive=True)
-batch_size = 7
+batch_size = 100
+pool_size = 8
 batches = [zip_paths[i:i + batch_size] for i in range(0, len(zip_paths), batch_size)]
 for batch in batches:
-    p = Pool(batch_size)
-    result_list = p.map(unzip_zip_file, batch)
+    with Pool(batch_size) as pool:
+        result_list = pool.map(unzip_zip_file, batch)
     png_paths = []
     pt_paths = []
     for result_tuple in result_list:
