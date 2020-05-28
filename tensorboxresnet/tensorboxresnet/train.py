@@ -28,7 +28,7 @@ else:
 random.seed(0)
 np.random.seed(0)
 
-from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
+from tensorboxresnet.tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
 # log_dir = '/home/sampanna/job_logs'
 
@@ -49,7 +49,7 @@ from tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
 logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
 logging.config.fileConfig(logging_config_file_path)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def build_overfeat_inner(H, lstm_input):
@@ -644,7 +644,7 @@ def train(H: dict, test_images):
         dtypes = [tf.float32, tf.float32, tf.float32]
         grid_size = H['grid_width'] * H['grid_height']
         channels = H.get('image_channels', 3)
-        logger.info('Image channels: %d' % channels)
+        # logger.info('Image channels: %d' % channels)
         shapes = (
             [
                 H['image_height'],
@@ -683,13 +683,16 @@ def train(H: dict, test_images):
     ) = build(H, q)
 
     saver = tf.train.Saver(max_to_keep=H.get('max_checkpoints_to_keep', 100))
+    logger.info("Initializing the saver: {}".format(saver))
     writer = tf.summary.FileWriter(logdir=H['save_dir'], flush_secs=10)
+    logger.info("Initializing the writer: {}".format(writer))
 
     with tf.Session(config=config) as sess:
         tf.train.start_queue_runners(sess=sess)
         for phase in ['train', 'test']:
             # enqueue once manually to avoid thread start delay
             augmentation_transforms = build_augmentation_pipeline(H, phase)
+            logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
             gen = train_utils.load_data_gen(
                 H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
             )
@@ -809,6 +812,10 @@ def main():
     parser.add_argument('--test_images_dir', default=None, type=str)
     parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
+    parser.add_argument('--scratch_dir', default=os.environ.get("TMPRAM", "/tmp"), type=str)
+    parser.add_argument('--zip_dir', required=True, type=str)
+    parser.add_argument('--test_split_percent', type=int, default=20)
+    parser.add_argument('--random_seed', type=int, default=0)
     args = parser.parse_args()
 
     logger.info("Arguments to the train.py script: {}".format(args))
@@ -835,6 +842,10 @@ def main():
         H['data']['test_images_dir'] = args.test_images_dir
     if args.max_checkpoints_to_keep is not None:
         H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
+    H['data']['scratch_dir'] = args.scratch_dir
+    H['data']['zip_dir'] = args.zip_dir
+    H['data']['test_split_percent'] = args.test_split_percent
+    H['data']['random_seed'] = args.random_seed
     logger.info("Beginning training with hyper-parameters: {H}".format(H=H))
     train(H, test_images=[])
 

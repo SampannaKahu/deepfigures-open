@@ -124,7 +124,7 @@ else:
 current_image_id = max([image['id'] for image in dataset['images']], default=0) + 1
 current_annotation_id = max([annotation['id'] for annotation in dataset['annotations']], default=0) + 1
 
-zip_paths = glob.glob(os.path.join(job_output_directory, '*/*.zip'), recursive=True)
+zip_paths = glob.glob(os.path.join(job_output_directory, '**.zip'), recursive=True)
 batch_size = 100
 pool_size = 8
 batches = [zip_paths[i:i + batch_size] for i in range(0, len(zip_paths), batch_size)]
