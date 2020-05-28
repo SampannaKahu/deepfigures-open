@@ -7,6 +7,11 @@ import tensorflow as tf
 import multiprocessing
 import multiprocessing.pool
 import queue
+import glob
+import tempfile
+import zipfile
+import torch
+from typing import List
 
 from tensorboxresnet.utils.data_utils import (
     annotation_jitter, annotation_to_h5
@@ -25,6 +30,7 @@ import imgaug as ia
 from imgaug import augmenters as iaa
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -132,6 +138,151 @@ def make_sparse(n, d):
     v = np.zeros((d,), dtype=np.float32)
     v[n] = 1.
     return v
+
+
+def get_rect(bb_tensor):
+    return {
+        "x1": bb_tensor[1].item(),
+        "x2": bb_tensor[2].item(),
+        "y1": bb_tensor[3].item(),
+        "y2": bb_tensor[4].item()
+    }
+
+
+def get_anno_rects(pt_path: str) -> List[al.AnnoRect]:
+    return [al.AnnoRect(x1=bb_tensor[1].item(), x2=bb_tensor[2].item(), y1=bb_tensor[3].item(), y2=bb_tensor[4].item())
+            for bb_tensor in torch.load(pt_path)]
+
+
+def load_zip(zip_path, H, epoch, jitter, augmentation_transforms) -> None:
+    """
+    Loads the given zip file, reads the images and annotations, applies the augmentation transforms and enqueues the
+    result in the tensor_queue.
+    Loads the zip in a temporary directory which is cleaned up when this function returns.
+    :param zip_path:
+    :param H:
+    :param epoch:
+    :param jitter:
+    :param augmentation_transforms:
+    :return:
+    """
+    with tempfile.TemporaryDirectory(dir=H['data']['scratch_dir']) as td:
+        zip = zipfile.ZipFile(zip_path)
+        zip.extractall(path=td)
+        zip.close()
+        file_list = os.listdir(os.path.join(td, 'tmp'))
+        png_paths = [os.path.join(td, 'tmp', path) for path in file_list if '.png' in path]
+        pt_paths = [os.path.join(td, 'tmp', path) for path in file_list if '.pt' in path]
+        assert len(png_paths) == len(pt_paths)
+        for idx, png_path in enumerate(png_paths):
+            pt_path = pt_paths[idx]
+            anno = al.Annotation()
+            anno.rects = get_anno_rects(pt_path)
+            anno.imagePath = png_path
+            try:
+                I = image_util.read_tensor(anno.imageName, maxsize=1e8)
+            except image_util.FileTooLargeError:
+                logger.error('ERROR: %s too large' % anno.imageName, flush=True)
+                return
+            if I is None:
+                logger.error("ERROR: Failure reading %s" % anno.imageName, flush=True)
+                logger.error("ERROR: Failure reading %s" % anno.imageName, flush=True)
+                return
+            assert (len(I.shape) == 3)
+            I, anno = apply_augmentations(I, anno, augmentation_transforms)
+            if I.shape[0] != H["image_height"] or I.shape[1] != H["image_width"]:
+                if epoch == 0:
+                    anno = rescale_boxes(
+                        I.shape, anno, H["image_height"], H["image_width"]
+                    )
+                I = image_util.imresize_multichannel(
+                    I, (H["image_height"], H["image_width"]), interp='cubic'
+                )
+            if jitter:
+                jitter_scale_min = 0.9
+                jitter_scale_max = 1.1
+                jitter_offset = 16
+                I, anno = annotation_jitter(
+                    I,
+                    anno,
+                    target_width=H["image_width"],
+                    target_height=H["image_height"],
+                    jitter_scale_min=jitter_scale_min,
+                    jitter_scale_max=jitter_scale_max,
+                    jitter_offset=jitter_offset
+                )
+            boxes, flags = annotation_to_h5(
+                H, anno, H["grid_width"], H["grid_height"], H["rnn_len"]
+            )
+            tensor_queue.put({"image": I, "boxes": boxes, "flags": flags}, block=True, timeout=None)
+
+
+def load_zip_tf(zip_paths: List[str], H, jitter, augmentation_transforms):
+    """Take the zip file list and net configuration and create a generator
+    that outputs a jittered version of a random image from the annolist
+    that is mean corrected."""
+    random.seed(H['data']['random_seed'])
+    if H['data']['truncate_data']:
+        zip_paths = zip_paths[:4]
+    for epoch in itertools.count():
+        logger.info('Starting epoch %d' % epoch)
+        random.shuffle(zip_paths)
+        partial_load = functools.partial(
+            load_zip, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms
+        )
+        # TODO: Tweaking the number of processes might help improve performance.
+        with multiprocessing.pool.ThreadPool(processes=4) as p:
+            map_result = p.map_async(partial_load, zip_paths)
+            while not map_result.ready():
+                try:
+                    yield tensor_queue.get(timeout=100)
+                except queue.Empty:
+                    pass
+            while not tensor_queue.empty():
+                yield tensor_queue.get()
+
+
+def load_data_gen(H, phase, jitter, augmentation_transforms):
+    random.seed(H['data']['random_seed'])
+    zip_file_list = glob.glob(os.path.join(H['data']['zip_dir'], '**.zip'), recursive=True)
+    random.shuffle(zip_file_list)
+    split_idx = int(len(zip_file_list) * H['data']['test_split_percent'] / 100)
+    if phase == 'train':
+        zip_file_list = zip_file_list[split_idx:]
+    else:
+        zip_file_list = zip_file_list[:split_idx]
+
+    data = load_zip_tf(
+        zip_file_list,
+        H,
+        jitter={'train': jitter,
+                'test': False}[phase],
+        augmentation_transforms=augmentation_transforms
+    )
+
+    grid_size = H['grid_width'] * H['grid_height']
+    for d in data:
+        output = {}
+
+        rnn_len = H["rnn_len"]
+        flags = d['flags'][0, :, 0, 0:rnn_len, 0]
+        boxes = np.transpose(d['boxes'][0, :, :, 0:rnn_len, 0], (0, 2, 1))
+        assert (flags.shape == (grid_size, rnn_len))
+        assert (boxes.shape == (grid_size, rnn_len, 4))
+
+        output['image'] = d['image']
+        output['confs'] = np.array(
+            [
+                [
+                    make_sparse(int(detection), d=H['num_classes'])
+                    for detection in cell
+                ] for cell in flags
+            ]
+        )
+        output['boxes'] = boxes
+        output['flags'] = flags
+
+        yield output
 
 
 def load_data_gen(H, phase, jitter, augmentation_transforms):

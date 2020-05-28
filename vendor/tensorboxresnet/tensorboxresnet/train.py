@@ -809,6 +809,10 @@ def main():
     parser.add_argument('--test_images_dir', default=None, type=str)
     parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
+    parser.add_argument('--scratch_dir', default=os.environ.get("TMPRAM", "/tmp"), type=str)
+    parser.add_argument('--zip_dir', required=True, type=str)
+    parser.add_argument('--test_split_percent', type=int, default=20)
+    parser.add_argument('--random_seed', type=int, default=0)
     args = parser.parse_args()
 
     logger.info("Arguments to the train.py script: {}".format(args))
@@ -835,6 +839,10 @@ def main():
         H['data']['test_images_dir'] = args.test_images_dir
     if args.max_checkpoints_to_keep is not None:
         H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
+    H['data']['scratch_dir'] = args.scratch_dir
+    H['data']['zip_dir'] = args.zip_dir
+    H['data']['test_split_percent'] = args.test_split_percent
+    H['data']['random_seed'] = args.random_seed
     logger.info("Beginning training with hyper-parameters: {H}".format(H=H))
     train(H, test_images=[])
 
