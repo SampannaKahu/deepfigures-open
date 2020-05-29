@@ -25,7 +25,8 @@ else:
 random.seed(0)
 np.random.seed(0)
 
-from tensorboxresnet.tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
+from tensorboxresnet.utils import train_utils, tf_concat
+from tensorboxresnet.utils import googlenet_load
 
 logger = None
 

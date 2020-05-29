@@ -1,6 +1,5 @@
 """The model used to detect figures."""
 
-import copy
 import os
 import tempfile
 from typing import List, Tuple, Iterable
@@ -16,17 +15,14 @@ from deepfigures.extraction.datamodels import (
     CaptionOnly)
 from deepfigures.extraction import (
     figure_utils,
-    pdffigures_wrapper,
-    renderers)
+    pdffigures_wrapper)
 from deepfigures.extraction.pdffigures_wrapper import pdffigures_extractor
 from deepfigures.utils import (
     file_util,
     image_util,
-    config,
-    traits,
     settings_utils)
-from tensorboxresnet.tensorboxresnet import train
-from tensorboxresnet.tensorboxresnet.utils import train_utils
+from tensorboxresnet import train
+from tensorboxresnet.utils import train_utils
 
 
 CAPTION_CHANNEL_BACKGROUND = 255

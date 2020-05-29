@@ -13,13 +13,13 @@ import zipfile
 import torch
 from typing import List
 
-from tensorboxresnet.tensorboxresnet.utils.data_utils import (
+from tensorboxresnet.utils import (
     annotation_jitter, annotation_to_h5
 )
-from tensorboxresnet.tensorboxresnet.utils.annolist import AnnotationLib as al
-from tensorboxresnet.tensorboxresnet.utils.rect import Rect
-from tensorboxresnet.tensorboxresnet.utils import tf_concat
-from tensorboxresnet.tensorboxresnet.utils.stitch_wrapper import stitch_rects
+from tensorboxresnet.utils.annolist import AnnotationLib as al
+from tensorboxresnet.utils import Rect
+from tensorboxresnet.utils import tf_concat
+from tensorboxresnet.utils.stitch_wrapper import stitch_rects
 import functools
 
 from deepfigures.utils import image_util

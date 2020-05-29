@@ -17,7 +17,7 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=debug_2
+EXPERIMENT_NAME=pre_submit_experiment
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"
@@ -43,7 +43,7 @@ elif [ "$SYSNAME" = "cascades" ]; then
   module load cudnn/7.1
   PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
-  SOURCE_CODE=/home/sampanna/delete_this/deepfigures-open
+  SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPRAM # 311 GB on v100 nodes. 331 MBPS.
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$SYSNAME" = "newriver" ]; then
@@ -53,7 +53,7 @@ elif [ "$SYSNAME" = "newriver" ]; then
   module load cudnn/7.1
   PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
-  SOURCE_CODE=/home/sampanna/delete_this/deepfigures-open
+  SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$HOSTNAME" = "xps15" ]; then
@@ -84,7 +84,7 @@ TEST_IMAGES_DIR=$DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=100
 TEST_SPLIT_PERCENT=20
 
-$PYTHON $SOURCE_CODE/vendor/tensorboxresnet/tensorboxresnet/train.py \
+$PYTHON $SOURCE_CODE/tensorboxresnet/train.py \
   --weights "$WEIGHTS_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \
