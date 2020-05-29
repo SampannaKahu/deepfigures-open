@@ -24,9 +24,9 @@ setup(
         Extension(
             'tensorboxresnet.utils.stitch_wrapper',
             [
-                './tensorboxresnet/utils/stitch_wrapper.pyx',
-                './tensorboxresnet/utils/stitch_rects.cpp',
-                './tensorboxresnet/utils/hungarian/hungarian.cpp'
+                './utils/stitch_wrapper.pyx',
+                './utils/stitch_rects.cpp',
+                './utils/hungarian/hungarian.cpp'
             ],
             language='c++',
             extra_compile_args=[
