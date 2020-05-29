@@ -84,7 +84,9 @@ TEST_IMAGES_DIR=$DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=100
 TEST_SPLIT_PERCENT=20
 
-$PYTHON $SOURCE_CODE/tensorboxresnet/train.py \
+cd "$SOURCE_CODE" || exit
+
+$PYTHON -m tensorboxresnet.train \
   --weights "$WEIGHTS_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \

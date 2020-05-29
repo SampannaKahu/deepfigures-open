@@ -13,11 +13,9 @@ import zipfile
 import torch
 from typing import List
 
-from tensorboxresnet.utils import (
-    annotation_jitter, annotation_to_h5
-)
+from tensorboxresnet.utils.data_utils import annotation_jitter, annotation_to_h5
 from tensorboxresnet.utils.annolist import AnnotationLib as al
-from tensorboxresnet.utils import Rect
+from tensorboxresnet.utils.rect import Rect
 from tensorboxresnet.utils import tf_concat
 from tensorboxresnet.utils.stitch_wrapper import stitch_rects
 import functools
