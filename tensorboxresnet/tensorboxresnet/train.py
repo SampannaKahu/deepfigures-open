@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import os
-
 import json
 import tensorflow.contrib.slim as slim
 import datetime
@@ -8,7 +6,6 @@ import random
 import time
 import argparse
 import os
-import sys
 import threading
 import imageio
 import tensorflow as tf
@@ -30,26 +27,7 @@ np.random.seed(0)
 
 from tensorboxresnet.tensorboxresnet.utils import train_utils, googlenet_load, tf_concat
 
-# log_dir = '/home/sampanna/job_logs'
-
-# logger = logging.getLogger()
-# logger.setLevel(logging.DEBUG)
-#
-# console_handler = logging.StreamHandler(sys.stdout)
-# console_handler.setLevel(logging.DEBUG)
-# console_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-# logger.addHandler(console_handler)
-#
-# file_handler = logging.FileHandler(
-#     filename=os.path.join(log_dir, os.path.basename(__file__).split('.')[0] + '.log'))
-# file_handler.setLevel(logging.DEBUG)
-# file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-# logger.addHandler(file_handler)
-
-
-logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
-logging.config.fileConfig(logging_config_file_path)
-logger = logging.getLogger()
+logger = None
 
 
 def build_overfeat_inner(H, lstm_input):
@@ -623,7 +601,7 @@ def build_augmentation_pipeline(H: dict, phase: str):
     return iaa.Sequential(augmenter_list)
 
 
-def train(H: dict, test_images):
+def train(H: dict):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
     '''
@@ -794,10 +772,9 @@ def main():
     H first loads the --hypes hypes.json file and is further updated with
     additional arguments as needed.
     '''
-    logger.info(
-        "IS GPU AVAILABLE: {}".format(tf.test.is_gpu_available(cuda_only=False, min_cuda_compute_capability=None)))
+    print("IS GPU AVAILABLE: {}".format(tf.test.is_gpu_available(cuda_only=False, min_cuda_compute_capability=None)))
     if 'CUDA_VISIBLE_DEVICES' not in os.environ:
-        logger.info("The environment variable CUDA_VISIBLE_DEVICES is not set. Exiting.")
+        print("The environment variable CUDA_VISIBLE_DEVICES is not set. Exiting.")
         return
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', default=None, type=str)
@@ -818,7 +795,6 @@ def main():
     parser.add_argument('--random_seed', type=int, default=0)
     args = parser.parse_args()
 
-    logger.info("Arguments to the train.py script: {}".format(args))
     with open(args.hypes, 'r') as f:
         H = json.load(f)
     if args.experiment_name:
@@ -846,8 +822,16 @@ def main():
     H['data']['zip_dir'] = args.zip_dir
     H['data']['test_split_percent'] = args.test_split_percent
     H['data']['random_seed'] = args.random_seed
+
+    os.makedirs(H['save_dir'], exist_ok=True)
+    global logger
+    logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
+    logging.config.fileConfig(logging_config_file_path,
+                              defaults={'logfilename': os.path.join(H['save_dir'], 'train.log')})
+    logger = logging.getLogger()
+    logger.info("Logger setup successful.")
     logger.info("Beginning training with hyper-parameters: {H}".format(H=H))
-    train(H, test_images=[])
+    train(H)
 
 
 if __name__ == '__main__':
