@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 import cv2
 import editdistance
 import numpy as np
-from deepfigures.utils.image_util import imresize
+from scipy.misc.pilutil import imresize
 from PIL import Image
 from botocore.vendored.requests.exceptions import ReadTimeout
 
@@ -37,6 +37,7 @@ from deepfigures.settings import (
     PUBMED_DISTANT_DATA_DIR,
     LOCAL_PUBMED_DISTANT_DATA_DIR)
 
+
 LOCAL_INTERMEDIATE_DIR = LOCAL_PUBMED_DISTANT_DATA_DIR + 'intermediate/'
 LOCAL_FIGURE_JSON_DIR = LOCAL_PUBMED_DISTANT_DATA_DIR + 'figure-jsons/'
 
@@ -47,7 +48,7 @@ pdf_renderer = settings_utils.import_setting(
     settings.DEEPFIGURES_PDF_RENDERER)()
 
 
-def get_input_tars(suffix: str = '') -> List[str]:
+def get_input_tars(suffix: str='') -> List[str]:
     """Returns a list of PMC source tarfiles, restricted to suffix (e.g. '00/')."""
     dirname = PUBMED_INPUT_DIR + suffix
     while True:
@@ -128,10 +129,10 @@ def get_author_name(author: bs4.Tag) -> Optional[str]:
 
 
 def find_str_words_in_pdf(
-        key: str,
-        html_pages: List[bs4.Tag],
-        pages: Optional[List[int]] = None,
-        max_dist: int = math.inf,
+    key: str,
+    html_pages: List[bs4.Tag],
+    pages: Optional[List[int]]=None,
+    max_dist: int=math.inf,
 ) -> Tuple[Optional[List[bs4.Tag]], int]:
     if pages is None:
         pages = list(range(len(html_pages)))
@@ -141,7 +142,7 @@ def find_str_words_in_pdf(
     clean_key = clean_str(key)
     matches = [
         MatchedString.
-            from_match(stringmatch.match(clean_key, clean_str(page)))
+        from_match(stringmatch.match(clean_key, clean_str(page)))
         for (page_num, page) in enumerate(text_pages) if page_num in pages
     ]
     page_num = int(np.argmin([match.cost for match in matches]))
@@ -175,7 +176,7 @@ def find_match_words(page: bs4.Tag, match: MatchedString) -> List[bs4.Tag]:
 
 
 def words_to_box(
-        words: Optional[List[bs4.Tag]], target_dpi=settings.DEFAULT_INFERENCE_DPI
+    words: Optional[List[bs4.Tag]], target_dpi=settings.DEFAULT_INFERENCE_DPI
 ) -> Optional[datamodels.BoxClass]:
     if words is None or len(words) == 0:
         return None
@@ -198,7 +199,7 @@ def tag_to_tokens(tag: bs4.Tag) -> Iterable[str]:
 
 
 def match_figures(pdf: str, ignore_errors=False
-                  ) -> Optional[Dict[str, List[datamodels.Figure]]]:
+                 ) -> Optional[Dict[str, List[datamodels.Figure]]]:
     print('.', end='', flush=True)
     logging.info('Matching figures for %s' % pdf)
     try:
@@ -238,7 +239,7 @@ def match_figures(pdf: str, ignore_errors=False
         else:
             figures_by_page = {page_name: []
                                for page_name in page_names
-                               }  # type: Dict[str, List[datamodels.Figure]]
+                              }  # type: Dict[str, List[datamodels.Figure]]
             for fig in matched_figures:
                 figures_by_page[page_names[fig.page]].append(fig)
             return figures_by_page
@@ -251,10 +252,10 @@ def match_figures(pdf: str, ignore_errors=False
 
 
 def match_figure(
-        xml_fig: bs4.Tag,
-        html_pages: List[bs4.Tag],
-        pdf: str,
-        page_names: Optional[List[str]] = None
+    xml_fig: bs4.Tag,
+    html_pages: List[bs4.Tag],
+    pdf: str,
+    page_names: Optional[List[str]]=None
 ) -> Optional[datamodels.Figure]:
     if xml_fig.caption is None or xml_fig.label is None:
         # Some tables contain no caption
@@ -416,7 +417,7 @@ def find_template_in_image(fig_im: np.ndarray, page_im: np.ndarray, scales: List
     width ratio).
     """
     try:
-        template = imresize(fig_im, (fig_im.shape[0] * SCALE_FACTOR, fig_im.shape[1] * SCALE_FACTOR))
+        template = imresize(fig_im, SCALE_FACTOR)
     except ValueError:
         # This may cause some very small images to have size 0 which causes a ValueError
         return None
@@ -439,8 +440,8 @@ def find_template_in_image(fig_im: np.ndarray, page_im: np.ndarray, scales: List
         )
         r = page_im.shape[1] / float(page_resized.shape[1])
         assert (
-                page_resized.shape[0] >= template_height and
-                page_resized.shape[1] >= template_width
+            page_resized.shape[0] >= template_height and
+            page_resized.shape[1] >= template_width
         )
         if use_canny:
             page_resized = cv2.Canny(page_resized, 50, 200)
@@ -466,7 +467,7 @@ def find_template_in_image(fig_im: np.ndarray, page_im: np.ndarray, scales: List
 
 
 def find_fig_box(
-        fig_im: np.ndarray, page_im: np.ndarray, use_canny: bool = False
+    fig_im: np.ndarray, page_im: np.ndarray, use_canny: bool=False
 ) -> Optional[datamodels.BoxClass]:
     """Find the position of the best match for fig_im on page_im through multi scale template matching."""
     # If we get a score below this threshold, it's probably a bad detection
@@ -489,8 +490,8 @@ def find_fig_box(
     ]
     (refined_fig_box, refined_score,
      best_refined_scale) = find_template_in_image(
-        fig_im, page_im, refined_scales, use_canny
-    )
+         fig_im, page_im, refined_scales, use_canny
+     )
     if refined_score < score_threshold:
         return None
     else:
@@ -498,7 +499,7 @@ def find_fig_box(
 
 
 def run_full_pipeline(
-        tarpath: str, skip_done: bool = True, save_intermediate: bool = False
+    tarpath: str, skip_done: bool=True, save_intermediate: bool=False
 ) -> None:
     foldername = str(os.path.basename(tarpath).split('.')[0])
     result_path = LOCAL_FIGURE_JSON_DIR + get_bin(

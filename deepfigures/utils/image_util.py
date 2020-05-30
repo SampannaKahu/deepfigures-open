@@ -1,7 +1,7 @@
 import os
 import typing
 import numpy as np
-from PIL import Image
+from scipy.misc.pilutil import imresize
 import imageio
 from deepfigures.utils import file_util
 import logging
@@ -45,10 +45,6 @@ def write_tensor(dst: str, value: np.ndarray) -> None:
     assert (ext == '' or ext == '.npz')
     with open(dst, 'wb') as f:
         np.savez_compressed(f, value)
-
-
-def imresize(arr: np.ndarray, target_size: typing.Tuple[int, int], **kwargs) -> np.ndarray:
-    return np.array(Image.fromarray(arr).resize(size=target_size, resample=Image.CUBIC))
 
 
 def imresize_multichannel(im: np.ndarray, target_size: typing.Tuple[int, int],
