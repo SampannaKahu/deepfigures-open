@@ -12,8 +12,8 @@ requirements = [r for r in requirements if not '-e' in r]
 setuptools.setup(
     name='deepfigures-open',
     version='0.0.1',
-    url='http://github.com/allenai/deepfigures-open',
-    packages=setuptools.find_packages(),
+    url='http://github.com/SampannaKahu/deepfigures-open',
+    packages=setuptools.find_packages(exclude=['vendor*']),
     install_requires=requirements,
     tests_require=[],
     zip_safe=False,
