@@ -5,9 +5,10 @@ import sys
 from setuptools import setup, Extension, find_packages
 
 tf_include = '/'.join(sys.executable.split('/')[:-2]) + \
-                '/lib/python%d.%d/site-packages/tensorflow/include' % sys.version_info[:2]
+             '/lib/python%d.%d/site-packages/tensorflow/include' % sys.version_info[:2]
 
 import os
+
 extra_defs = []
 if os.uname().sysname == 'Darwin':
     extra_defs.append('-D_GLIBCXX_USE_CXX11_ABI=0')
@@ -30,9 +31,15 @@ setup(
             ],
             language='c++',
             extra_compile_args=[
-                '-std=c++11', '-Itensorbox/utils',
-                '-I%s' % tf_include
-            ] + extra_defs,
+                                   '-std=c++11', '-Itensorbox/utils',
+                                   '-I%s' % tf_include
+                               ] + extra_defs,
         )
-    ]
+    ],
+    package_data={
+        'tensorboxresnet': [
+            'logging.conf'
+        ]
+    },
+    include_package_data=True
 )
