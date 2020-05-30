@@ -86,7 +86,7 @@ TEST_SPLIT_PERCENT=20
 
 #cd "$SOURCE_CODE"/tensorboxresnet && $PYTHON setup.py install
 
-cd "$SOURCE_CODE" || exit
+cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
 
 $PYTHON -m tensorboxresnet.train \
   --weights "$WEIGHTS_PATH" \
