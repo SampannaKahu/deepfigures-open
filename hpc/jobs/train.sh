@@ -84,9 +84,9 @@ TEST_IMAGES_DIR=$DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=100
 TEST_SPLIT_PERCENT=20
 
-#cd "$SOURCE_CODE"/tensorboxresnet && $PYTHON setup.py install
-
-cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
+#$PYTHON -m pip uninstall deepfigures-open -y
+#cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
+#rm -rf deepfigures_open.egg-info dist build
 
 $PYTHON -m tensorboxresnet.train \
   --weights "$WEIGHTS_PATH" \
