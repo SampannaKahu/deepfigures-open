@@ -16,7 +16,7 @@ from typing import List
 from vendor.tensorboxresnet.tensorboxresnet.utils.data_utils import annotation_jitter, annotation_to_h5
 from vendor.tensorboxresnet.tensorboxresnet.utils.annolist import AnnotationLib as al
 from vendor.tensorboxresnet.tensorboxresnet.utils.rect import Rect
-from vendor.tensorboxresnet import tf_concat
+from vendor.tensorboxresnet.tensorboxresnet.utils import tf_concat
 from vendor.tensorboxresnet.tensorboxresnet.utils.stitch_wrapper import stitch_rects
 import functools
 
