@@ -25,8 +25,9 @@ else:
 random.seed(0)
 np.random.seed(0)
 
-from tensorboxresnet.utils import train_utils, tf_concat
-from tensorboxresnet.utils import googlenet_load
+from vendor.tensorboxresnet import tf_concat
+from vendor.tensorboxresnet.tensorboxresnet.utils import train_utils
+from vendor.tensorboxresnet.tensorboxresnet.utils import googlenet_load
 
 logger = None
 
@@ -826,7 +827,7 @@ def main():
 
     os.makedirs(H['save_dir'], exist_ok=True)
     global logger
-    logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
+    logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tensorboxresnet/logging.conf')
     logging.config.fileConfig(logging_config_file_path,
                               defaults={'logfilename': os.path.join(H['save_dir'], 'train.log')})
     logger = logging.getLogger()

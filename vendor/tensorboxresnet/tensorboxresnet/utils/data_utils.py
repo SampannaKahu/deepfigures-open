@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import copy
-import tensorboxresnet.utils.annolist.AnnotationLib as al
+import vendor.tensorboxresnet.tensorboxresnet.utils.annolist.AnnotationLib as al
 
 
 def annotation_to_h5(H, a, cell_width, cell_height, max_len):
