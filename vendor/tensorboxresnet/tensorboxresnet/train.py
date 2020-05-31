@@ -423,8 +423,9 @@ def build(H, q):
 
     os.environ['CUDA_VISIBLE_DEVICES'] = str(solver.get('gpu', ''))
 
-    gpu_options = tf.GPUOptions()
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
     config = tf.ConfigProto(gpu_options=gpu_options)
+    config.gpu_options.allow_growth = True
 
     learning_rate = tf.placeholder(tf.float32)
     if solver['opt'] == 'RMS':
