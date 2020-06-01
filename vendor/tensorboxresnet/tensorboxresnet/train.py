@@ -599,24 +599,24 @@ def build_augmentation_pipeline(H: dict, phase: str):
     augmenter_list = []
     for item in augmentations:
         logger.debug("Found non empty augmentation config.")
-        if item.lower() is "Affine":
+        if item.lower() is "Affine".lower():
             augmenter_list.append(
                 iaa.Affine(rotate=(augmentations[item]["rotate_left"], augmentations[item]["rotate_right"])))
             logger.debug("Adding affine augmentation.")
-        if item.lower() is "AdditiveGaussianNoise":
+        if item.lower() is "AdditiveGaussianNoise".lower():
             augmenter_list.append(iaa.AdditiveGaussianNoise(
                 scale=(augmentations[item]["scale_left"], augmentations[item]["scale_right"])))
             logger.debug("Adding AdditiveGaussianNoise augmentation.")
-        if item.lower() is "SaltAndPepper":
+        if item.lower() is "SaltAndPepper".lower():
             augmenter_list.append(iaa.SaltAndPepper(augmentations[item]["p"]))
             logger.debug("Adding SaltAndPepper augmentation.")
-        if item.lower() is "GaussianBlur":
+        if item.lower() is "GaussianBlur".lower():
             augmenter_list.append(iaa.GaussianBlur(sigma=augmentations[item]["sigma"]))
             logger.debug("Adding GaussianBlur augmentation.")
-        if item.lower() is "LinearContrast":
+        if item.lower() is "LinearContrast".lower():
             augmenter_list.append(iaa.LinearContrast(alpha=augmentations[item]["alpha"]))
             logger.debug("Adding LinearContrast augmentation.")
-        if item.lower() is "PerspectiveTransform":
+        if item.lower() is "PerspectiveTransform".lower():
             augmenter_list.append(iaa.PerspectiveTransform(scale=augmentations[item]["alpha"],
                                                            keep_size=augmentations[item]["keep_size"]))
             logger.debug("Adding PerspectiveTransform augmentation.")
