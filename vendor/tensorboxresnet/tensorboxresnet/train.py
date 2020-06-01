@@ -423,8 +423,26 @@ def build(H, q):
 
     os.environ['CUDA_VISIBLE_DEVICES'] = str(solver.get('gpu', ''))
 
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
-    config = tf.ConfigProto(gpu_options=gpu_options)
+    from tensorflow.core.protobuf import config_pb2
+    from tensorflow.python.client import device_lib
+
+    # gpus = config.experimental.list_physical_devices('GPU')
+
+    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+    # gpu_options = tf.GPUOptions.Experimental.VirtualDevices(memory_limit_mb=[4096])
+    #
+    # config = tf.ConfigProto(gpu_options=gpu_options)
+    # config.gpu_options.allow_growth = True
+
+    # device_lib.list_local_devices()
+
+    virtual_device_gpu_options = config_pb2.GPUOptions(
+        visible_device_list='0',
+        experimental=config_pb2.GPUOptions.Experimental(
+            virtual_devices=[config_pb2.GPUOptions.Experimental.VirtualDevices(memory_limit_mb=[4096])]
+        )
+    )
+    config = config_pb2.ConfigProto(gpu_options=virtual_device_gpu_options)
     config.gpu_options.allow_growth = True
 
     learning_rate = tf.placeholder(tf.float32)
@@ -669,104 +687,105 @@ def train(H: dict):
     logger.info("Initializing the writer: {}".format(writer))
 
     with tf.Session(config=config) as sess:
-        tf.train.start_queue_runners(sess=sess)
-        for phase in ['train', 'test']:
-            # enqueue once manually to avoid thread start delay
-            augmentation_transforms = build_augmentation_pipeline(H, phase)
-            logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
-            gen = train_utils.load_data_gen(
-                H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
-            )
-            d = next(gen)
-            sess.run(enqueue_op[phase], feed_dict=make_feed(d))
-            t = threading.Thread(
-                target=thread_loop, args=(sess, enqueue_op, phase, gen)
-            )
-            t.daemon = True
-            t.start()
+        with tf.device('/gpu:1'):
+            tf.train.start_queue_runners(sess=sess)
+            for phase in ['train', 'test']:
+                # enqueue once manually to avoid thread start delay
+                augmentation_transforms = build_augmentation_pipeline(H, phase)
+                logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
+                gen = train_utils.load_data_gen(
+                    H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
+                )
+                d = next(gen)
+                sess.run(enqueue_op[phase], feed_dict=make_feed(d))
+                t = threading.Thread(
+                    target=thread_loop, args=(sess, enqueue_op, phase, gen)
+                )
+                t.daemon = True
+                t.start()
 
-        tf.set_random_seed(H['solver']['rnd_seed'])
-        sess.run(tf.global_variables_initializer())
-        writer.add_graph(sess.graph)
-        weights_str = H['solver']['weights']
-        if len(weights_str) > 0:
-            logger.info('Restoring from: %s' % weights_str)
-            saver.restore(sess, weights_str)
-        elif H['slim_ckpt'] == '':
-            sess.run(
-                tf.variables_initializer(
-                    [
+            tf.set_random_seed(H['solver']['rnd_seed'])
+            sess.run(tf.global_variables_initializer())
+            writer.add_graph(sess.graph)
+            weights_str = H['solver']['weights']
+            if len(weights_str) > 0:
+                logger.info('Restoring from: %s' % weights_str)
+                saver.restore(sess, weights_str)
+            elif H['slim_ckpt'] == '':
+                sess.run(
+                    tf.variables_initializer(
+                        [
+                            x for x in tf.global_variables()
+                            if x.name.startswith(H['slim_basename']) and
+                               H['solver']['opt'] not in x.name
+                        ]
+                    )
+                )
+            else:
+                init_fn = slim.assign_from_checkpoint_fn(
+                    '%s/data/%s' %
+                    (os.path.dirname(os.path.realpath(__file__)),
+                     H['slim_ckpt']), [
                         x for x in tf.global_variables()
                         if x.name.startswith(H['slim_basename']) and
                            H['solver']['opt'] not in x.name
                     ]
                 )
-            )
-        else:
-            init_fn = slim.assign_from_checkpoint_fn(
-                '%s/data/%s' %
-                (os.path.dirname(os.path.realpath(__file__)),
-                 H['slim_ckpt']), [
-                    x for x in tf.global_variables()
-                    if x.name.startswith(H['slim_basename']) and
-                       H['solver']['opt'] not in x.name
-                ]
-            )
-            init_fn(sess)
+                init_fn(sess)
 
-        # train model for N iterations
-        start = time.time()
-        max_iter = H['solver'].get('max_iter', 10000000)
-        for i in range(max_iter):
-            display_iter = H['logging']['display_iter']
-            adjusted_lr = (
-                    H['solver']['learning_rate'] * 0.5 **
-                    max(0, (i / H['solver']['learning_rate_step']) - 2)
-            )
-            lr_feed = {learning_rate: adjusted_lr}
+            # train model for N iterations
+            start = time.time()
+            max_iter = H['solver'].get('max_iter', 10000000)
+            for i in range(max_iter):
+                display_iter = H['logging']['display_iter']
+                adjusted_lr = (
+                        H['solver']['learning_rate'] * 0.5 **
+                        max(0, (i / H['solver']['learning_rate_step']) - 2)
+                )
+                lr_feed = {learning_rate: adjusted_lr}
 
-            if i % display_iter != 0:
-                # train network
-                batch_loss_train, _ = sess.run(
-                    [loss['train'], train_op], feed_dict=lr_feed
-                )
-            else:
-                # test network every N iterations; log additional info
-                if i > 0:
-                    dt = (time.time() - start
-                          ) / (H['batch_size'] * display_iter)
-                start = time.time()
-                (train_loss, test_accuracy, summary_str, _, _) = sess.run(
-                    [
-                        loss['train'],
-                        accuracy['test'],
-                        summary_op,
-                        train_op,
-                        smooth_op,
-                    ],
-                    feed_dict=lr_feed
-                )
-                writer.add_summary(summary_str, global_step=global_step.eval())
-                print_str = ', '.join(
-                    [
-                        'Step: %d',
-                        'lr: %f',
-                        'Train Loss: %.2f',
-                        'Softmax Test Accuracy: %.1f%%',
-                        'Time/image (ms): %.1f',
-                    ]
-                )
-                logger.info(
-                    print_str % (
-                        i, adjusted_lr, train_loss, test_accuracy * 100,
-                        dt * 1000 if i > 0 else 0
+                if i % display_iter != 0:
+                    # train network
+                    batch_loss_train, _ = sess.run(
+                        [loss['train'], train_op], feed_dict=lr_feed
                     )
-                )
+                else:
+                    # test network every N iterations; log additional info
+                    if i > 0:
+                        dt = (time.time() - start
+                              ) / (H['batch_size'] * display_iter)
+                    start = time.time()
+                    (train_loss, test_accuracy, summary_str, _, _) = sess.run(
+                        [
+                            loss['train'],
+                            accuracy['test'],
+                            summary_op,
+                            train_op,
+                            smooth_op,
+                        ],
+                        feed_dict=lr_feed
+                    )
+                    writer.add_summary(summary_str, global_step=global_step.eval())
+                    print_str = ', '.join(
+                        [
+                            'Step: %d',
+                            'lr: %f',
+                            'Train Loss: %.2f',
+                            'Softmax Test Accuracy: %.1f%%',
+                            'Time/image (ms): %.1f',
+                        ]
+                    )
+                    logger.info(
+                        print_str % (
+                            i, adjusted_lr, train_loss, test_accuracy * 100,
+                            dt * 1000 if i > 0 else 0
+                        )
+                    )
 
-            if global_step.eval() % H['logging'][
-                'save_iter'
-            ] == 0 or global_step.eval() == max_iter - 1:
-                saver.save(sess, ckpt_file, global_step=global_step)
+                if global_step.eval() % H['logging'][
+                    'save_iter'
+                ] == 0 or global_step.eval() == max_iter - 1:
+                    saver.save(sess, ckpt_file, global_step=global_step)
 
 
 def main():
