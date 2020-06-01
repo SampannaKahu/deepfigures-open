@@ -29,7 +29,7 @@ from tensorboxresnet.utils import tf_concat
 from tensorboxresnet.utils import train_utils
 from tensorboxresnet.utils import googlenet_load
 
-logger = None
+logger: logging.Logger = None
 
 
 def build_overfeat_inner(H, lstm_input):
@@ -586,9 +586,11 @@ def build(H, q):
 
 
 def build_augmentation_pipeline(H: dict, phase: str):
+    logger.debug("For phase {}, the augmentation config is: {}".format(phase, H['data']['augmentations'][phase]))
     # If no augmentations, return zero-sum augmentations.
     augmentations = H['data']['augmentations'][phase]
     if not augmentations:
+        logger.debug("No augmentation config found. Initiating with null augmentations.")
         return iaa.Sequential([
             iaa.Fliplr(p=1),
             iaa.Fliplr(p=1)
@@ -596,21 +598,28 @@ def build_augmentation_pipeline(H: dict, phase: str):
 
     augmenter_list = []
     for item in augmentations:
+        logger.debug("Found non empty augmentation config.")
         if item.lower() is "Affine":
             augmenter_list.append(
                 iaa.Affine(rotate=(augmentations[item]["rotate_left"], augmentations[item]["rotate_right"])))
+            logger.debug("Adding affine augmentation.")
         if item.lower() is "AdditiveGaussianNoise":
             augmenter_list.append(iaa.AdditiveGaussianNoise(
                 scale=(augmentations[item]["scale_left"], augmentations[item]["scale_right"])))
+            logger.debug("Adding AdditiveGaussianNoise augmentation.")
         if item.lower() is "SaltAndPepper":
             augmenter_list.append(iaa.SaltAndPepper(augmentations[item]["p"]))
+            logger.debug("Adding SaltAndPepper augmentation.")
         if item.lower() is "GaussianBlur":
             augmenter_list.append(iaa.GaussianBlur(sigma=augmentations[item]["sigma"]))
+            logger.debug("Adding GaussianBlur augmentation.")
         if item.lower() is "LinearContrast":
             augmenter_list.append(iaa.LinearContrast(alpha=augmentations[item]["alpha"]))
+            logger.debug("Adding LinearContrast augmentation.")
         if item.lower() is "PerspectiveTransform":
             augmenter_list.append(iaa.PerspectiveTransform(scale=augmentations[item]["alpha"],
                                                            keep_size=augmentations[item]["keep_size"]))
+            logger.debug("Adding PerspectiveTransform augmentation.")
     return iaa.Sequential(augmenter_list)
 
 
@@ -679,105 +688,104 @@ def train(H: dict):
     logger.info("Initializing the writer: {}".format(writer))
 
     with tf.Session(config=config) as sess:
-        with tf.device('/gpu:1'):
-            tf.train.start_queue_runners(sess=sess)
-            for phase in ['train', 'test']:
-                # enqueue once manually to avoid thread start delay
-                augmentation_transforms = build_augmentation_pipeline(H, phase)
-                logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
-                gen = train_utils.load_data_gen(
-                    H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
-                )
-                d = next(gen)
-                sess.run(enqueue_op[phase], feed_dict=make_feed(d))
-                t = threading.Thread(
-                    target=thread_loop, args=(sess, enqueue_op, phase, gen)
-                )
-                t.daemon = True
-                t.start()
+        tf.train.start_queue_runners(sess=sess)
+        for phase in ['train', 'test']:
+            # enqueue once manually to avoid thread start delay
+            augmentation_transforms = build_augmentation_pipeline(H, phase)
+            logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
+            gen = train_utils.load_data_gen(
+                H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
+            )
+            d = next(gen)
+            sess.run(enqueue_op[phase], feed_dict=make_feed(d))
+            t = threading.Thread(
+                target=thread_loop, args=(sess, enqueue_op, phase, gen)
+            )
+            t.daemon = True
+            t.start()
 
-            tf.set_random_seed(H['solver']['rnd_seed'])
-            sess.run(tf.global_variables_initializer())
-            writer.add_graph(sess.graph)
-            weights_str = H['solver']['weights']
-            if len(weights_str) > 0:
-                logger.info('Restoring from: %s' % weights_str)
-                saver.restore(sess, weights_str)
-            elif H['slim_ckpt'] == '':
-                sess.run(
-                    tf.variables_initializer(
-                        [
-                            x for x in tf.global_variables()
-                            if x.name.startswith(H['slim_basename']) and
-                               H['solver']['opt'] not in x.name
-                        ]
-                    )
-                )
-            else:
-                init_fn = slim.assign_from_checkpoint_fn(
-                    '%s/data/%s' %
-                    (os.path.dirname(os.path.realpath(__file__)),
-                     H['slim_ckpt']), [
+        tf.set_random_seed(H['solver']['rnd_seed'])
+        sess.run(tf.global_variables_initializer())
+        writer.add_graph(sess.graph)
+        weights_str = H['solver']['weights']
+        if len(weights_str) > 0:
+            logger.info('Restoring from: %s' % weights_str)
+            saver.restore(sess, weights_str)
+        elif H['slim_ckpt'] == '':
+            sess.run(
+                tf.variables_initializer(
+                    [
                         x for x in tf.global_variables()
                         if x.name.startswith(H['slim_basename']) and
                            H['solver']['opt'] not in x.name
                     ]
                 )
-                init_fn(sess)
+            )
+        else:
+            init_fn = slim.assign_from_checkpoint_fn(
+                '%s/data/%s' %
+                (os.path.dirname(os.path.realpath(__file__)),
+                 H['slim_ckpt']), [
+                    x for x in tf.global_variables()
+                    if x.name.startswith(H['slim_basename']) and
+                       H['solver']['opt'] not in x.name
+                ]
+            )
+            init_fn(sess)
 
-            # train model for N iterations
-            start = time.time()
-            max_iter = H['solver'].get('max_iter', 10000000)
-            for i in range(max_iter):
-                display_iter = H['logging']['display_iter']
-                adjusted_lr = (
-                        H['solver']['learning_rate'] * 0.5 **
-                        max(0, (i / H['solver']['learning_rate_step']) - 2)
+        # train model for N iterations
+        start = time.time()
+        max_iter = H['solver'].get('max_iter', 10000000)
+        for i in range(max_iter):
+            display_iter = H['logging']['display_iter']
+            adjusted_lr = (
+                    H['solver']['learning_rate'] * 0.5 **
+                    max(0, (i / H['solver']['learning_rate_step']) - 2)
+            )
+            lr_feed = {learning_rate: adjusted_lr}
+
+            if i % display_iter != 0:
+                # train network
+                batch_loss_train, _ = sess.run(
+                    [loss['train'], train_op], feed_dict=lr_feed
                 )
-                lr_feed = {learning_rate: adjusted_lr}
+            else:
+                # test network every N iterations; log additional info
+                if i > 0:
+                    dt = (time.time() - start
+                          ) / (H['batch_size'] * display_iter)
+                start = time.time()
+                (train_loss, test_accuracy, summary_str, _, _) = sess.run(
+                    [
+                        loss['train'],
+                        accuracy['test'],
+                        summary_op,
+                        train_op,
+                        smooth_op,
+                    ],
+                    feed_dict=lr_feed
+                )
+                writer.add_summary(summary_str, global_step=global_step.eval())
+                print_str = ', '.join(
+                    [
+                        'Step: %d',
+                        'lr: %f',
+                        'Train Loss: %.2f',
+                        'Softmax Test Accuracy: %.1f%%',
+                        'Time/image (ms): %.1f',
+                    ]
+                )
+                logger.info(
+                    print_str % (
+                        i, adjusted_lr, train_loss, test_accuracy * 100,
+                        dt * 1000 if i > 0 else 0
+                    )
+                )
 
-                if i % display_iter != 0:
-                    # train network
-                    batch_loss_train, _ = sess.run(
-                        [loss['train'], train_op], feed_dict=lr_feed
-                    )
-                else:
-                    # test network every N iterations; log additional info
-                    if i > 0:
-                        dt = (time.time() - start
-                              ) / (H['batch_size'] * display_iter)
-                    start = time.time()
-                    (train_loss, test_accuracy, summary_str, _, _) = sess.run(
-                        [
-                            loss['train'],
-                            accuracy['test'],
-                            summary_op,
-                            train_op,
-                            smooth_op,
-                        ],
-                        feed_dict=lr_feed
-                    )
-                    writer.add_summary(summary_str, global_step=global_step.eval())
-                    print_str = ', '.join(
-                        [
-                            'Step: %d',
-                            'lr: %f',
-                            'Train Loss: %.2f',
-                            'Softmax Test Accuracy: %.1f%%',
-                            'Time/image (ms): %.1f',
-                        ]
-                    )
-                    logger.info(
-                        print_str % (
-                            i, adjusted_lr, train_loss, test_accuracy * 100,
-                            dt * 1000 if i > 0 else 0
-                        )
-                    )
-
-                if global_step.eval() % H['logging'][
-                    'save_iter'
-                ] == 0 or global_step.eval() == max_iter - 1:
-                    saver.save(sess, ckpt_file, global_step=global_step)
+            if global_step.eval() % H['logging'][
+                'save_iter'
+            ] == 0 or global_step.eval() == max_iter - 1:
+                saver.save(sess, ckpt_file, global_step=global_step)
 
 
 def main():
