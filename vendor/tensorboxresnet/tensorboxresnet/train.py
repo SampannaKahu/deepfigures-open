@@ -423,27 +423,19 @@ def build(H, q):
 
     os.environ['CUDA_VISIBLE_DEVICES'] = str(solver.get('gpu', ''))
 
-    from tensorflow.core.protobuf import config_pb2
-    from tensorflow.python.client import device_lib
-
-    # gpus = config.experimental.list_physical_devices('GPU')
-
-    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
-    # gpu_options = tf.GPUOptions.Experimental.VirtualDevices(memory_limit_mb=[4096])
+    # from tensorflow.core.protobuf import config_pb2
     #
-    # config = tf.ConfigProto(gpu_options=gpu_options)
+    # virtual_device_gpu_options = config_pb2.GPUOptions(
+    #     visible_device_list='0',
+    #     experimental=config_pb2.GPUOptions.Experimental(
+    #         virtual_devices=[config_pb2.GPUOptions.Experimental.VirtualDevices(memory_limit_mb=[4096])]
+    #     )
+    # )
+    # config = config_pb2.ConfigProto(gpu_options=virtual_device_gpu_options)
     # config.gpu_options.allow_growth = True
 
-    # device_lib.list_local_devices()
-
-    virtual_device_gpu_options = config_pb2.GPUOptions(
-        visible_device_list='0',
-        experimental=config_pb2.GPUOptions.Experimental(
-            virtual_devices=[config_pb2.GPUOptions.Experimental.VirtualDevices(memory_limit_mb=[4096])]
-        )
-    )
-    config = config_pb2.ConfigProto(gpu_options=virtual_device_gpu_options)
-    config.gpu_options.allow_growth = True
+    gpu_options = tf.GPUOptions()
+    config = tf.ConfigProto(gpu_options=gpu_options)
 
     learning_rate = tf.placeholder(tf.float32)
     if solver['opt'] == 'RMS':
