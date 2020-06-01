@@ -597,8 +597,9 @@ def build_augmentation_pipeline(H: dict, phase: str):
         ])
 
     augmenter_list = []
+    logger.debug("Found non empty augmentation config.")
     for item in augmentations:
-        logger.debug("Found non empty augmentation config.")
+        logger.debug("Key: {}".format(item))
         if item.lower() is "Affine".lower():
             augmenter_list.append(
                 iaa.Affine(rotate=(augmentations[item]["rotate_left"], augmentations[item]["rotate_right"])))
