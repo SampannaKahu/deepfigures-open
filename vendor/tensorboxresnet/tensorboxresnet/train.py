@@ -618,7 +618,7 @@ def build_augmentation_pipeline(H: dict, phase: str):
             augmenter_list.append(iaa.LinearContrast(alpha=augmentations[item]["alpha"]))
             logger.debug("Adding LinearContrast augmentation.")
         if item.lower() == "PerspectiveTransform".lower():
-            augmenter_list.append(iaa.PerspectiveTransform(scale=augmentations[item]["alpha"],
+            augmenter_list.append(iaa.PerspectiveTransform(scale=augmentations[item]["scale"],
                                                            keep_size=augmentations[item]["keep_size"]))
             logger.debug("Adding PerspectiveTransform augmentation.")
     return iaa.Sequential(augmenter_list)
