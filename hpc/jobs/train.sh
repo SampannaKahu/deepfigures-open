@@ -17,7 +17,7 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377266_arxiv
+EXPERIMENT_NAME=377266_arxiv_long_running_test
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"

@@ -108,7 +108,7 @@
   "focus_size": 1.8,
   "rezoom_change_loss": "center",
   "image_width": 480,
-  "batch_size": 1,
+  "batch_size": 8,
   "grid_width": 15,
   "slim_basename": "resnet_v1_101",
   "avg_pool_size": 5,
