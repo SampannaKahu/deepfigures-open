@@ -22,7 +22,7 @@ import functools
 
 from deepfigures.utils import image_util
 
-tensor_queue = multiprocessing.Queue(maxsize=8)
+tensor_queue = multiprocessing.Queue(maxsize=64)
 
 import imgaug as ia
 from imgaug import augmenters as iaa
