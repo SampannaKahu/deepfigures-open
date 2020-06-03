@@ -17,7 +17,7 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377266_arxiv_long_running_test
+EXPERIMENT_NAME=377266_arxiv
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"
@@ -87,6 +87,8 @@ TEST_SPLIT_PERCENT=20
 #$PYTHON -m pip uninstall deepfigures-open -y
 #cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
 #rm -rf deepfigures_open.egg-info dist build
+
+#cd "$SOURCE_CODE"
 
 $PYTHON -m tensorboxresnet.train \
   --weights "$WEIGHTS_PATH" \
