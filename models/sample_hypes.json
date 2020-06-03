@@ -114,5 +114,5 @@
   "avg_pool_size": 5,
   "slim_ckpt": "",
   "use_rezoom": true,
-  "max_checkpoints_to_keep": 50
+  "max_checkpoints_to_keep": 100
 }
