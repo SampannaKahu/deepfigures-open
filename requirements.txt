@@ -54,7 +54,7 @@ protobuf==3.12.2
 py==1.8.1
 pyasn1==0.4.8
 pycparser==2.20
-pyglow==0.0.0
+pyglow==0.1.7
 pyparsing==2.4.7
 pytest==5.4.2
 pytest-xdist==1.18.2
