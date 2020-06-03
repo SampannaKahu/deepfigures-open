@@ -782,10 +782,15 @@ def train(H: dict):
                         dt * 1000 if i > 0 else 0
                     )
                 )
+                if i <= 10000:
+                    logger.info(
+                        "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
+                    saver.save(sess, ckpt_file, global_step=global_step)
 
             if global_step.eval() % H['logging'][
                 'save_iter'
             ] == 0 or global_step.eval() == max_iter - 1:
+                logger.info("Saving checkpoint. Step: %d" % global_step.eval())
                 saver.save(sess, ckpt_file, global_step=global_step)
 
 
