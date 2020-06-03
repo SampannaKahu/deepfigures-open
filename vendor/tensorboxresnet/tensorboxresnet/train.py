@@ -285,7 +285,7 @@ def build_forward_backward(H, x, phase, boxes, flags):
 
     grid_size = H['grid_width'] * H['grid_height']
     outer_size = grid_size * H['batch_size']
-    reuse = {'train': None, 'test': True}[phase]
+    reuse = {'train': None, 'test': True, 'hidden': True}[phase]
     if H['use_rezoom']:
         (
             pred_boxes, pred_logits, pred_confidences, pred_confs_deltas,
@@ -297,7 +297,8 @@ def build_forward_backward(H, x, phase, boxes, flags):
         )
     with tf.variable_scope(
             'decoder', reuse={'train': None,
-                              'test': True}[phase]
+                              'test': True,
+                              'hidden': True}[phase]
     ):
         outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])
         outer_flags = tf.cast(
@@ -451,7 +452,7 @@ def build(H, q):
     else:
         raise ValueError('Unrecognized opt type')
     loss, accuracy, confidences_loss, boxes_loss = {}, {}, {}, {}
-    for phase in ['train', 'test']:
+    for phase in ['train', 'test', 'hidden']:
         # generate predictions and losses from forward pass
         x, confidences, boxes = q[phase].dequeue_many(arch['batch_size'])
         flags = tf.argmax(confidences, 3)
@@ -492,7 +493,7 @@ def build(H, q):
             train_op = opt.apply_gradients(
                 zip(grads, tvars), global_step=global_step
             )
-        elif phase == 'test':
+        elif phase == 'test' or phase == 'hidden':
             moving_avg = tf.train.ExponentialMovingAverage(0.95)
             smooth_op = moving_avg.apply(
                 [
@@ -523,7 +524,7 @@ def build(H, q):
                     moving_avg.average(boxes_loss[p])
                 )
 
-        if phase == 'test':
+        if phase == 'test' or phase == 'hidden':
             test_image = x
             # show ground truth to verify labels are correct
             test_true_confidences = confidences[0, :, :, :]
@@ -641,7 +642,7 @@ def train(H: dict):
     boxes_in = tf.placeholder(tf.float32)
     q = {}
     enqueue_op = {}
-    for phase in ['train', 'test']:
+    for phase in ['train', 'test', 'hidden']:
         dtypes = [tf.float32, tf.float32, tf.float32]
         grid_size = H['grid_width'] * H['grid_height']
         channels = H.get('image_channels', 3)
@@ -690,13 +691,16 @@ def train(H: dict):
 
     with tf.Session(config=config) as sess:
         tf.train.start_queue_runners(sess=sess)
-        for phase in ['train', 'test']:
-            # enqueue once manually to avoid thread start delay
+        for phase in ['train', 'test', 'hidden']:
             augmentation_transforms = build_augmentation_pipeline(H, phase)
             logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
-            gen = train_utils.load_data_gen(
-                H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
-            )
+            if phase == 'hidden':
+                gen = train_utils.load_data_gen_hidden(H=H, phase=phase, jitter=H['solver']['use_jitter'])
+            else:
+                gen = train_utils.load_data_gen(
+                    H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
+                )
+            # enqueue once manually to avoid thread start delay
             d = next(gen)
             sess.run(enqueue_op[phase], feed_dict=make_feed(d))
             t = threading.Thread(
@@ -787,6 +791,33 @@ def train(H: dict):
                         "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
                     saver.save(sess, ckpt_file, global_step=global_step)
 
+                (train_loss, hidden_accuracy, summary_str, _, _) = sess.run(
+                    [
+                        loss['train'],
+                        accuracy['hidden'],
+                        summary_op,
+                        train_op,
+                        smooth_op,
+                    ],
+                    feed_dict=lr_feed
+                )
+                writer.add_summary(summary_str, global_step=global_step.eval())
+                print_str = ', '.join(
+                    [
+                        'Step: %d',
+                        'lr: %f',
+                        'Train Loss: %.2f',
+                        'Softmax Hidden Accuracy: %.1f%%',
+                        'Time/image (ms): %.1f',
+                    ]
+                )
+                logger.info(
+                    print_str % (
+                        i, adjusted_lr, train_loss, hidden_accuracy * 100,
+                        dt * 1000 if i > 0 else 0
+                    )
+                )
+
             if global_step.eval() % H['logging'][
                 'save_iter'
             ] == 0 or global_step.eval() == max_iter - 1:
@@ -815,6 +846,8 @@ def main():
     parser.add_argument('--train_images_dir', default=None, type=str)
     parser.add_argument('--test_idl_path', default=None, type=str)
     parser.add_argument('--test_images_dir', default=None, type=str)
+    parser.add_argument('--hidden_idl_path', default=None, type=str)
+    parser.add_argument('--hidden_images_dir', default=None, type=str)
     parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
     parser.add_argument('--scratch_dir', default=os.environ.get("TMPRAM", "/tmp"), type=str)
@@ -844,6 +877,10 @@ def main():
         H['data']['test_idl'] = args.test_idl_path
     if args.test_images_dir is not None:
         H['data']['test_images_dir'] = args.test_images_dir
+    if args.hidden_idl_path is not None:
+        H['data']['hidden_idl'] = args.hidden_idl_path
+    if args.hidden_images_dir is not None:
+        H['data']['hidden_images_dir'] = args.hidden_images_dir
     if args.max_checkpoints_to_keep is not None:
         H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
     H['data']['scratch_dir'] = args.scratch_dir
