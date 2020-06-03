@@ -138,7 +138,7 @@ def load_zip(zip_path, H, epoch, jitter, augmentation_transforms) -> None:
             tensor_queue.put({"image": I, "boxes": boxes, "flags": flags}, block=True, timeout=None)
 
 
-def load_zip_tf(zip_paths: List[str], H, jitter, augmentation_transforms):
+def load_zip_tf(zip_paths: List[str], H, phase: str, jitter, augmentation_transforms):
     """Take the zip file list and net configuration and create a generator
     that outputs a jittered version of a random image from the annolist
     that is mean corrected."""
@@ -146,7 +146,7 @@ def load_zip_tf(zip_paths: List[str], H, jitter, augmentation_transforms):
     if H['data']['truncate_data']:
         zip_paths = zip_paths[:4]
     for epoch in itertools.count():
-        logger.info('Starting epoch %d' % epoch)
+        logger.info('Starting %s epoch %d' % (phase, epoch))
         random.shuffle(zip_paths)
         partial_load = functools.partial(
             load_zip, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms
@@ -177,6 +177,7 @@ def load_data_gen(H, phase, jitter, augmentation_transforms):
     data = load_zip_tf(
         zip_file_list,
         H,
+        phase,
         jitter={'train': jitter,
                 'test': False}[phase],
         augmentation_transforms=augmentation_transforms
