@@ -17,7 +17,8 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377266_arxiv
+EXPERIMENT_NAME=377266_arxiv_hidden_integration_pull_request
+CONDA_ENV=deepfigures_hidden_integration
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"
@@ -30,7 +31,7 @@ ts=$(current_timestamp)
 #fi
 
 if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
-  PYTHON=/home/sampanna/anaconda3/envs/deepfigures_3/bin/python
+  PYTHON=/home/sampanna/anaconda3/envs/$CONDA_ENV/bin/python
   DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
@@ -41,7 +42,7 @@ elif [ "$SYSNAME" = "cascades" ]; then
   module load gcc/7.3.0
   module load cuda/9.0.176
   module load cudnn/7.1
-  PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
+  PYTHON=/home/sampanna/.conda/envs/$CONDA_ENV/bin/python
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPRAM # 311 GB on v100 nodes. 331 MBPS.
@@ -51,20 +52,20 @@ elif [ "$SYSNAME" = "newriver" ]; then
   module load gcc/6.1a.0
   module load cuda/9.0.176
   module load cudnn/7.1
-  PYTHON=/home/sampanna/.conda/envs/deepfigures_3/bin/python
+  PYTHON=/home/sampanna/.conda/envs/$CONDA_ENV/bin/python
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$HOSTNAME" = "xps15" ]; then
-  PYTHON=/home/sampanna/anaconda3/envs/deepfigures_3/bin/python
+  PYTHON=/home/sampanna/anaconda3/envs/$CONDA_ENV/bin/python
   DEEPFIGURES_RESULTS=/home/sampanna/workspace/bdts2/deepfigures-results
   SOURCE_CODE=/home/sampanna/workspace/bdts2/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 else
-  PYTHON=/home/sampanna/anaconda3/envs/deepfigures_3/bin/python
+  PYTHON=/home/sampanna/anaconda3/envs/$CONDA_ENV/bin/python
   DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
