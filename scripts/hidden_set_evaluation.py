@@ -828,7 +828,6 @@ def main():
     parser.add_argument('--weights', default=None, type=str)
     parser.add_argument('--gpu', default=int(os.environ.get('CUDA_VISIBLE_DEVICES', -1)), type=int)
     parser.add_argument('--hypes', required=True, type=str)
-    parser.add_argument('--max_iter', required=False, type=int, default=None)
     parser.add_argument('--logdir', default='/home/sampanna/job_logs', type=str)
     parser.add_argument('--experiment_name', default='arxiv_experiment', type=str)
     parser.add_argument('--train_idl_path', default=None, type=str)
@@ -838,7 +837,6 @@ def main():
     parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
     parser.add_argument('--scratch_dir', default=os.environ.get("TMPRAM", "/tmp"), type=str)
-    parser.add_argument('--zip_dir', required=True, type=str)
     parser.add_argument('--test_split_percent', type=int, default=20)
     parser.add_argument('--random_seed', type=int, default=0)
     args = parser.parse_args()
@@ -849,8 +847,6 @@ def main():
         H['exp_name'] = args.experiment_name
     if args.gpu is not None:
         H['solver']['gpu'] = args.gpu
-    if args.max_iter is not None:
-        H['solver']['max_iter'] = args.max_iter
     if len(H.get('exp_name', '')) == 0:
         H['exp_name'] = args.hypes.split('/')[-1].replace('.json', '')
     H['save_dir'] = args.logdir + '/%s_%s' % (H['exp_name'], args.timestamp)
@@ -867,7 +863,6 @@ def main():
     if args.max_checkpoints_to_keep is not None:
         H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
     H['data']['scratch_dir'] = args.scratch_dir
-    H['data']['zip_dir'] = args.zip_dir
     H['data']['test_split_percent'] = args.test_split_percent
     H['data']['random_seed'] = args.random_seed
 

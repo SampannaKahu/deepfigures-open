@@ -52,7 +52,6 @@
     "train_images_dir": "/home/sampanna/deepfigures-results/gold_standard_dataset/images",
     "test_idl": "/home/sampanna/deepfigures-results/gold_standard_dataset/figure_boundaries.json",
     "test_images_dir": "/home/sampanna/deepfigures-results/gold_standard_dataset/images",
-    "zip_dir": "",
     "test_split_percent": 20,
     "scratch_dir": "/tmp",
     "random_seed": 0,
