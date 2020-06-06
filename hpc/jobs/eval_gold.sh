@@ -18,6 +18,7 @@
 #SBATCH -A waingram_lab
 
 EXPERIMENT_NAME=377266_arxiv_eval
+EVAL_MODEL_DIR=377266_arxiv_2020-06-02_22-48-45
 CONDA_ENV=deepfigures_3
 
 current_timestamp() {
@@ -78,6 +79,7 @@ TEST_IDL_PATH=$DATASET_DIR/figure_boundaries.json
 TEST_IMAGES_DIR=$DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=100
 TEST_SPLIT_PERCENT=20
+MODEL_TO_EVALUATE_PATH="$LOG_DIR"/"$EVAL_MODEL_DIR"
 
 #$PYTHON -m pip uninstall deepfigures-open -y
 #cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
@@ -86,6 +88,7 @@ TEST_SPLIT_PERCENT=20
 #cd "$SOURCE_CODE"
 
 $PYTHON -m tensorboxresnet.hidden_set_evaluation \
+  --model_to_evaluate_path "$MODEL_TO_EVALUATE_PATH" \
   --weights "$WEIGHTS_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \

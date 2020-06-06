@@ -4,7 +4,6 @@ import math
 import tensorflow.contrib.slim as slim
 import datetime
 import random
-import time
 import argparse
 import os
 import threading
@@ -13,6 +12,7 @@ import tensorflow as tf
 import numpy as np
 from distutils.version import LooseVersion
 from imgaug import augmenters as iaa
+from pprint import pformat
 import logging.config
 
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
@@ -625,7 +625,7 @@ def build_augmentation_pipeline(H: dict, phase: str):
     return iaa.Sequential(augmenter_list)
 
 
-def train(H: dict):
+def evaluate(H: dict):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
     '''
@@ -825,7 +825,7 @@ def main():
         print("The environment variable CUDA_VISIBLE_DEVICES is not set. Exiting.")
         return
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', default=None, type=str)
+    parser.add_argument('--model_to_evaluate_path', required=True, type=str)
     parser.add_argument('--gpu', default=int(os.environ.get('CUDA_VISIBLE_DEVICES', -1)), type=int)
     parser.add_argument('--hypes', required=True, type=str)
     parser.add_argument('--logdir', default='/home/sampanna/job_logs', type=str)
@@ -850,8 +850,8 @@ def main():
     if len(H.get('exp_name', '')) == 0:
         H['exp_name'] = args.hypes.split('/')[-1].replace('.json', '')
     H['save_dir'] = args.logdir + '/%s_%s' % (H['exp_name'], args.timestamp)
-    if args.weights is not None:
-        H['solver']['weights'] = args.weights
+    # if args.weights is not None:
+    #     H['solver']['weights'] = args.weights  # TODO
     if args.train_idl_path is not None:
         H['data']['train_idl'] = args.train_idl_path
     if args.train_images_dir is not None:
@@ -873,8 +873,13 @@ def main():
                               defaults={'logfilename': os.path.join(H['save_dir'], 'hidden_set_eval.log')})
     logger = logging.getLogger()
     logger.info("Logger setup successful.")
-    logger.info("Beginning training with hyper-parameters: {H}".format(H=H))
-    train(H)
+
+    checkpoints = [ckpt.strip().split(' ')[1].strip('"') for ckpt in
+                   open(os.path.join(args.model_to_evaluate_path, 'checkpoint')).readlines()]
+    for checkpoint in checkpoints:
+        H['solver']['weights'] = checkpoint  # TODO
+        logger.info("Beginning evaluation with hyper-parameters: {H}".format(H=pformat(H, indent=2)))
+        evaluate(H)
 
 
 if __name__ == '__main__':
