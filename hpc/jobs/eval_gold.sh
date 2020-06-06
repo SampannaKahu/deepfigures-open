@@ -87,7 +87,7 @@ MODEL_TO_EVALUATE_PATH="$LOG_DIR"/"$EVAL_MODEL_DIR"
 
 #cd "$SOURCE_CODE"
 
-$PYTHON -m tensorboxresnet.hidden_set_evaluation \
+$PYTHON -m deepfigures-open.hidden_set_evaluation \
   --model_to_evaluate_path "$MODEL_TO_EVALUATE_PATH" \
   --weights "$WEIGHTS_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \

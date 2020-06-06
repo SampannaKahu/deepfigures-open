@@ -850,8 +850,6 @@ def main():
     if len(H.get('exp_name', '')) == 0:
         H['exp_name'] = args.hypes.split('/')[-1].replace('.json', '')
     H['save_dir'] = args.logdir + '/%s_%s' % (H['exp_name'], args.timestamp)
-    # if args.weights is not None:
-    #     H['solver']['weights'] = args.weights  # TODO
     if args.train_idl_path is not None:
         H['data']['train_idl'] = args.train_idl_path
     if args.train_images_dir is not None:
@@ -877,7 +875,7 @@ def main():
     checkpoints = [ckpt.strip().split(' ')[1].strip('"') for ckpt in
                    open(os.path.join(args.model_to_evaluate_path, 'checkpoint')).readlines()]
     for checkpoint in checkpoints:
-        H['solver']['weights'] = checkpoint  # TODO
+        H['solver']['weights'] = checkpoint
         logger.info("Beginning evaluation with hyper-parameters: {H}".format(H=pformat(H, indent=2)))
         evaluate(H)
 
