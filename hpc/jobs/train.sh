@@ -32,6 +32,7 @@ ts=$(current_timestamp)
 
 if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
+  conda activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
@@ -39,26 +40,31 @@ if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$SYSNAME" = "cascades" ]; then
   module purge
+  module load Anaconda/5.1.0
   module load gcc/7.3.0
   module load cuda/9.0.176
   module load cudnn/7.1
   PYTHON=/home/sampanna/.conda/envs/"$CONDA_ENV"/bin/python
+  source activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPRAM # 311 GB on v100 nodes. 331 MBPS.
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$SYSNAME" = "newriver" ]; then
   module purge
+  module load Anaconda/5.2.0
   module load gcc/6.1a.0
   module load cuda/9.0.176
   module load cudnn/7.1
   PYTHON=/home/sampanna/.conda/envs/"$CONDA_ENV"/bin/python
+  source activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$HOSTNAME" = "xps15" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
+  conda activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/home/sampanna/workspace/bdts2/deepfigures-results
   SOURCE_CODE=/home/sampanna/workspace/bdts2/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
@@ -66,6 +72,7 @@ elif [ "$HOSTNAME" = "xps15" ]; then
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 else
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
+  conda activate "$CONDA_ENV" || source activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0

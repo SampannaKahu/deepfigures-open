@@ -33,36 +33,43 @@ ts=$(current_timestamp)
 
 if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
+  conda activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
-  CUDA_VISIBLE_DEVICES=0
+  export CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
 elif [ "$SYSNAME" = "cascades" ]; then
   module purge
+  module load Anaconda/5.1.0
   module load gcc/7.3.0
   module load cuda/9.0.176
   module load cudnn/7.1
   PYTHON=/home/sampanna/.conda/envs/"$CONDA_ENV"/bin/python
+  source activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPRAM # 311 GB on v100 nodes. 331 MBPS.
 elif [ "$SYSNAME" = "newriver" ]; then
   module purge
+  module load Anaconda/5.2.0
   module load gcc/6.1a.0
   module load cuda/9.0.176
   module load cudnn/7.1
   PYTHON=/home/sampanna/.conda/envs/"$CONDA_ENV"/bin/python
+  source activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
 elif [ "$HOSTNAME" = "xps15" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
+  conda activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/home/sampanna/workspace/bdts2/deepfigures-results
   SOURCE_CODE=/home/sampanna/workspace/bdts2/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
 else
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
+  conda activate "$CONDA_ENV" || source activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
@@ -87,9 +94,8 @@ MODEL_TO_EVALUATE_PATH="$LOG_DIR"/"$EVAL_MODEL_DIR"
 
 #cd "$SOURCE_CODE"
 
-$PYTHON -m deepfigures-open.hidden_set_evaluation \
+$PYTHON -m tensorboxresnet.hidden_set_evaluation \
   --model_to_evaluate_path "$MODEL_TO_EVALUATE_PATH" \
-  --weights "$WEIGHTS_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \
   --logdir="$LOG_DIR" \

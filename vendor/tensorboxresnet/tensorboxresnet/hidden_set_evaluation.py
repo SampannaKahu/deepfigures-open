@@ -6,6 +6,7 @@ import datetime
 import random
 import argparse
 import os
+import time
 import threading
 import imageio
 import tensorflow as tf
@@ -753,7 +754,7 @@ def evaluate(H: dict):
                 ]) % (
                     i,
                     adjusted_lr,
-                    test_accuracy * 100
+                    test_accuracy[0] * 100
                 )
             )
         # for i in range(max_iter):
@@ -876,6 +877,9 @@ def main():
                    open(os.path.join(args.model_to_evaluate_path, 'checkpoint')).readlines()]
     for checkpoint in checkpoints:
         H['solver']['weights'] = checkpoint
+        sleep_duration = 20.0
+        logger.info("Sleeping for {} to let the previous session close.".format(sleep_duration))
+        time.sleep(sleep_duration)
         logger.info("Beginning evaluation with hyper-parameters: {H}".format(H=pformat(H, indent=2)))
         evaluate(H)
 
