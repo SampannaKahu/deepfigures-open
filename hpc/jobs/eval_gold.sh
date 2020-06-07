@@ -76,7 +76,6 @@ else
   SCRATCH_DIR=/tmp
 fi
 
-WEIGHTS_PATH=$DEEPFIGURES_RESULTS/weights/save.ckpt-500000
 HYPES_PATH=$SOURCE_CODE/models/sample_hypes_gold.json
 LOG_DIR=$DEEPFIGURES_RESULTS/model_checkpoints
 DATASET_DIR=$DEEPFIGURES_RESULTS/gold_standard_dataset
@@ -108,6 +107,3 @@ $PYTHON -m tensorboxresnet.hidden_set_evaluation \
   --timestamp="$ts" \
   --scratch_dir="$SCRATCH_DIR" \
   --test_split_percent="$TEST_SPLIT_PERCENT"
-
-echo "Job ended. Job ID: $SLURM_JOBID"
-exit

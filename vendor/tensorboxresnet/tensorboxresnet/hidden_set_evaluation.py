@@ -550,11 +550,10 @@ def build(H, q):
                     rnn_len=H['rnn_len']
                 )[0]
 
-                num_images = 5000
+                # num_images = 5000
                 img_path = os.path.join(
                     H['save_dir'], '%s_%s.jpg' % (
-                        (np_global_step / H['logging']['display_iter']
-                         ) % num_images, pred_or_true
+                        np_global_step, pred_or_true
                     )
                 )
                 imageio.imwrite(img_path, merged)
@@ -745,7 +744,11 @@ def evaluate(H: dict):
                     max(0, (i / H['solver']['learning_rate_step']) - 2)
             )
             lr_feed = {learning_rate: adjusted_lr}
-            (test_accuracy) = sess.run([accuracy['test']], feed_dict=lr_feed)
+            (test_accuracy, summary_str) = sess.run([
+                accuracy['test'],
+                summary_op
+            ], feed_dict=lr_feed)
+            writer.add_summary(summary_str, global_step=global_step.eval())
             logger.info(
                 ', '.join([
                     'Step: %d',
@@ -754,9 +757,17 @@ def evaluate(H: dict):
                 ]) % (
                     i,
                     adjusted_lr,
-                    test_accuracy[0] * 100
+                    test_accuracy * 100
                 )
             )
+            old_pred_path = os.path.join(H['save_dir'],
+                                         '%s_b%s.jpg' % (H['solver']['weights'].split('-')[-1], '\'pred\''))
+            new_pred_path = os.path.join(H['save_dir'], '%s_%s.jpg' % (i, 'pred'))
+            old_true_path = os.path.join(H['save_dir'],
+                                         '%s_b%s.jpg' % (H['solver']['weights'].split('-')[-1], '\'true\''))
+            new_true_path = os.path.join(H['save_dir'], '%s_%s.jpg' % (i, 'true'))
+            os.rename(old_pred_path, new_pred_path)
+            os.rename(old_true_path, new_true_path)
         # for i in range(max_iter):
         #     display_iter = H['logging']['display_iter']
         #     adjusted_lr = (
