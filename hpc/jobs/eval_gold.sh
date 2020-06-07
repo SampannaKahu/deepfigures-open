@@ -13,11 +13,12 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=sampanna@vt.edu
-#SBATCH -t 143:59:59
+#SBATCH -t 10:00:00
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377266_arxiv
+EXPERIMENT_NAME=377266_arxiv_eval
+EVAL_MODEL_DIR=377266_arxiv_2020-06-02_22-48-45
 CONDA_ENV=deepfigures_3
 
 current_timestamp() {
@@ -35,9 +36,8 @@ if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
   conda activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/home/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
-  CUDA_VISIBLE_DEVICES=0
+  export CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$SYSNAME" = "cascades" ]; then
   module purge
   module load Anaconda/5.1.0
@@ -49,7 +49,6 @@ elif [ "$SYSNAME" = "cascades" ]; then
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPRAM # 311 GB on v100 nodes. 331 MBPS.
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$SYSNAME" = "newriver" ]; then
   module purge
   module load Anaconda/5.2.0
@@ -61,7 +60,6 @@ elif [ "$SYSNAME" = "newriver" ]; then
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 elif [ "$HOSTNAME" = "xps15" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
   conda activate "$CONDA_ENV"
@@ -69,7 +67,6 @@ elif [ "$HOSTNAME" = "xps15" ]; then
   SOURCE_CODE=/home/sampanna/workspace/bdts2/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 else
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
   conda activate "$CONDA_ENV" || source activate "$CONDA_ENV"
@@ -77,20 +74,18 @@ else
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
 fi
 
-WEIGHTS_PATH=$DEEPFIGURES_RESULTS/weights/save.ckpt-500000
-HYPES_PATH=$SOURCE_CODE/models/sample_hypes.json
-MAX_ITER=10000000
+HYPES_PATH=$SOURCE_CODE/models/sample_hypes_gold.json
 LOG_DIR=$DEEPFIGURES_RESULTS/model_checkpoints
-DATASET_DIR=$DEEPFIGURES_RESULTS/arxiv_coco_dataset
-TRAIN_IDL_PATH=$DATASET_DIR/figure_boundaries_train.json
+DATASET_DIR=$DEEPFIGURES_RESULTS/gold_standard_dataset
+TRAIN_IDL_PATH=$DATASET_DIR/figure_boundaries.json
 TRAIN_IMAGES_DIR=$DATASET_DIR/images
-TEST_IDL_PATH=$DATASET_DIR/figure_boundaries_test.json
+TEST_IDL_PATH=$DATASET_DIR/figure_boundaries.json
 TEST_IMAGES_DIR=$DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=100
 TEST_SPLIT_PERCENT=20
+MODEL_TO_EVALUATE_PATH="$LOG_DIR"/"$EVAL_MODEL_DIR"
 
 #$PYTHON -m pip uninstall deepfigures-open -y
 #cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
@@ -98,11 +93,10 @@ TEST_SPLIT_PERCENT=20
 
 #cd "$SOURCE_CODE"
 
-$PYTHON -m tensorboxresnet.train \
-  --weights "$WEIGHTS_PATH" \
+$PYTHON -m tensorboxresnet.hidden_set_evaluation \
+  --model_to_evaluate_path "$MODEL_TO_EVALUATE_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \
-  --max_iter="$MAX_ITER" \
   --logdir="$LOG_DIR" \
   --experiment_name="$EXPERIMENT_NAME" \
   --train_idl_path="$TRAIN_IDL_PATH" \
@@ -112,8 +106,4 @@ $PYTHON -m tensorboxresnet.train \
   --max_checkpoints_to_keep="$MAX_CHECKPOINTS_TO_KEEP" \
   --timestamp="$ts" \
   --scratch_dir="$SCRATCH_DIR" \
-  --zip_dir="$ZIP_DIR" \
   --test_split_percent="$TEST_SPLIT_PERCENT"
-
-echo "Job ended. Job ID: $SLURM_JOBID"
-exit
