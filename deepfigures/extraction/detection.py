@@ -3,6 +3,8 @@
 import os
 import json
 from deepfigures.extraction.datamodels import BoxClass
+from joblib import Parallel, delayed
+import multiprocessing
 
 from typing import List, Tuple, Iterable
 
@@ -112,29 +114,41 @@ def extract_figures_json(
     return output_path
 
 
+# def read_image(image_path: str) -> np.ndarray:
+#     return imageio.imread()
+#     pass
+#
+#
+# def read_images_and_add_to_queue(queue: multiprocessing.Queue, image_paths: List[str]) -> None:
+#
+#     queue.put(imageio.imread(im))
+#     pass
+
+
 def run_detection_on_coco_dataset(dataset_dir: str, images_sub_dir: str, model_save_dir: str, iteration: int,
-                                  output_json_file_name: str):
+                                  output_json_file_name: str, batch_size: int = 100):
+    num_cores = multiprocessing.cpu_count()
     detector_args = {
         'save_dir': model_save_dir,
         'iteration': iteration
     }
     detector = get_detector(detector_args=detector_args)
     annos = json.load(open(os.path.join(dataset_dir, 'figure_boundaries.json')))
-    batch_size = 100
     anno_batches = [annos[i:i + batch_size] for i in range(0, len(annos), batch_size)]
     processed_annos = []
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
     done_counter = 0
     for anno_batch in anno_batches:
-        np_image_list = [imageio.imread(os.path.join(dataset_dir, images_sub_dir, anno['image_path'])) for
-                         anno in anno_batch]
+        _image_paths = [os.path.join(dataset_dir, images_sub_dir, anno['image_path']) for anno in anno_batch]
+        np_image_list = pool.map(imageio.imread, _image_paths)
         _figure_boxes_by_page = detector.get_detections(np_image_list)
         assert len(_figure_boxes_by_page) == len(np_image_list)
-        for _figure_boxes, anno in _figure_boxes_by_page, anno_batch:
+        for idx, anno in enumerate(anno_batch):
             processed_anno = anno
-            processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2, } for box in
-                                                  _figure_boxes]
+            processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2, } for box
+                                                  in _figure_boxes_by_page[idx]]
             processed_annos.append(processed_anno)
-        json.dump(processed_annos, open(os.path.join(model_save_dir, output_json_file_name), mode='w'))
+        json.dump(processed_annos, open(os.path.join(model_save_dir, output_json_file_name), mode='w'), indent=2)
         done_counter = done_counter + batch_size
         print("Finished processing: {}".format(done_counter))
 
