@@ -123,19 +123,19 @@ def run_detection_on_coco_dataset(dataset_dir: str, images_sub_dir: str, model_s
     annos = json.load(open(os.path.join(dataset_dir, 'figure_boundaries.json')))
     anno_batches = [annos[i:i + batch_size] for i in range(0, len(annos), batch_size)]
     processed_annos = []
-    pool = multiprocessing.Pool(multiprocessing.cpu_count())
-    for anno_batch in anno_batches:
-        _image_paths = [os.path.join(dataset_dir, images_sub_dir, anno['image_path']) for anno in anno_batch]
-        np_image_list = pool.map(imageio.imread, _image_paths)
-        _figure_boxes_by_page = detector.get_detections(np_image_list)
-        assert len(_figure_boxes_by_page) == len(np_image_list)
-        for idx, anno in enumerate(anno_batch):
-            processed_anno = anno
-            processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2, } for box
-                                                  in _figure_boxes_by_page[idx]]
-            processed_annos.append(processed_anno)
-        json.dump(processed_annos, open(os.path.join(model_save_dir, output_json_file_name), mode='w'), indent=2)
-        print("Finished processing: {}".format(len(processed_annos)))
+    with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+        for anno_batch in anno_batches:
+            _image_paths = [os.path.join(dataset_dir, images_sub_dir, anno['image_path']) for anno in anno_batch]
+            np_image_list = pool.map(imageio.imread, _image_paths)
+            _figure_boxes_by_page = detector.get_detections(np_image_list)
+            assert len(_figure_boxes_by_page) == len(np_image_list)
+            for idx, anno in enumerate(anno_batch):
+                processed_anno = anno
+                processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2, } for box
+                                                      in _figure_boxes_by_page[idx]]
+                processed_annos.append(processed_anno)
+            json.dump(processed_annos, open(os.path.join(model_save_dir, output_json_file_name), mode='w'), indent=2)
+            print("Finished processing: {}".format(len(processed_annos)))
 
 
 def evaluate_dataset_on_weights(hidden_set_dir: str, hidden_set_images_subdir: str, save_dir: str, iteration: int):
