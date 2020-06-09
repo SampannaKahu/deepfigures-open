@@ -1,6 +1,8 @@
 """Functions for detecting and extracting figures."""
 
 import os
+import json
+from deepfigures.extraction.datamodels import BoxClass
 
 from typing import List, Tuple, Iterable
 
@@ -24,23 +26,21 @@ from deepfigures.utils import (
     settings_utils)
 from deepfigures.utils import misc
 
-
 PAD_FACTOR = 0.02
 TENSORBOX_MODEL = settings.TENSORBOX_MODEL
-
 
 # Holds a cached instantiation of TensorboxCaptionmaskDetector.
 _detector = None
 
 
-def get_detector() -> tensorbox_fourchannel.TensorboxCaptionmaskDetector:
+def get_detector(detector_args=TENSORBOX_MODEL) -> tensorbox_fourchannel.TensorboxCaptionmaskDetector:
     """
     Get TensorboxCaptionmaskDetector instance, initializing it on the first call.
     """
     global _detector
     if not _detector:
         _detector = tensorbox_fourchannel.TensorboxCaptionmaskDetector(
-            **TENSORBOX_MODEL)
+            **detector_args)
     return _detector
 
 
@@ -88,7 +88,7 @@ def extract_figures_json(
                     figure_boundary=figure_boxes[figure_idx].expand_box(
                         pad_pixels).crop_to_page(
                         page_image.shape).crop_whitespace_edges(
-                            page_image),
+                        page_image),
                     caption_boundary=caption_boxes[caption_idx],
                     caption_text=pf_page_captions[caption_idx].caption_text,
                     name=pf_page_captions[caption_idx].name,
@@ -110,3 +110,47 @@ def extract_figures_json(
         indent=2,
         sort_keys=True)
     return output_path
+
+
+def run_detection_on_coco_dataset(dataset_dir: str, images_sub_dir: str, model_save_dir: str, iteration: int,
+                                  output_json_file_name: str):
+    detector_args = {
+        'save_dir': model_save_dir,
+        'iteration': iteration
+    }
+    detector = get_detector(detector_args=detector_args)
+    annos = json.load(open(os.path.join(dataset_dir, 'figure_boundaries.json')))
+    batch_size = 100
+    anno_batches = [annos[i:i + batch_size] for i in range(0, len(annos), batch_size)]
+    figure_boxes_by_page = []
+
+    done_counter = 0
+    for anno_batch in anno_batches:
+        np_image_list = [imageio.imread(os.path.join(dataset_dir, images_sub_dir, anno['image_path'])) for
+                         anno in anno_batch]
+        _figure_boxes_by_page = detector.get_detections(np_image_list)
+        assert len(_figure_boxes_by_page) == len(np_image_list)
+        figure_boxes_by_page = figure_boxes_by_page + _figure_boxes_by_page
+        json.dump(figure_boxes_by_page, open(os.path.join(model_save_dir, output_json_file_name), mode='w'))
+        done_counter = done_counter + batch_size
+        print("Finished processing: {}".format(done_counter))
+
+
+def evaluate_dataset_on_weights(hidden_set_dir: str, hidden_set_images_subdir: str, save_dir: str, iteration: int):
+    detector_args = {
+        'save_dir': save_dir,
+        'iteration': iteration
+    }
+    detector = get_detector(detector_args=detector_args)
+    annos = json.load(open(os.path.join(hidden_set_dir, 'figure_boundaries.json')))
+
+    for anno in annos:
+        image_np = imageio.imread(os.path.join(hidden_set_dir, hidden_set_images_subdir, anno['image_path']))
+        pred_boxes = detector.get_detections([image_np])[0]
+        true_boxes = [BoxClass(x1=rect['x1'], y1=rect['y1'], x2=rect['x2'], y2=rect['y2']) for rect in anno['rects']]
+        (pred_indices, true_indices) = figure_utils.pair_boxes(pred_boxes, true_boxes)
+        print("Pred boxes: ", pred_boxes)
+        print("True boxes: ", true_boxes)
+        print("Pred indices: ", pred_indices)
+        print("True indices: ", true_indices)
+        a = 0
