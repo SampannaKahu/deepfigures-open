@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import copy
 import tensorboxresnet.utils.annolist.AnnotationLib as al
+from typing import List
 
 
 def annotation_to_h5(H, a, cell_width, cell_height, max_len):
@@ -21,8 +22,6 @@ def annotation_to_h5(H, a, cell_width, cell_height, max_len):
     box_flags = np.zeros((1, cells_per_image, 1, max_len, 1), dtype=np.float)
 
     for cidx in range(cells_per_image):
-        #assert(cur_num_boxes <= max_len)
-
         cell_ox = 0.5 * (cell_regions[cidx].x1 + cell_regions[cidx].x2)
         cell_oy = 0.5 * (cell_regions[cidx].y1 + cell_regions[cidx].y2)
 
@@ -30,45 +29,46 @@ def annotation_to_h5(H, a, cell_width, cell_height, max_len):
         for bidx in range(min(len(box_list[cidx]), max_len)):
 
             # relative box position with respect to cell
-            ox = 0.5 * (box_list[cidx][bidx].x1 + box_list[cidx][bidx].x2
-                       ) - cell_ox
-            oy = 0.5 * (box_list[cidx][bidx].y1 + box_list[cidx][bidx].y2
-                       ) - cell_oy
+            ox = 0.5 * (box_list[cidx][bidx].x1 + box_list[cidx][bidx].x2) - cell_ox
+            oy = 0.5 * (box_list[cidx][bidx].y1 + box_list[cidx][bidx].y2) - cell_oy
 
             width = abs(box_list[cidx][bidx].x2 - box_list[cidx][bidx].x1)
             height = abs(box_list[cidx][bidx].y2 - box_list[cidx][bidx].y1)
 
             if (abs(ox) < H['focus_size'] * region_size and abs(oy) < H['focus_size'] * region_size and
                     width < H['biggest_box_px'] and height < H['biggest_box_px']):
-                unsorted_boxes.append(
-                    np.array([ox, oy, width, height], dtype=np.float)
-                )
+                unsorted_boxes.append(np.array([ox, oy, width, height], dtype=np.float))
 
-        for bidx, box in enumerate(
-            sorted(unsorted_boxes, key=lambda x: x[0]**2 + x[1]**2)
-        ):
+        for bidx, box in enumerate(sorted(unsorted_boxes, key=lambda x: x[0] ** 2 + x[1] ** 2)):
             boxes[0, cidx, :, bidx, 0] = box
-            box_flags[0, cidx, 0, bidx, 0] = max(
-                box_list[cidx][bidx].silhouetteID, 1
-            )
-
+            box_flags[0, cidx, 0, bidx, 0] = max(box_list[cidx][bidx].silhouetteID, 1)
     return boxes, box_flags
 
 
-def get_cell_grid(cell_width, cell_height, region_size):
+def get_cell_grid(cell_width: int, cell_height: int, region_size: int) -> List[al.AnnoRect]:
+    """
+    Takes in the number of cells in the x and y directinos respectively. ALso takes in the size of each square cell.
+    Returns the bounding boxes for each cell.
+    :param cell_width: the total number of cells in the x direction. i.e. along the width of the image.
+    :param cell_height: the total number of cells in the y direction. i.e. along the height of the image.
+    :param region_size: the number of pixels in the side of each cell. Remember, each cell is square.
+    :return: A list of AnnoRects with length equal to cell_width * cell_height. Each AnnoRect covers the entire cell.
+    """
 
     cell_regions = []
     for iy in range(cell_height):
         for ix in range(cell_width):
-            cidx = iy * cell_width + ix
-            ox = (ix + 0.5) * region_size
-            oy = (iy + 0.5) * region_size
+            cell_id = iy * cell_width + ix  # cell_id is the rank/order/position of the cell.
+            cell_center_x = (ix + 0.5) * region_size  # The x co-ordinate for the center of the current cell.
+            cell_center_y = (iy + 0.5) * region_size  # The y co-ordinate for the center of the current cell.
 
             r = al.AnnoRect(
-                ox - 0.5 * region_size, oy - 0.5 * region_size,
-                ox + 0.5 * region_size, oy + 0.5 * region_size
+                x1=cell_center_x - 0.5 * region_size,
+                y1=cell_center_y - 0.5 * region_size,
+                x2=cell_center_x + 0.5 * region_size,
+                y2=cell_center_y + 0.5 * region_size
             )
-            r.track_id = cidx
+            r.track_id = cell_id
 
             cell_regions.append(r)
 
@@ -76,18 +76,18 @@ def get_cell_grid(cell_width, cell_height, region_size):
 
 
 def annotation_jitter(
-    I,
-    a_in,
-    min_box_width=20,
-    jitter_scale_min=0.9,
-    jitter_scale_max=1.1,
-    jitter_offset=16,
-    target_width=640,
-    target_height=480
+        I,
+        a_in,
+        min_box_width=20,
+        jitter_scale_min=0.9,
+        jitter_scale_max=1.1,
+        jitter_offset=16,
+        target_width=640,
+        target_height=480
 ):
     assert I.shape[
-        2
-    ] == 3, 'Not implemented for images with more than 3 channels'
+               2
+           ] == 3, 'Not implemented for images with more than 3 channels'
     a = copy.deepcopy(a_in)
 
     # MA: sanity check
@@ -194,7 +194,7 @@ def annotation_jitter(
         r.point = [
             p for p in r.point
             if p.x >= 0 and p.y >= 0 and p.x < I2.shape[1] and
-            p.y < I2.shape[0]
+               p.y < I2.shape[0]
         ]
 
     new_rects = []

@@ -507,7 +507,7 @@ def build(H, q):
                 ]
             )
 
-            for p in ['train', 'test']:
+            for p in ['test']:  # 'train' was removed from this list to avoid the 'train' graph from executing.
                 tf.summary.scalar('%s/accuracy' % p, accuracy[p])
                 tf.summary.scalar(
                     '%s/accuracy/smooth' % p, moving_avg.average(accuracy[p])
@@ -885,7 +885,7 @@ def main():
     logger.info("Logger setup successful.")
 
     checkpoints = [ckpt.strip().split(' ')[1].strip('"') for ckpt in
-                   open(os.path.join(args.model_to_evaluate_path, 'checkpoint')).readlines()]
+                   open(os.path.join(args.model_to_evaluate_path, 'checkpoint')).readlines()][1:]
     for checkpoint in checkpoints:
         H['solver']['weights'] = checkpoint
         sleep_duration = 20.0
