@@ -114,30 +114,16 @@ def extract_figures_json(
     return output_path
 
 
-# def read_image(image_path: str) -> np.ndarray:
-#     return imageio.imread()
-#     pass
-#
-#
-# def read_images_and_add_to_queue(queue: multiprocessing.Queue, image_paths: List[str]) -> None:
-#
-#     queue.put(imageio.imread(im))
-#     pass
-
-
 def run_detection_on_coco_dataset(dataset_dir: str, images_sub_dir: str, model_save_dir: str, iteration: int,
                                   output_json_file_name: str, batch_size: int = 100):
-    num_cores = multiprocessing.cpu_count()
-    detector_args = {
+    detector = get_detector({
         'save_dir': model_save_dir,
         'iteration': iteration
-    }
-    detector = get_detector(detector_args=detector_args)
+    })
     annos = json.load(open(os.path.join(dataset_dir, 'figure_boundaries.json')))
     anno_batches = [annos[i:i + batch_size] for i in range(0, len(annos), batch_size)]
     processed_annos = []
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
-    done_counter = 0
     for anno_batch in anno_batches:
         _image_paths = [os.path.join(dataset_dir, images_sub_dir, anno['image_path']) for anno in anno_batch]
         np_image_list = pool.map(imageio.imread, _image_paths)
@@ -149,8 +135,7 @@ def run_detection_on_coco_dataset(dataset_dir: str, images_sub_dir: str, model_s
                                                   in _figure_boxes_by_page[idx]]
             processed_annos.append(processed_anno)
         json.dump(processed_annos, open(os.path.join(model_save_dir, output_json_file_name), mode='w'), indent=2)
-        done_counter = done_counter + batch_size
-        print("Finished processing: {}".format(done_counter))
+        print("Finished processing: {}".format(len(processed_annos)))
 
 
 def evaluate_dataset_on_weights(hidden_set_dir: str, hidden_set_images_subdir: str, save_dir: str, iteration: int):
