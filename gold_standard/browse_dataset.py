@@ -39,6 +39,7 @@ class CocoDatasetBrowser(object):
             x1, y1, x2, y2 = bb['x1'], bb['y1'], bb['x2'], bb['y2']
             rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='g', facecolor='none')
             self.ax.add_patch(rect)
+        plt.title(self.current_figure['image_path'])
         plt.show()
 
     def on_button_release(self, event):
@@ -51,4 +52,6 @@ class CocoDatasetBrowser(object):
 
 
 if __name__ == "__main__":
-    coco_dataset_browser = CocoDatasetBrowser(dataset_dir="/home/sampanna/deepfigures-results/gold_standard_dataset")
+    coco_dataset_browser = CocoDatasetBrowser(
+        dataset_dir="/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset"
+    )
