@@ -13,7 +13,7 @@ def via_to_figure_boundaries_rect(via_rect_dict: dict) -> dict:
         "x1": via_rect_dict['x'],
         "x2": via_rect_dict['x'] + via_rect_dict['width'],
         "y1": via_rect_dict['y'],
-        "y2": via_rect_dict['x'] + via_rect_dict['height']
+        "y2": via_rect_dict['y'] + via_rect_dict['height']
     }
 
 
@@ -47,7 +47,7 @@ def convert_gold_standard_to_figure_boundaries(annotations_csv_file: str, figure
 
 
 if __name__ == "__main__":
-    dataset_dir = '/home/sampanna/deepfigures-results/gold_standard/final_gold_standard_dataset'
+    dataset_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset'
     anno_csv_file = os.path.join(dataset_dir, 'annotations.csv')
     fig_bound_path = os.path.join(dataset_dir, 'figure_boundaries.json')
     convert_gold_standard_to_figure_boundaries(annotations_csv_file=anno_csv_file,
