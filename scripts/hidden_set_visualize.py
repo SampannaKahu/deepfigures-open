@@ -39,7 +39,7 @@ def plot_bbs(image_path: str, bbs: List[BoxClass], save_fig=False, bb_color='g',
     if save_fig:
         plt.savefig(image_path.split('.png')[0] + '_bb.png')
     plt.show()
-    return (fig, ax)
+    return fig, ax
 
 
 def plot_line(x1: int, y1: int, x2: int, y2: int, fig=None, ax=None):
@@ -50,16 +50,7 @@ def plot_line(x1: int, y1: int, x2: int, y2: int, fig=None, ax=None):
     _y1 = [y1, y2]
     plt.plot(_x1, _y1, 'b', marker='o')
     plt.show()
-    return (fig, ax)
-
-
-def compute_page_iou(pred_boxes: List[BoxClass], true_boxes: List[BoxClass],
-                     pred_indices: List[int], true_indices: List[int]) -> List[float]:
-    ious = []
-    for (true_idx, pred_idx) in zip(true_indices, pred_indices):
-        ious = ious.append(true_boxes[true_idx].iou(pred_boxes[pred_idx]))
-
-    return ious + [0.0] * (max(len(pred_boxes), len(true_boxes)) - max(len(pred_indices), len(true_indices)))
+    return fig, ax
 
 
 if __name__ == "__main__":
