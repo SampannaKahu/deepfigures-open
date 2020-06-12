@@ -36,3 +36,7 @@ def filename_to_handle(filename: str) -> str:
 
 def handle_to_pdffilename(handle: str) -> str:
     return handle.replace('/', '_').replace('.', '_') + '.pdf'
+
+
+def image_name_to_handle(image_name: str) -> str:
+    return image_name.split('.')[0].replace('_', '.', 1).replace('_', '/', 1)

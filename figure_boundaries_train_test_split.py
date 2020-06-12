@@ -25,12 +25,11 @@ if __name__ == "__main__":
     IN_DOCKER = os.environ.get('IN_DOCKER', False)
 
     if IN_DOCKER:
-        figure_boundaries_path = '/work/host-input/figure_boundaries.json'
-        train_path = '/work/host-input/figure_boundaries_train.json'
-        test_path = '/work/host-input/figure_boundaries_test.json'
+        dataset_dir = '/work/host-input'
     else:
-        figure_boundaries_path = 'figure_boundaries.json'
-        train_path = 'figure_boundaries_train.json'
-        test_path = 'figure_boundaries_test.json'
+        dataset_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_2'
+    figure_boundaries_path = os.path.join(dataset_dir, 'figure_boundaries.json')
+    train_path = os.path.join(dataset_dir, 'figure_boundaries_train.json')
+    test_path = os.path.join(dataset_dir, 'figure_boundaries_test.json')
     split_train_test(figure_boundaries_path=figure_boundaries_path, train_output_path=train_path,
                      test_output_path=test_path, test_split_percent=test_split_percent)

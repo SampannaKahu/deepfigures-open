@@ -23,7 +23,10 @@ def compute_page_ious(pred_boxes: List[BoxClass], true_boxes: List[BoxClass]) ->
 
 
 if __name__ == "__main__":
-    path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/figure_boundaries_hidden_set_501101.json"
+    path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/figure_boundaries_hidden_set_2_501101.json"
+    # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_2_500000.json"
+    # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_04.12/figure_boundaries_hidden_set_2_600000.json"
+    # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_09.10/figure_boundaries_hidden_set_2_600000.json"
     annos = json.load(open(path_to_figure_boundaries_with_hidden_detection_file))
     ious = []
     for anno in annos:
