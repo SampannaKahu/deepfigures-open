@@ -1,16 +1,16 @@
 import os
-import util
 import json
 import logging
+from gold_standard import util
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
 
-def get_year_for_image_name(image_name: str, gold_standard_dir: str) -> int:
+def get_year_for_image_name(image_name: str, metadata: dict) -> int:
     handle = util.image_name_to_handle(image_name)
-    metadata = json.load(open(os.path.join(gold_standard_dir, 'metadata.json')))
+    # metadata = json.load(open(os.path.join(gold_standard_dir, 'metadata.json')))
     issued_str = metadata[handle]['dc.date.issued'][0]
     return int(issued_str.split('-')[0])
 
