@@ -10,9 +10,13 @@ logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
 if __name__ == "__main__":
+    """
+    Command:
+    python -c 'from deepfigures.extraction import detection; detection.run_detection_on_coco_dataset("/home/sampanna/deepfigures-results/gold_standard_dataset", "images", "/home/sampanna/deepfigures-results/model_checkpoints/377269_arxiv_2020-06-13_02-05-05/", 550000, "figure_boundaries_hidden_set_550000.json", 1000)'
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_save_dir',
-                        default='/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/',
+                        default='/home/sampanna/deepfigures-results/model_checkpoints/377269_arxiv_2020-06-13_02-05-05/',
                         type=str)
     parser.add_argument('--hidden_set_dir',
                         default='/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset',

@@ -59,7 +59,10 @@ def split_annos_year_wise(annos: list, gold_standard_dir: str) -> dict:
     metadata = json.load(open(os.path.join(gold_standard_dir, 'metadata.json')))
     year_to_anno_list_dict = {}
     for anno in annos:
-        year = get_year_for_image_name(anno['image_path'], metadata)
+        if 'etd_for_gold_standard_dataset_2' in anno['image_path']:
+            year = 1111
+        else:
+            year = get_year_for_image_name(anno['image_path'], metadata)
         annos_for_year = year_to_anno_list_dict.get(year, [])
         annos_for_year.append(anno)
         year_to_anno_list_dict[year] = annos_for_year
@@ -90,9 +93,10 @@ if __name__ == "__main__":
     gold_standard_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset'
 
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/figure_boundaries_hidden_set_501101.json"
-    # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_500000.json"
+    # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_2_500000.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_04.12/figure_boundaries_hidden_set_2_600000.json"
-    path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_09.10/figure_boundaries_hidden_set_600000.json"
+    # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_09.10/figure_boundaries_hidden_set_600000.json"
+    path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/ir/deepfigures-results/model_checkpoints/377269_arxiv_2020-06-13_02-05-05/figure_boundaries_hidden_set_2_503801.json"
     annos = json.load(open(path_to_figure_boundaries_with_hidden_detection_file))
     annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
     annos_year_wise[0000] = annos
