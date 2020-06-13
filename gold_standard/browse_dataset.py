@@ -53,5 +53,5 @@ class CocoDatasetBrowser(object):
 
 if __name__ == "__main__":
     coco_dataset_browser = CocoDatasetBrowser(
-        dataset_dir="/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset"
+        dataset_dir="/home/sampanna/workspace/bdts2/deepfigures-results/arxiv_coco_dataset"
     )

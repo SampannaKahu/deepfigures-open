@@ -94,9 +94,17 @@ def load_zip(zip_path, H, epoch, jitter, augmentation_transforms) -> None:
         file_list = os.listdir(os.path.join(td, 'tmp'))
         png_paths = [os.path.join(td, 'tmp', path) for path in file_list if '.png' in path]
         pt_paths = [os.path.join(td, 'tmp', path) for path in file_list if '.pt' in path]
+        png_paths = sorted(png_paths)
+        pt_paths = sorted(pt_paths)
+        logger.info("png_paths for temp for at {} are {}".format(td, png_paths))
+        logger.info("pt_paths for temp for at {} are {}".format(td, pt_paths))
         assert len(png_paths) == len(pt_paths)
         for idx, png_path in enumerate(png_paths):
             pt_path = pt_paths[idx]
+            if png_path.split('.png')[0] != pt_path.split('.pt')[0]:
+                logger.warning("Found an instance when the pt path is not the same as png path. Skipping")
+                logger.warning("pt path: {}. Png path: {}".format(pt_path, png_path))
+                continue
             anno = al.Annotation()
             anno.rects = get_anno_rects(pt_path)
             anno.imageName = png_path

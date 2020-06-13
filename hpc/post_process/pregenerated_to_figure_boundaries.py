@@ -15,8 +15,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
-job_output_directory = '/home/sampanna/deepfigures-results/377266'
-dataset_dir = '/home/sampanna/deepfigures-results/37266_figure_boundaries'
+job_output_directory = '/home/sampanna/delete_this'
+dataset_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/arxiv_coco_dataset'
 image_save_dir = os.path.join(dataset_dir, 'images')
 figure_boundaries_save_path = os.path.join(dataset_dir, 'figure_boundaries.json')
 figure_boundaries_train_save_path = os.path.join(dataset_dir, 'figure_boundaries_train.json')
@@ -44,6 +44,8 @@ def unzip_zip_file(zip_file_path: str, extract_dir: str = tmp_extract_dir) -> ty
     png_paths = [os.path.join(process_unzip_dir, 'tmp', path) for path in file_list if '.png' in path]
     pt_paths = [os.path.join(process_unzip_dir, 'tmp', path) for path in file_list if '.pt' in path]
     assert len(png_paths) == len(pt_paths)
+    png_paths = sorted(png_paths)
+    pt_paths = sorted(pt_paths)
     return png_paths, pt_paths
 
 
