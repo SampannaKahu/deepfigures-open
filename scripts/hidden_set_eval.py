@@ -96,7 +96,7 @@ if __name__ == "__main__":
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_2_500000.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_04.12/figure_boundaries_hidden_set_2_600000.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_09.10/figure_boundaries_hidden_set_600000.json"
-    path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/ir/deepfigures-results/model_checkpoints/377269_arxiv_2020-06-13_02-05-05/figure_boundaries_hidden_set_2_503801.json"
+    path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/ir/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/figure_boundaries_hidden_set_508701.json"
     annos = json.load(open(path_to_figure_boundaries_with_hidden_detection_file))
     annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
     annos_year_wise[0000] = annos
