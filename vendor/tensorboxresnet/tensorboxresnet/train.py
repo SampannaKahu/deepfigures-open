@@ -16,8 +16,12 @@ import logging.config
 from typing import List
 from deepfigures.utils import image_util
 from deepfigures.extraction.datamodels import BoxClass
+import matplotlib
+
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from tqdm import tqdm
 
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
     rnn_cell = tf.contrib.rnn
@@ -838,12 +842,13 @@ def train(H: dict):
                         dt * 1000 if i > 0 else 0
                     )
                 )
-                hidden_aug_pipeline = build_augmentation_pipeline(H, 'hidden')
-                hidden_set_data_gen = train_utils.load_data_gen_gold(H, 'hidden', num_epochs=1, jitter=False,
+                hidden_phase = 'hidden'
+                hidden_aug_pipeline = build_augmentation_pipeline(H, hidden_phase)
+                hidden_set_data_gen = train_utils.load_data_gen_gold(H, hidden_phase, num_epochs=1, jitter=False,
                                                                      augmentation_transforms=hidden_aug_pipeline)
                 processed_annos = []
-                counter = 0
-                for data in hidden_set_data_gen:
+                logger.info("Running detections against hidden set. Global step: {}".format(global_step.eval()))
+                for data in tqdm(hidden_set_data_gen):
                     boxes = get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
                                                   [data['image']], crop_whitespace=True,
                                                   conf_threshold=0.5)
@@ -851,7 +856,6 @@ def train(H: dict):
                     processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2} for
                                                           box in boxes[0]]
                     processed_annos.append(processed_anno)
-                    counter = counter + 1
 
                     fig, ax = plt.subplots(1)
                     ax.imshow(data['image'])
@@ -860,12 +864,24 @@ def train(H: dict):
                         rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='g',
                                                  facecolor='none')
                         ax.add_patch(rect)
-                        plt.savefig(os.path.join(H['save_dir'],
-                                                 processed_anno['image_path'].split('.png')[0] + '_hidden_bb.png'),
-                                    bbox_inches='tight')
-                json.dump(processed_annos,
-                          open(os.path.join(H['save_dir'], 'figure_boundaries_gold_standard_dataset.json'), mode='w'),
-                          indent=2)
+                    image_name = '{orig_name}_global_step_{global_step}_hidden_bb.png'.format(
+                        orig_name=os.path.basename(processed_anno['image_path']).split('.png')[0],
+                        global_step=global_step.eval()
+                    )
+                    plt.savefig(os.path.join(H['save_dir'], image_name), bbox_inches='tight')
+                    plt.close()
+                detected_hidden_annotation_save_path = os.path.join(H['save_dir'],
+                                                                    'figure_boundaries_gold_standard_dataset_{}.json'.format(
+                                                                        global_step.eval()))
+                json.dump(processed_annos, open(detected_hidden_annotation_save_path, mode='w'), indent=2)
+                gold_standard_dir = os.path.dirname(H['data']['hidden_idl'])
+                annos = processed_annos
+                annos_year_wise = train_utils.split_annos_year_wise(annos, gold_standard_dir)
+                annos_year_wise[0000] = annos
+                for year, annos_for_year in annos_year_wise.items():
+                    _mean_iou, tp, fp, fn = train_utils.compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
+                    prec, rec, f1 = train_utils.compute_precision_recall_f1(tp, fp, fn)
+                    logger.info(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
 
                 if i <= 10000:
                     logger.info(
@@ -900,6 +916,8 @@ def main():
     parser.add_argument('--train_images_dir', default=None, type=str)
     parser.add_argument('--test_idl_path', default=None, type=str)
     parser.add_argument('--test_images_dir', default=None, type=str)
+    parser.add_argument('--hidden_idl_path', default=None, type=str)
+    parser.add_argument('--hidden_images_dir', default=None, type=str)
     parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
     parser.add_argument('--scratch_dir', default=os.environ.get("TMPRAM", "/tmp"), type=str)
@@ -929,6 +947,10 @@ def main():
         H['data']['test_idl'] = args.test_idl_path
     if args.test_images_dir is not None:
         H['data']['test_images_dir'] = args.test_images_dir
+    if args.hidden_idl_path is not None:
+        H['data']['hidden_idl'] = args.hidden_idl_path
+    if args.hidden_images_dir is not None:
+        H['data']['hidden_images_dir'] = args.hidden_images_dir
     if args.max_checkpoints_to_keep is not None:
         H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
     H['data']['scratch_dir'] = args.scratch_dir
