@@ -40,6 +40,7 @@ class TensorboxCaptionmaskDetector(object):
     extract a figure because the added overhead will very negatively
     affect performance.
     """
+
     def __init__(
             self,
             save_dir,
@@ -91,7 +92,7 @@ class TensorboxCaptionmaskDetector(object):
         return local_path[:local_path.rfind(suffixes[0])]
 
     def _get_hypes(self) -> dict:
-        return file_util.read_json(self.save_dir + 'hypes.json')
+        return file_util.read_json(os.path.join(self.save_dir, 'hypes.json'))
 
     def detect_page(
             self,
@@ -148,10 +149,10 @@ class TensorboxCaptionmaskDetector(object):
 
 
 def detect_figures(
-    pdf: str,
-    pdffigures_captions: List[CaptionOnly],
-    detector: TensorboxCaptionmaskDetector,
-    conf_threshold: float
+        pdf: str,
+        pdffigures_captions: List[CaptionOnly],
+        detector: TensorboxCaptionmaskDetector,
+        conf_threshold: float
 ) -> Tuple[List[Figure], List[List[BoxClass]]]:
     page_image_files = pdf_renderer.render(pdf, dpi=settings.DEFAULT_INFERENCE_DPI)
     page_tensors = []
@@ -204,7 +205,7 @@ def detect_figures(
 def detect_batch(
         src_pdfs: List[str],
         detector: TensorboxCaptionmaskDetector,
-        conf_threshold: float=.5) -> Iterable[PdfDetectionResult]:
+        conf_threshold: float = .5) -> Iterable[PdfDetectionResult]:
     for src_pdf in src_pdfs:
         with tempfile.TemporaryDirectory(
                 prefix='deepfigures-tensorbox') as working_dir:

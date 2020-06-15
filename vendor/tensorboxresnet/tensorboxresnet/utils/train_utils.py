@@ -22,8 +22,6 @@ import functools
 
 from deepfigures.utils import image_util
 
-tensor_queue = multiprocessing.Queue(maxsize=64)
-
 import imgaug as ia
 from imgaug import augmenters as iaa
 
@@ -73,7 +71,7 @@ def get_anno_rects(pt_path: str) -> List[al.AnnoRect]:
             for bb_tensor in torch.load(pt_path)]
 
 
-def load_zip(zip_path, H, epoch, jitter, augmentation_transforms) -> None:
+def load_zip(zip_path, H, epoch, jitter, augmentation_transforms, _tensor_queue: multiprocessing.Queue) -> None:
     """
     Loads the given zip file, reads the images and annotations, applies the augmentation transforms and enqueues the
     result in the tensor_queue.
@@ -83,6 +81,7 @@ def load_zip(zip_path, H, epoch, jitter, augmentation_transforms) -> None:
     :param epoch:
     :param jitter:
     :param augmentation_transforms:
+    :param _tensor_queue:
     :return:
     """
     os.makedirs(H['data']['scratch_dir'], exist_ok=True)
@@ -143,10 +142,11 @@ def load_zip(zip_path, H, epoch, jitter, augmentation_transforms) -> None:
             boxes, flags = annotation_to_h5(
                 H, anno, H["grid_width"], H["grid_height"], H["rnn_len"]
             )
-            tensor_queue.put({"image": I, "boxes": boxes, "flags": flags}, block=True, timeout=None)
+            _tensor_queue.put({"image": I, "boxes": boxes, "flags": flags}, block=True, timeout=None)
 
 
-def load_zip_tf(zip_paths: List[str], H, phase: str, jitter, augmentation_transforms):
+def load_zip_tf(zip_paths: List[str], H, phase: str, jitter, augmentation_transforms,
+                _tensor_queue: multiprocessing.Queue):
     """Take the zip file list and net configuration and create a generator
     that outputs a jittered version of a random image from the annolist
     that is mean corrected."""
@@ -157,21 +157,23 @@ def load_zip_tf(zip_paths: List[str], H, phase: str, jitter, augmentation_transf
         logger.info('Starting %s epoch %d' % (phase, epoch))
         random.shuffle(zip_paths)
         partial_load = functools.partial(
-            load_zip, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms
+            load_zip, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms,
+            _tensor_queue=_tensor_queue
         )
         # TODO: Tweaking the number of processes might help improve performance.
         with multiprocessing.pool.ThreadPool(processes=4) as p:
             map_result = p.map_async(partial_load, zip_paths)
             while not map_result.ready():
                 try:
-                    yield tensor_queue.get(timeout=100)
+                    yield _tensor_queue.get(timeout=100)
                 except queue.Empty:
                     pass
-            while not tensor_queue.empty():
-                yield tensor_queue.get()
+            while not _tensor_queue.empty():
+                yield _tensor_queue.get()
 
 
 def load_data_gen(H, phase, jitter, augmentation_transforms):
+    _tensor_queue = multiprocessing.Queue(maxsize=64)
     random.seed(H['data']['random_seed'])
     zip_file_list = glob.glob(os.path.join(H['data']['zip_dir'], '**.zip'), recursive=True)
     random.shuffle(zip_file_list)
@@ -188,7 +190,8 @@ def load_data_gen(H, phase, jitter, augmentation_transforms):
         phase,
         jitter={'train': jitter,
                 'test': False}[phase],
-        augmentation_transforms=augmentation_transforms
+        augmentation_transforms=augmentation_transforms,
+        _tensor_queue=_tensor_queue
     )
 
     grid_size = H['grid_width'] * H['grid_height']
@@ -216,7 +219,8 @@ def load_data_gen(H, phase, jitter, augmentation_transforms):
         yield output
 
 
-def load_idl_tf(idlfile, images_dir, H, jitter, augmentation_transforms):
+def load_idl_tf(idlfile, images_dir, H, num_epochs: int, _tensor_queue: multiprocessing.Queue, jitter,
+                augmentation_transforms):
     """Take the idlfile and net configuration and create a generator
     that outputs a jittered version of a random image from the annolist
     that is mean corrected."""
@@ -229,25 +233,26 @@ def load_idl_tf(idlfile, images_dir, H, jitter, augmentation_transforms):
     random.seed(H['data'].get('random_seed', 0))
     if H['data']['truncate_data']:
         annos = annos[:10]
-    for epoch in itertools.count():
+    for epoch in range(num_epochs):
         logger.info('Starting epoch %d' % epoch)
         random.shuffle(annos)
         partial_load = functools.partial(
-            load_page_ann, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms
+            load_page_ann, H=H, epoch=epoch, jitter=jitter, augmentation_transforms=augmentation_transforms,
+            _tensor_queue=_tensor_queue
         )
         # TODO: Tweaking the number of processes might help improve training speed.
         with multiprocessing.pool.ThreadPool(processes=4) as p:
             map_result = p.map_async(partial_load, annos)
             while not map_result.ready():
                 try:
-                    yield tensor_queue.get(timeout=100)
+                    yield _tensor_queue.get(timeout=100)
                 except queue.Empty:
                     pass
-            while not tensor_queue.empty():
-                yield tensor_queue.get()
+            while not _tensor_queue.empty():
+                yield _tensor_queue.get()
 
 
-def load_page_ann(anno, H, epoch, jitter, augmentation_transforms) -> None:
+def load_page_ann(anno, H, epoch, jitter, augmentation_transforms, _tensor_queue: multiprocessing.Queue) -> None:
     try:
         I = image_util.read_tensor(anno.imageName, maxsize=1e8)
     except image_util.FileTooLargeError:
@@ -280,46 +285,25 @@ def load_page_ann(anno, H, epoch, jitter, augmentation_transforms) -> None:
             jitter_scale_max=jitter_scale_max,
             jitter_offset=jitter_offset
         )
-    boxes, flags = annotation_to_h5(
-        H, anno, H["grid_width"], H["grid_height"], H["rnn_len"]
-    )
-    tensor_queue.put({"image": I, "boxes": boxes, "flags": flags})
+    _tensor_queue.put({"image": I, "anno": anno})
 
 
-def load_data_gen_gold(H, phase, jitter, augmentation_transforms):
-    grid_size = H['grid_width'] * H['grid_height']
-
+def load_data_gen_gold(H, phase, num_epochs: int, jitter, augmentation_transforms):
+    _tensor_queue = multiprocessing.Queue(maxsize=64)
     data = load_idl_tf(
         H["data"]['%s_idl' % phase],
         H["data"]['%s_images_dir' % phase],
         H,
+        num_epochs,
+        _tensor_queue,
         jitter={'train': jitter,
-                'test': False}[phase],
+                'test': False,
+                'hidden': False}[phase],
         augmentation_transforms=augmentation_transforms
     )
 
     for d in data:
-        output = {}
-
-        rnn_len = H["rnn_len"]
-        flags = d['flags'][0, :, 0, 0:rnn_len, 0]
-        boxes = np.transpose(d['boxes'][0, :, :, 0:rnn_len, 0], (0, 2, 1))
-        assert (flags.shape == (grid_size, rnn_len))
-        assert (boxes.shape == (grid_size, rnn_len, 4))
-
-        output['image'] = d['image']
-        output['confs'] = np.array(
-            [
-                [
-                    make_sparse(int(detection), d=H['num_classes'])
-                    for detection in cell
-                ] for cell in flags
-            ]
-        )
-        output['boxes'] = boxes
-        output['flags'] = flags
-
-        yield output
+        yield d
 
 
 def add_rectangles(

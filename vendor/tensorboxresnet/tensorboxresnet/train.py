@@ -13,6 +13,11 @@ import numpy as np
 from distutils.version import LooseVersion
 from imgaug import augmenters as iaa
 import logging.config
+from typing import List
+from deepfigures.utils import image_util
+from deepfigures.extraction.datamodels import BoxClass
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
     rnn_cell = tf.contrib.rnn
@@ -624,6 +629,51 @@ def build_augmentation_pipeline(H: dict, phase: str):
     return iaa.Sequential(augmenter_list)
 
 
+def get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
+                          page_images: List[np.ndarray],
+                          crop_whitespace: bool = True,
+                          conf_threshold: float = .5) -> List[List[BoxClass]]:
+    input_shape = [H['image_height'], H['image_width'], H['image_channels']]
+    page_datas = [
+        {
+            'page_image': page_image,
+            'orig_size': page_image.shape[:2],
+            'resized_page_image': image_util.imresize_multichannel(
+                page_image, input_shape),
+        }
+        for page_image in page_images
+    ]
+
+    predictions = [
+        sess.run([hidden_pred_boxes, hidden_pred_confidences], feed_dict={hidden_x_in: page_data['resized_page_image']})
+        for page_data in page_datas
+    ]
+
+    for (page_data, prediction) in zip(page_datas, predictions):
+        (np_pred_boxes, np_pred_confidences) = prediction
+        new_img, rects = train_utils.add_rectangles(
+            H,
+            page_data['resized_page_image'],
+            np_pred_confidences,
+            np_pred_boxes,
+            use_stitching=True,
+            min_conf=conf_threshold,
+            show_suppressed=False)
+        detected_boxes = [
+            BoxClass(x1=r.x1, y1=r.y1, x2=r.x2, y2=r.y2).resize_by_page(
+                input_shape, page_data['orig_size'])
+            for r in rects if r.score > conf_threshold
+        ]
+        if crop_whitespace:
+            detected_boxes = [
+                box.crop_whitespace_edges(page_data['page_image'])
+                for box in detected_boxes
+            ]
+            detected_boxes = list(filter(None, detected_boxes))
+        page_data['detected_boxes'] = detected_boxes
+    return [page_data['detected_boxes'] for page_data in page_datas]
+
+
 def train(H: dict):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
@@ -704,6 +754,12 @@ def train(H: dict):
             )
             t.daemon = True
             t.start()
+        hidden_x_in = tf.placeholder(
+            tf.float32, name='hidden_x_in', shape=[H['image_height'], H['image_width'], H['image_channels']]
+        )
+        assert (H['use_rezoom'])
+        hidden_pred_boxes, hidden_pred_logits, hidden_pred_confidences, hidden_pred_confs_deltas, hidden_pred_boxes_deltas = \
+            build_forward(H, tf.expand_dims(hidden_x_in, 0), 'hidden', reuse=True)
 
         tf.set_random_seed(H['solver']['rnd_seed'])
         sess.run(tf.global_variables_initializer())
@@ -782,6 +838,35 @@ def train(H: dict):
                         dt * 1000 if i > 0 else 0
                     )
                 )
+                hidden_aug_pipeline = build_augmentation_pipeline(H, 'hidden')
+                hidden_set_data_gen = train_utils.load_data_gen_gold(H, 'hidden', num_epochs=1, jitter=False,
+                                                                     augmentation_transforms=hidden_aug_pipeline)
+                processed_annos = []
+                counter = 0
+                for data in hidden_set_data_gen:
+                    boxes = get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
+                                                  [data['image']], crop_whitespace=True,
+                                                  conf_threshold=0.5)
+                    processed_anno = data['anno'].writeJSON()
+                    processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2} for
+                                                          box in boxes[0]]
+                    processed_annos.append(processed_anno)
+                    counter = counter + 1
+
+                    fig, ax = plt.subplots(1)
+                    ax.imshow(data['image'])
+                    for bb in processed_anno['hidden_set_rects']:
+                        x1, y1, x2, y2 = bb['x1'], bb['y1'], bb['x2'], bb['y2']
+                        rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='g',
+                                                 facecolor='none')
+                        ax.add_patch(rect)
+                        plt.savefig(os.path.join(H['save_dir'],
+                                                 processed_anno['image_path'].split('.png')[0] + '_hidden_bb.png'),
+                                    bbox_inches='tight')
+                json.dump(processed_annos,
+                          open(os.path.join(H['save_dir'], 'figure_boundaries_gold_standard_dataset.json'), mode='w'),
+                          indent=2)
+
                 if i <= 10000:
                     logger.info(
                         "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
