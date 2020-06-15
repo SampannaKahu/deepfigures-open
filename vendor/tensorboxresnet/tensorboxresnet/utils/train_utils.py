@@ -294,7 +294,8 @@ def load_data_gen_gold(H, phase, jitter, augmentation_transforms):
         H["data"]['%s_images_dir' % phase],
         H,
         jitter={'train': jitter,
-                'test': False}[phase],
+                'test': False,
+                'hidden': False}[phase],
         augmentation_transforms=augmentation_transforms
     )
 
