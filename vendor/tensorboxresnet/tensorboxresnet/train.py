@@ -869,7 +869,7 @@ def eval_hidden_set_detection_result(H, annos, iou_thresh: float = 0.8):
     for year, annos_for_year in annos_year_wise.items():
         _mean_iou, tp, fp, fn = train_utils.compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=iou_thresh)
         prec, rec, f1 = train_utils.compute_precision_recall_f1(tp, fp, fn)
-        logger.info(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
+        logger.info(str(year) + ' ' + str((_mean_iou, tp, fp, fn, prec, rec, f1)))
         output[year] = {
             "mean_iou": _mean_iou,
             "true_positives": tp,
