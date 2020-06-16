@@ -1,5 +1,6 @@
 import os
 import json
+import glob
 import logging
 from typing import Dict, List, Tuple
 from deepfigures.extraction.datamodels import BoxClass
@@ -91,16 +92,26 @@ def compute_precision_recall_f1(tp: int, fp: int, fn: int) -> Tuple[float, float
 
 if __name__ == "__main__":
     gold_standard_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset'
-
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/figure_boundaries_hidden_set_501101.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_2_500000.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_04.12/figure_boundaries_hidden_set_2_600000.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_09.10/figure_boundaries_hidden_set_600000.json"
-    path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/ir/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/figure_boundaries_hidden_set_508701.json"
-    annos = json.load(open(path_to_figure_boundaries_with_hidden_detection_file))
-    annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
-    annos_year_wise[0000] = annos
-    for year, annos_for_year in annos_year_wise.items():
-        _mean_iou, tp, fp, fn = compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
-        prec, rec, f1 = compute_precision_recall_f1(tp, fp, fn)
-        print(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
+    # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/ir/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/figure_boundaries_hidden_set_508701.json"
+
+    with open('/tmp/output.log', mode='w') as log_file:
+        fig_bound_path_list = glob.glob(
+            "/home/sampanna/ir/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/fig*")
+        for path in fig_bound_path_list:
+            if '_2_' in path:
+                continue
+            log_file.write(path)
+            log_file.write("\n")
+            annos = json.load(open(path))
+            annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
+            annos_year_wise[0000] = annos
+            for year, annos_for_year in annos_year_wise.items():
+                _mean_iou, tp, fp, fn = compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
+                prec, rec, f1 = compute_precision_recall_f1(tp, fp, fn)
+                print(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
+                log_file.write(str(year) + ' ' + str((_mean_iou, tp, fp, fn, prec, rec, f1)))
+                log_file.write("\n")

@@ -17,18 +17,13 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377268_arxiv
+EXPERIMENT_NAME=377268_arxiv_eval_included
 CONDA_ENV=deepfigures_3
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"
 }
 ts=$(current_timestamp)
-
-#if [ -z ${CUDA_VISIBLE_DEVICES+x} ]; then
-#  echo "CUDA_VISIBLE_DEVICES is not set. Defaulting to 0."
-#  CUDA_VISIBLE_DEVICES=0
-#fi
 
 if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
@@ -89,14 +84,11 @@ TRAIN_IDL_PATH=$DATASET_DIR/figure_boundaries_train.json
 TRAIN_IMAGES_DIR=$DATASET_DIR/images
 TEST_IDL_PATH=$DATASET_DIR/figure_boundaries_test.json
 TEST_IMAGES_DIR=$DATASET_DIR/images
+GOLD_STANDARD_DATASET_DIR=$DEEPFIGURES_RESULTS/gold_standard_dataset
+HIDDEN_IDL_PATH=$GOLD_STANDARD_DATASET_DIR/figure_boundaries.json
+HIDDEN_IMAGES_DIR=$GOLD_STANDARD_DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=200
 TEST_SPLIT_PERCENT=20
-
-#$PYTHON -m pip uninstall deepfigures-open -y
-#cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
-#rm -rf deepfigures_open.egg-info dist build
-
-#cd "$SOURCE_CODE"
 
 $PYTHON -m tensorboxresnet.train \
   --weights "$WEIGHTS_PATH" \
@@ -107,8 +99,10 @@ $PYTHON -m tensorboxresnet.train \
   --experiment_name="$EXPERIMENT_NAME" \
   --train_idl_path="$TRAIN_IDL_PATH" \
   --test_idl_path="$TEST_IDL_PATH" \
+  --hidden_idl_path="$HIDDEN_IDL_PATH" \
   --train_images_dir="$TRAIN_IMAGES_DIR" \
   --test_images_dir="$TEST_IMAGES_DIR" \
+  --hidden_images_dir="$HIDDEN_IMAGES_DIR" \
   --max_checkpoints_to_keep="$MAX_CHECKPOINTS_TO_KEEP" \
   --timestamp="$ts" \
   --scratch_dir="$SCRATCH_DIR" \

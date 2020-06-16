@@ -17,6 +17,7 @@ from typing import List
 from deepfigures.utils import image_util
 from deepfigures.extraction.datamodels import BoxClass
 import matplotlib
+from pprint import pformat
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -842,46 +843,11 @@ def train(H: dict):
                         dt * 1000 if i > 0 else 0
                     )
                 )
-                hidden_phase = 'hidden'
-                hidden_aug_pipeline = build_augmentation_pipeline(H, hidden_phase)
-                hidden_set_data_gen = train_utils.load_data_gen_gold(H, hidden_phase, num_epochs=1, jitter=False,
-                                                                     augmentation_transforms=hidden_aug_pipeline)
-                processed_annos = []
-                logger.info("Running detections against hidden set. Global step: {}".format(global_step.eval()))
-                for data in tqdm(hidden_set_data_gen):
-                    boxes = get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
-                                                  [data['image']], crop_whitespace=True,
-                                                  conf_threshold=0.5)
-                    processed_anno = data['anno'].writeJSON()
-                    processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2} for
-                                                          box in boxes[0]]
-                    processed_annos.append(processed_anno)
 
-                    fig, ax = plt.subplots(1)
-                    ax.imshow(data['image'])
-                    for bb in processed_anno['hidden_set_rects']:
-                        x1, y1, x2, y2 = bb['x1'], bb['y1'], bb['x2'], bb['y2']
-                        rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='g',
-                                                 facecolor='none')
-                        ax.add_patch(rect)
-                    image_name = '{orig_name}_global_step_{global_step}_hidden_bb.png'.format(
-                        orig_name=os.path.basename(processed_anno['image_path']).split('.png')[0],
-                        global_step=global_step.eval()
-                    )
-                    plt.savefig(os.path.join(H['save_dir'], image_name), bbox_inches='tight')
-                    plt.close()
-                detected_hidden_annotation_save_path = os.path.join(H['save_dir'],
-                                                                    'figure_boundaries_gold_standard_dataset_{}.json'.format(
-                                                                        global_step.eval()))
-                json.dump(processed_annos, open(detected_hidden_annotation_save_path, mode='w'), indent=2)
-                gold_standard_dir = os.path.dirname(H['data']['hidden_idl'])
-                annos = processed_annos
-                annos_year_wise = train_utils.split_annos_year_wise(annos, gold_standard_dir)
-                annos_year_wise[0000] = annos
-                for year, annos_for_year in annos_year_wise.items():
-                    _mean_iou, tp, fp, fn = train_utils.compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
-                    prec, rec, f1 = train_utils.compute_precision_recall_f1(tp, fp, fn)
-                    logger.info(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
+                logger.info("Running detections against hidden set. Global step: {}".format(global_step.eval()))
+                processed_annos = run_hidden_set_on_session(H, global_step, hidden_pred_boxes, hidden_pred_confidences,
+                                                            hidden_x_in, sess, save_image=False)
+                eval_hidden_set_detection_result(H, processed_annos)
 
                 if i <= 10000:
                     logger.info(
@@ -893,6 +859,65 @@ def train(H: dict):
             ] == 0 or global_step.eval() == max_iter - 1:
                 logger.info("Saving checkpoint. Step: %d" % global_step.eval())
                 saver.save(sess, ckpt_file, global_step=global_step)
+
+
+def eval_hidden_set_detection_result(H, annos, iou_thresh: float = 0.8):
+    gold_standard_dir = os.path.dirname(H['data']['hidden_idl'])
+    annos_year_wise = train_utils.split_annos_year_wise(annos, gold_standard_dir)
+    annos_year_wise[0000] = annos
+    output = dict()
+    for year, annos_for_year in annos_year_wise.items():
+        _mean_iou, tp, fp, fn = train_utils.compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=iou_thresh)
+        prec, rec, f1 = train_utils.compute_precision_recall_f1(tp, fp, fn)
+        logger.info(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
+        output[year] = {
+            "mean_iou": _mean_iou,
+            "true_positives": tp,
+            "false_positives": fp,
+            "false_negatives": fn,
+            "precision": prec,
+            "recall": rec,
+            "f1": f1
+        }
+    logger.info("Detection results:")
+    logger.info("{output}".format(output=pformat(output, indent=2)))
+
+
+def run_hidden_set_on_session(H, global_step, hidden_pred_boxes, hidden_pred_confidences, hidden_x_in, sess,
+                              save_image: bool = False):
+    _p = 'hidden'  # phase
+    hidden_aug_pipeline = build_augmentation_pipeline(H, _p)
+    hidden_set_data_gen = train_utils.load_data_gen_gold(H, _p, num_epochs=1, jitter=False,
+                                                         augmentation_transforms=hidden_aug_pipeline)
+    processed_annos = []
+
+    for data in tqdm(hidden_set_data_gen):
+        boxes = get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
+                                      [data['image']], crop_whitespace=True,
+                                      conf_threshold=0.5)
+        processed_anno = data['anno'].writeJSON()
+        processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2} for
+                                              box in boxes[0]]
+        processed_annos.append(processed_anno)
+        if save_image:
+            fig, ax = plt.subplots(1)
+            ax.imshow(data['image'])
+            for bb in processed_anno['hidden_set_rects']:
+                x1, y1, x2, y2 = bb['x1'], bb['y1'], bb['x2'], bb['y2']
+                rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='g',
+                                         facecolor='none')
+                ax.add_patch(rect)
+            image_name = '{orig_name}_global_step_{global_step}_hidden_bb.png'.format(
+                orig_name=os.path.basename(processed_anno['image_path']).split('.png')[0],
+                global_step=global_step.eval()
+            )
+            plt.savefig(os.path.join(H['save_dir'], image_name), bbox_inches='tight')
+            plt.close()
+    detected_hidden_annotation_save_path = os.path.join(H['save_dir'],
+                                                        'figure_boundaries_gold_standard_dataset_{}.json'.format(
+                                                            global_step.eval()))
+    json.dump(processed_annos, open(detected_hidden_annotation_save_path, mode='w'), indent=2)
+    return processed_annos
 
 
 def main():
@@ -965,7 +990,7 @@ def main():
                               defaults={'logfilename': os.path.join(H['save_dir'], 'train.log')})
     logger = logging.getLogger()
     logger.info("Logger setup successful.")
-    logger.info("Beginning training with hyper-parameters: {H}".format(H=H))
+    logger.info("Beginning training with hyper-parameters: {H}".format(H=pformat(H, indent=2)))
     train(H)
 
 

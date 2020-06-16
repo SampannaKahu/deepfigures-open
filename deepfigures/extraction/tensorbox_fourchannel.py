@@ -81,6 +81,9 @@ class TensorboxCaptionmaskDetector(object):
         model_weights = self._get_weights()
         saver.restore(self.sess, model_weights)
 
+    def __enter__(self):
+        return self
+
     def _get_weights(self) -> str:
         suffixes = ['.index', '.meta', '.data-00000-of-00001']
         local_paths = [
@@ -146,6 +149,12 @@ class TensorboxCaptionmaskDetector(object):
                 detected_boxes = list(filter(None, detected_boxes))
             page_data['detected_boxes'] = detected_boxes
         return [page_data['detected_boxes'] for page_data in page_datas]
+
+    def close(self):
+        self.sess.close()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 
 def detect_figures(
