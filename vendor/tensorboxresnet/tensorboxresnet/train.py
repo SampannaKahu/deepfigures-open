@@ -800,9 +800,10 @@ def train(H: dict):
         max_iter = H['solver'].get('max_iter', 10000000)
         for i in range(max_iter):
             display_iter = H['logging']['display_iter']
+            lr_iter = global_step.eval() if H['solver']['use_global_step_for_lr'] else i
             adjusted_lr = (
                     H['solver']['learning_rate'] * 0.5 **
-                    max(0, (i / H['solver']['learning_rate_step']) - 2)
+                    max(0, (lr_iter / H['solver']['learning_rate_step']) - 2)
             )
             lr_feed = {learning_rate: adjusted_lr}
 
@@ -920,6 +921,17 @@ def run_hidden_set_on_session(H, global_step, hidden_pred_boxes, hidden_pred_con
     return processed_annos
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 def main():
     '''
     Parse command line arguments and return the hyperparameter dictionary H.
@@ -949,6 +961,7 @@ def main():
     parser.add_argument('--zip_dir', required=True, type=str)
     parser.add_argument('--test_split_percent', type=int, default=20)
     parser.add_argument('--random_seed', type=int, default=0)
+    parser.add_argument('--use_global_step_for_lr', type=str2bool, nargs='?', const=True, default=False)
     args = parser.parse_args()
 
     with open(args.hypes, 'r') as f:
@@ -982,6 +995,7 @@ def main():
     H['data']['zip_dir'] = args.zip_dir
     H['data']['test_split_percent'] = args.test_split_percent
     H['data']['random_seed'] = args.random_seed
+    H['solver']['use_global_step_for_lr'] = args.use_global_step_for_lr
 
     os.makedirs(H['save_dir'], exist_ok=True)
     global logger

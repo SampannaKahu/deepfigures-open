@@ -89,6 +89,7 @@ HIDDEN_IDL_PATH=$GOLD_STANDARD_DATASET_DIR/figure_boundaries.json
 HIDDEN_IMAGES_DIR=$GOLD_STANDARD_DATASET_DIR/images
 MAX_CHECKPOINTS_TO_KEEP=200
 TEST_SPLIT_PERCENT=20
+USE_GLOBAL_STEP_FOR_LR=False
 
 $PYTHON -m tensorboxresnet.train \
   --weights "$WEIGHTS_PATH" \
@@ -107,7 +108,8 @@ $PYTHON -m tensorboxresnet.train \
   --timestamp="$ts" \
   --scratch_dir="$SCRATCH_DIR" \
   --zip_dir="$ZIP_DIR" \
-  --test_split_percent="$TEST_SPLIT_PERCENT"
+  --test_split_percent="$TEST_SPLIT_PERCENT" \
+  --use_global_step_for_lr "$USE_GLOBAL_STEP_FOR_LR"
 
 echo "Job ended. Job ID: $SLURM_JOBID"
 exit

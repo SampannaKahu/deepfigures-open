@@ -18,6 +18,7 @@
   "solver": {
     "use_jitter": false,
     "learning_rate_step": 33000,
+    "use_global_step_for_lr": false,
     "rnd_seed": 1,
     "gpu": 0,
     "learning_rate": 0.001,
