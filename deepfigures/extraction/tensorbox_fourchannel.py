@@ -40,6 +40,7 @@ class TensorboxCaptionmaskDetector(object):
     extract a figure because the added overhead will very negatively
     affect performance.
     """
+
     def __init__(
             self,
             save_dir,
@@ -80,6 +81,9 @@ class TensorboxCaptionmaskDetector(object):
         model_weights = self._get_weights()
         saver.restore(self.sess, model_weights)
 
+    def __enter__(self):
+        return self
+
     def _get_weights(self) -> str:
         suffixes = ['.index', '.meta', '.data-00000-of-00001']
         local_paths = [
@@ -91,7 +95,7 @@ class TensorboxCaptionmaskDetector(object):
         return local_path[:local_path.rfind(suffixes[0])]
 
     def _get_hypes(self) -> dict:
-        return file_util.read_json(self.save_dir + 'hypes.json')
+        return file_util.read_json(os.path.join(self.save_dir, 'hypes.json'))
 
     def detect_page(
             self,
@@ -146,12 +150,18 @@ class TensorboxCaptionmaskDetector(object):
             page_data['detected_boxes'] = detected_boxes
         return [page_data['detected_boxes'] for page_data in page_datas]
 
+    def close(self):
+        self.sess.close()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
 
 def detect_figures(
-    pdf: str,
-    pdffigures_captions: List[CaptionOnly],
-    detector: TensorboxCaptionmaskDetector,
-    conf_threshold: float
+        pdf: str,
+        pdffigures_captions: List[CaptionOnly],
+        detector: TensorboxCaptionmaskDetector,
+        conf_threshold: float
 ) -> Tuple[List[Figure], List[List[BoxClass]]]:
     page_image_files = pdf_renderer.render(pdf, dpi=settings.DEFAULT_INFERENCE_DPI)
     page_tensors = []
@@ -204,7 +214,7 @@ def detect_figures(
 def detect_batch(
         src_pdfs: List[str],
         detector: TensorboxCaptionmaskDetector,
-        conf_threshold: float=.5) -> Iterable[PdfDetectionResult]:
+        conf_threshold: float = .5) -> Iterable[PdfDetectionResult]:
     for src_pdf in src_pdfs:
         with tempfile.TemporaryDirectory(
                 prefix='deepfigures-tensorbox') as working_dir:

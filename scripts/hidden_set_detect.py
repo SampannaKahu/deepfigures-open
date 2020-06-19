@@ -10,12 +10,16 @@ logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
 if __name__ == "__main__":
+    """
+    Command:
+    python -c 'from deepfigures.extraction import detection; detection.run_detection_on_coco_dataset("/home/sampanna/deepfigures-results/gold_standard_dataset", "images", "/home/sampanna/deepfigures-results/model_checkpoints/377269_arxiv_2020-06-13_02-05-05/", 550000, "figure_boundaries_hidden_set_550000.json", 1000)'
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_save_dir',
-                        default='/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/',
+                        default='/home/sampanna/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/',
                         type=str)
     parser.add_argument('--hidden_set_dir',
-                        default='/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset',
+                        default='/home/sampanna/deepfigures-results/gold_standard_dataset',
                         type=str)
     parser.add_argument('--batch_size',
                         default=1000,
@@ -30,6 +34,6 @@ if __name__ == "__main__":
                                                 images_sub_dir='images',
                                                 model_save_dir=args.model_save_dir,
                                                 iteration=iteration,
-                                                output_json_file_name="figure_boundaries_hidden_set_{}.json".format(
+                                                output_json_file_name="figure_boundaries_hidden_set_{}_delete_this.json".format(
                                                     iteration),
                                                 batch_size=args.batch_size)

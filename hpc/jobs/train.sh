@@ -17,18 +17,13 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377266_arxiv
+EXPERIMENT_NAME=377268_arxiv_eval_included_checkpoint_lr_test
 CONDA_ENV=deepfigures_3
 
 current_timestamp() {
   date +"%Y-%m-%d_%H-%M-%S"
 }
 ts=$(current_timestamp)
-
-#if [ -z ${CUDA_VISIBLE_DEVICES+x} ]; then
-#  echo "CUDA_VISIBLE_DEVICES is not set. Defaulting to 0."
-#  CUDA_VISIBLE_DEVICES=0
-#fi
 
 if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
@@ -37,7 +32,7 @@ if [ "$HOSTNAME" = "ir.cs.vt.edu" ]; then
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
+  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377268
 elif [ "$SYSNAME" = "cascades" ]; then
   module purge
   module load Anaconda/5.1.0
@@ -49,7 +44,7 @@ elif [ "$SYSNAME" = "cascades" ]; then
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPRAM # 311 GB on v100 nodes. 331 MBPS.
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
+  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377268
 elif [ "$SYSNAME" = "newriver" ]; then
   module purge
   module load Anaconda/5.2.0
@@ -61,7 +56,7 @@ elif [ "$SYSNAME" = "newriver" ]; then
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
   SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
+  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377268
 elif [ "$HOSTNAME" = "xps15" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
   conda activate "$CONDA_ENV"
@@ -69,7 +64,7 @@ elif [ "$HOSTNAME" = "xps15" ]; then
   SOURCE_CODE=/home/sampanna/workspace/bdts2/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
+  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377268
 else
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
   conda activate "$CONDA_ENV" || source activate "$CONDA_ENV"
@@ -77,7 +72,7 @@ else
   SOURCE_CODE=/home/sampanna/deepfigures-open
   CUDA_VISIBLE_DEVICES=0
   SCRATCH_DIR=/tmp
-  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377266
+  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377268
 fi
 
 WEIGHTS_PATH=$DEEPFIGURES_RESULTS/weights/save.ckpt-500000
@@ -89,14 +84,12 @@ TRAIN_IDL_PATH=$DATASET_DIR/figure_boundaries_train.json
 TRAIN_IMAGES_DIR=$DATASET_DIR/images
 TEST_IDL_PATH=$DATASET_DIR/figure_boundaries_test.json
 TEST_IMAGES_DIR=$DATASET_DIR/images
-MAX_CHECKPOINTS_TO_KEEP=100
+GOLD_STANDARD_DATASET_DIR=$DEEPFIGURES_RESULTS/gold_standard_dataset
+HIDDEN_IDL_PATH=$GOLD_STANDARD_DATASET_DIR/figure_boundaries.json
+HIDDEN_IMAGES_DIR=$GOLD_STANDARD_DATASET_DIR/images
+MAX_CHECKPOINTS_TO_KEEP=200
 TEST_SPLIT_PERCENT=20
-
-#$PYTHON -m pip uninstall deepfigures-open -y
-#cd "$SOURCE_CODE" || exit && $PYTHON setup.py install
-#rm -rf deepfigures_open.egg-info dist build
-
-#cd "$SOURCE_CODE"
+USE_GLOBAL_STEP_FOR_LR=False
 
 $PYTHON -m tensorboxresnet.train \
   --weights "$WEIGHTS_PATH" \
@@ -107,13 +100,16 @@ $PYTHON -m tensorboxresnet.train \
   --experiment_name="$EXPERIMENT_NAME" \
   --train_idl_path="$TRAIN_IDL_PATH" \
   --test_idl_path="$TEST_IDL_PATH" \
+  --hidden_idl_path="$HIDDEN_IDL_PATH" \
   --train_images_dir="$TRAIN_IMAGES_DIR" \
   --test_images_dir="$TEST_IMAGES_DIR" \
+  --hidden_images_dir="$HIDDEN_IMAGES_DIR" \
   --max_checkpoints_to_keep="$MAX_CHECKPOINTS_TO_KEEP" \
   --timestamp="$ts" \
   --scratch_dir="$SCRATCH_DIR" \
   --zip_dir="$ZIP_DIR" \
-  --test_split_percent="$TEST_SPLIT_PERCENT"
+  --test_split_percent="$TEST_SPLIT_PERCENT" \
+  --use_global_step_for_lr "$USE_GLOBAL_STEP_FOR_LR"
 
 echo "Job ended. Job ID: $SLURM_JOBID"
 exit

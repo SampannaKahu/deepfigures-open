@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file_list_json', type=str, default='/home/sampanna/deepfigures-results/files.json',
+    parser.add_argument('--file_list_json', type=str, default='/home/sampanna/deepfigures-results/files_0.json',
                         help='Provide the path to a json file which contains the list of all files to be procesed.')
     parser.add_argument('--n_cpu', type=int, default=settings.PROCESS_PAPER_TAR_THREAD_COUNT,
                         help='number of workers')
@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument('--zip_save_dir', type=str, default='/tmp',
                         help='Provide the path where all the generated zips will be saved.')
     parser.add_argument('--zip_dest_dir', type=str,
-                        default='/work/cascades/sampanna/deepfigures-results/pregenerated_training_data',
+                        default='/home/sampanna/delete_this',
                         help='Provide the path where all the generated zips will be copied after then are generated.')
     parser.add_argument('--work_dir_prefix', type=str, default=settings.HOSTNAME,
                         help='The prefix for the work directory of each instance of ArxivDataset.')
@@ -40,9 +40,9 @@ def parse_args():
     parser.add_argument('--delete_tar_after_extracting', type=bool, default=False,
                         help='Whether to delete the original tar file from the download cache or not. ' +
                              'e.g. s3://arxiv/src/arXiv_src_0003_001.tar')
-    parser.add_argument('--augment_typewriter_font', type=bool, default=False,
+    parser.add_argument('--augment_typewriter_font', type=bool, default=True,
                         help='Whether to augment the data with typewriter font.')
-    parser.add_argument('--augment_line_spacing_1_5', type=bool, default=False,
+    parser.add_argument('--augment_line_spacing_1_5', type=bool, default=True,
                         help='Whether to augment the data with 1.5 line spacing.')
     parser.add_argument('--should_apply_image_based_augmentations', type=bool, default=False,
                         help='If set to true, applies all the default image-based augmentations.')
