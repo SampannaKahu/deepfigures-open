@@ -16,13 +16,13 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_save_dir',
-                        default='/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/',
+                        default='/home/sampanna/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/',
                         type=str)
     parser.add_argument('--hidden_set_dir',
-                        default='/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset',
+                        default='/home/sampanna/deepfigures-results/gold_standard_dataset',
                         type=str)
     parser.add_argument('--batch_size',
-                        default=100,
+                        default=1000,
                         type=int)
     args = parser.parse_args()
     ckpt_iter_numbers = [int(ckpt.strip().split(' ')[1].strip('"').split('-')[-1]) for ckpt in

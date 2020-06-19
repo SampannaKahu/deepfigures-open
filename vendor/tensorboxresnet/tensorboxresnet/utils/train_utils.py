@@ -177,7 +177,7 @@ def load_zip_tf(zip_paths: List[str], H, phase: str, jitter, augmentation_transf
 
 
 def load_data_gen(H, phase, jitter, augmentation_transforms):
-    _tensor_queue = multiprocessing.Queue(maxsize=64)
+    _tensor_queue = multiprocessing.Queue(maxsize=128)
     random.seed(H['data']['random_seed'])
     zip_file_list = glob.glob(os.path.join(H['data']['zip_dir'], '**.zip'), recursive=True)
     random.shuffle(zip_file_list)

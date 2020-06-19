@@ -679,6 +679,18 @@ def get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_c
     return [page_data['detected_boxes'] for page_data in page_datas]
 
 
+def split_annos_val_test(H, processed_annos):
+    gold_standard_dir = os.path.dirname(H['data']['hidden_idl'])
+    val_annos = json.load(open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format('validation'))))
+    val_image_names = set([anno['image_path'] for anno in val_annos])
+    val_annos_ret = [anno for anno in processed_annos if os.path.basename(anno['image_path']) in val_image_names]
+
+    test_annos = json.load(open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format('testing'))))
+    test_image_names = set([anno['image_path'] for anno in test_annos])
+    test_annos_ret = [anno for anno in processed_annos if os.path.basename(anno['image_path']) in test_image_names]
+    return val_annos_ret, test_annos_ret
+
+
 def train(H: dict):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
@@ -831,7 +843,8 @@ def train(H: dict):
                 writer.add_summary(summary_str, global_step=global_step.eval())
                 print_str = ', '.join(
                     [
-                        'Step: %d',
+                        'Global step: %d',
+                        'Local step: %d',
                         'lr: %f',
                         'Train Loss: %.2f',
                         'Softmax Test Accuracy: %.1f%%',
@@ -840,15 +853,22 @@ def train(H: dict):
                 )
                 logger.info(
                     print_str % (
-                        i, adjusted_lr, train_loss, test_accuracy * 100,
+                        global_step.eval(), i, adjusted_lr, train_loss, test_accuracy * 100,
                         dt * 1000 if i > 0 else 0
                     )
                 )
 
                 logger.info("Running detections against hidden set. Global step: {}".format(global_step.eval()))
                 processed_annos = run_hidden_set_on_session(H, global_step, hidden_pred_boxes, hidden_pred_confidences,
-                                                            hidden_x_in, sess, save_image=False)
-                eval_hidden_set_detection_result(H, processed_annos)
+                                                            hidden_x_in, sess, save_image=False, early_stop=False)
+                processed_annos_val, processed_annos_test = split_annos_val_test(H, processed_annos)
+                logger.info("Evaluating val detection results.")
+                year_to_eval_result_map_val = eval_hidden_set_detection_result(H, processed_annos_val)
+                logger.info("Evaluating test detection results.")
+                year_to_eval_result_map_test = eval_hidden_set_detection_result(H, processed_annos_test)
+                if year_to_eval_result_map_val[0000]['f1'] > 0.50:
+                    logger.info("Checkpoint f1 score reached. Updating the original learning rate to: 0.0002")
+                    H['solver']['learning_rate'] = 0.0002
 
                 if i <= 10000:
                     logger.info(
@@ -882,17 +902,19 @@ def eval_hidden_set_detection_result(H, annos, iou_thresh: float = 0.8):
         }
     logger.info("Detection results:")
     logger.info("{output}".format(output=pformat(output, indent=2)))
+    return output
 
 
 def run_hidden_set_on_session(H, global_step, hidden_pred_boxes, hidden_pred_confidences, hidden_x_in, sess,
-                              save_image: bool = False):
+                              save_image: bool = False, early_stop: bool = False):
     _p = 'hidden'  # phase
     hidden_aug_pipeline = build_augmentation_pipeline(H, _p)
     hidden_set_data_gen = train_utils.load_data_gen_gold(H, _p, num_epochs=1, jitter=False,
                                                          augmentation_transforms=hidden_aug_pipeline)
     processed_annos = []
-
     for data in tqdm(hidden_set_data_gen):
+        if early_stop and len(processed_annos) > 100:
+            break
         boxes = get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
                                       [data['image']], crop_whitespace=True,
                                       conf_threshold=0.5)

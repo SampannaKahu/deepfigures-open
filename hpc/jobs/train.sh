@@ -17,7 +17,7 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377268_arxiv_eval_included
+EXPERIMENT_NAME=377268_arxiv_eval_included_checkpoint_lr_test
 CONDA_ENV=deepfigures_3
 
 current_timestamp() {

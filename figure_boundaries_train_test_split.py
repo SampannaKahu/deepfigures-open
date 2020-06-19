@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 def split_train_test(figure_boundaries_path: str, train_output_path: str, test_output_path: str,
                      test_split_percent: int = 20):
     figure_boundaries = json.load(open(figure_boundaries_path, mode='r'))
-
+    random.shuffle(figure_boundaries)
     total = len(figure_boundaries)
 
     if total > 1:
@@ -21,6 +22,7 @@ def split_train_test(figure_boundaries_path: str, train_output_path: str, test_o
 
 if __name__ == "__main__":
     test_split_percent = 20
+    random.seed(0)
 
     IN_DOCKER = os.environ.get('IN_DOCKER', False)
 

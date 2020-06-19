@@ -90,8 +90,19 @@ def compute_precision_recall_f1(tp: int, fp: int, fn: int) -> Tuple[float, float
     return precision, recall, f1
 
 
+def get_list_of_annos_to_be_included(annos: list, run_for_set: str):
+    if not run_for_set:
+        return annos
+
+    include_annos = json.load(open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format(run_for_set))))
+    include_image_names = set([anno['image_path'] for anno in include_annos])
+    return [anno for anno in annos if anno['image_path'] in include_image_names]
+
+
 if __name__ == "__main__":
     gold_standard_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset'
+    run_for_set = 'validation'  # can be either 'validation', 'testing' or None. If None, all annos will be used.
+
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/figure_boundaries_hidden_set_501101.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_2_500000.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/pmctable_arxiv_combined_2019_11_29_04.12/figure_boundaries_hidden_set_2_600000.json"
@@ -104,14 +115,17 @@ if __name__ == "__main__":
         for path in fig_bound_path_list:
             if '_2_' in path:
                 continue
-            log_file.write(path)
-            log_file.write("\n")
+            # log_file.write(path)
+            # log_file.write("\n")
+            print(path)
             annos = json.load(open(path))
+            annos = get_list_of_annos_to_be_included(annos, run_for_set)
             annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
             annos_year_wise[0000] = annos
             for year, annos_for_year in annos_year_wise.items():
                 _mean_iou, tp, fp, fn = compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
                 prec, rec, f1 = compute_precision_recall_f1(tp, fp, fn)
-                print(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
-                log_file.write(str(year) + ' ' + str((_mean_iou, tp, fp, fn, prec, rec, f1)))
-                log_file.write("\n")
+                if year == 0:
+                    print(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
+                # log_file.write(str(year) + ' ' + str((_mean_iou, tp, fp, fn, prec, rec, f1)))
+                # log_file.write("\n")
