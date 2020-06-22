@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 #PBS -l nodes=1:ppn=10:gpus=1
-#PBS -l walltime=48:00:00
+#PBS -l walltime=72:00:00
 #PBS -q p100_normal_q
 #PBS -A waingram_lab
 #PBS -W group_list=newriver
@@ -13,7 +13,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=sampanna@vt.edu
-#SBATCH -t 48:00:00
+#SBATCH -t 72:00:00
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
