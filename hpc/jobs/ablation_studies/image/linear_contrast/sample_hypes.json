@@ -1,0 +1,116 @@
+{
+  "image_channels": 3,
+  "rnn_len": 1,
+  "later_feat_channels": 832,
+  "early_feat_channels": 256,
+  "biggest_box_px": 10000,
+  "num_lstm_layers": 2,
+  "logging": {
+    "display_iter": 100,
+    "save_iter": 50000
+  },
+  "region_size": 32,
+  "deconv": false,
+  "slim_top_lname": "resnet_v1_101/block4",
+  "lstm_size": 500,
+  "image_height": 640,
+  "save_dir": "/work/host-output/pmctable_arxiv_combined_2020_03_31_05.55",
+  "solver": {
+    "use_jitter": false,
+    "learning_rate_step": 6000,
+    "use_global_step_for_lr": false,
+    "rnd_seed": 1,
+    "gpu": 0,
+    "learning_rate": 0.001,
+    "hungarian_iou": 0.25,
+    "weights": "/home/sampanna/deepfigures-results/weights/save.ckpt-500000",
+    "opt": "RMS",
+    "head_weights": [
+      1.0,
+      0.1
+    ],
+    "epsilon": 1e-05,
+    "max_iter": 20000
+  },
+  "num_classes": 2,
+  "grid_height": 20,
+  "clip_norm": 1.0,
+  "rezoom_w_coords": [
+    -0.25,
+    0.25
+  ],
+  "exp_name": "arxiv_experiment",
+  "rezoom_h_coords": [
+    -0.25,
+    0.25
+  ],
+  "slim_attention_lname": "resnet_v1_101/block1",
+  "reregress": true,
+  "use_lstm": false,
+  "data": {
+    "truncate_data": false,
+    "train_idl": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/figure_boundaries_train.json",
+    "train_images_dir": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/images",
+    "test_idl": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/figure_boundaries_test.json",
+    "test_images_dir": "/home/sampanna/deepfigures-results/arxiv_coco_dataset/images",
+    "hidden_idl": "/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset/figure_boundaries_validation.json",
+    "hidden_images_dir": "/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset/images",
+    "zip_dir": "/work/cascades/sampanna/deepfigures-results/pregenerated_training_data/377269_0_to_4",
+    "test_split_percent": 20,
+    "scratch_dir": "/tmp",
+    "random_seed": 0,
+    "augmentations": {
+      "train": {
+        "Affine": {
+          "rotate_left": -5,
+          "rotate_right": 5
+        },
+        "AdditiveGaussianNoise": {
+          "scale_left": 10,
+          "scale_right": 60
+        },
+        "SaltAndPepper": {
+          "p": 0.1
+        },
+        "GaussianBlur": {
+          "sigma": 0.5
+        },
+        "PerspectiveTransform": {
+          "scale": 0.025,
+          "keep_size": true
+        }
+      },
+      "test": {
+        "Affine": {
+          "rotate_left": -5,
+          "rotate_right": 5
+        },
+        "AdditiveGaussianNoise": {
+          "scale_left": 10,
+          "scale_right": 60
+        },
+        "SaltAndPepper": {
+          "p": 0.1
+        },
+        "GaussianBlur": {
+          "sigma": 0.5
+        },
+        "PerspectiveTransform": {
+          "scale": 0.025,
+          "keep_size": true
+        }
+      },
+      "hidden": {}
+    }
+  },
+  "focus_size": 1.8,
+  "rezoom_change_loss": "center",
+  "image_width": 480,
+  "batch_size": 1,
+  "grid_width": 15,
+  "slim_basename": "resnet_v1_101",
+  "avg_pool_size": 5,
+  "slim_ckpt": "",
+  "use_rezoom": true,
+  "max_checkpoints_to_keep": 100
+}

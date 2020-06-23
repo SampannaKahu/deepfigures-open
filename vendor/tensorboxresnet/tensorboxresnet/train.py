@@ -866,11 +866,11 @@ def train(H: dict):
                 year_to_eval_result_map_val = eval_hidden_set_detection_result(H, processed_annos_val)
                 logger.info("Evaluating test detection results.")
                 year_to_eval_result_map_test = eval_hidden_set_detection_result(H, processed_annos_test)
-                if year_to_eval_result_map_val[0000]['f1'] > 0.50:
-                    logger.info("Checkpoint f1 score reached. Updating the original learning rate to: 0.0002")
-                    H['solver']['learning_rate'] = 0.0002
+                # if year_to_eval_result_map_val[0000]['f1'] > 0.50:
+                #     logger.info("Checkpoint f1 score reached. Updating the original learning rate to: 0.0002")
+                #     H['solver']['learning_rate'] = 0.0002
 
-                if i <= 10000:
+                if i <= 15000:
                     logger.info(
                         "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
                     saver.save(sess, ckpt_file, global_step=global_step)

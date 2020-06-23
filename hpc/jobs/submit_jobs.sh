@@ -48,3 +48,16 @@ cat ~/deepfigures-open/hpc/files_random_40/files_"$i".json | grep tar | awk -F '
 sbatch --ignore-pbs train.sh
 # newriver
 qsub -k oe train.sh
+
+# Submitting ablation studies jobs:
+qsub -k oe latex/all/train.sh
+qsub -k oe latex/linespacing/train.sh
+qsub -k oe latex/none/train.sh
+qsub -k oe latex/typewriter/train.sh
+qsub -k oe image/additive_gaussian_noise/train.sh
+qsub -k oe image/affine/train.sh
+qsub -k oe image/gaussian_blur/train.sh
+qsub -k oe image/linear_contrast/train.sh
+qsub -k oe image/none/train.sh
+qsub -k oe image/perspective_transform/train.sh
+qsub -k oe image/salt_and_pepper/train.sh
