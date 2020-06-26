@@ -114,10 +114,11 @@ def extract_figures_json(
     return output_path
 
 
-def run_detection_on_coco_dataset(dataset_dir: str, images_sub_dir: str, model_save_dir: str, iteration: int,
-                                  output_json_file_name: str, batch_size: int = 100):
+def run_detection_on_coco_dataset(dataset_dir: str, images_sub_dir: str, figure_boundaries_file_name: str,
+                                  model_save_dir: str, iteration: int, output_json_file_name: str,
+                                  batch_size: int = 100):
     with tensorbox_fourchannel.TensorboxCaptionmaskDetector(save_dir=model_save_dir, iteration=iteration) as detector:
-        annos = json.load(open(os.path.join(dataset_dir, 'figure_boundaries.json')))
+        annos = json.load(open(os.path.join(dataset_dir, figure_boundaries_file_name)))
         anno_batches = [annos[i:i + batch_size] for i in range(0, len(annos), batch_size)]
         processed_annos = []
         with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:

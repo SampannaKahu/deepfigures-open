@@ -110,8 +110,11 @@ if __name__ == "__main__":
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/ir/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/figure_boundaries_hidden_set_508701.json"
 
     with open('/tmp/output.log', mode='w') as log_file:
-        fig_bound_path_list = glob.glob(
-            "/home/sampanna/ir/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/fig*")
+        # fig_bound_path_list = glob.glob(
+        #     "/home/sampanna/deepfigures-results/weights/fig*")
+        fig_bound_path_list = [
+            '/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_testing.json',
+            '/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_validation.json']
         for path in fig_bound_path_list:
             if '_2_' in path:
                 continue

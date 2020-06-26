@@ -309,9 +309,9 @@ def build_forward_backward(H, x, phase, boxes, flags):
             'decoder', reuse={'train': None,
                               'test': True}[phase]
     ):
-        outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])
+        outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])  # 300, 1, 4
         outer_flags = tf.cast(
-            tf.reshape(flags, [outer_size, H['rnn_len']]), 'int32'
+            tf.reshape(flags, [outer_size, H['rnn_len']]), 'int32'  # 300, 1
         )
         if H['use_lstm']:
             hungarian_module = tf.load_op_library(
@@ -324,17 +324,17 @@ def build_forward_backward(H, x, phase, boxes, flags):
                 )
             )
         else:
-            classes = tf.reshape(flags, (outer_size, 1))
-            perm_truth = tf.reshape(outer_boxes, (outer_size, 1, 4))
+            classes = tf.reshape(flags, (outer_size, 1))  # 300, 1
+            perm_truth = tf.reshape(outer_boxes, (outer_size, 1, 4))  # 300, 1, 4
             pred_mask = tf.reshape(
-                tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1)
+                tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1)  # 300, 1, 1
             )
         true_classes = tf.reshape(
             tf.cast(tf.greater(classes, 0), 'int64'),
-            [outer_size * H['rnn_len']]
+            [outer_size * H['rnn_len']]  # 300
         )
         pred_logit_r = tf.reshape(
-            pred_logits, [outer_size * H['rnn_len'], H['num_classes']]
+            pred_logits, [outer_size * H['rnn_len'], H['num_classes']]  # 300, 2
         )
         confidences_loss = (
                                tf.reduce_sum(
@@ -344,7 +344,7 @@ def build_forward_backward(H, x, phase, boxes, flags):
                                )
                            ) / outer_size * H['solver']['head_weights'][0]
         residual = tf.reshape(
-            perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4]
+            perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4]  # 300, 1, 4
         )
         boxes_loss = tf.reduce_sum(
             tf.abs(residual)

@@ -10,7 +10,10 @@ logger.setLevel(logging.DEBUG)
 
 def get_year_for_image_name(image_name: str, metadata: dict) -> int:
     handle = util.image_name_to_handle(image_name)
-    # metadata = json.load(open(os.path.join(gold_standard_dir, 'metadata.json')))
+    return get_year_for_handle(handle, metadata)
+
+
+def get_year_for_handle(handle: str, metadata: dict) -> int:
     issued_str = metadata[handle]['dc.date.issued'][0]
     return int(issued_str.split('-')[0])
 

@@ -21,5 +21,5 @@ last_chunk_median = np.median(signal[last_change_point:])
 print("Median: {}".format(last_chunk_median))
 
 # display
-# rpt.display(signal, [], result)
-# plt.show()
+rpt.display(signal, [], result)
+plt.show()

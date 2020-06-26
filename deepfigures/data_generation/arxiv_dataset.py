@@ -226,8 +226,7 @@ if __name__ == '__main__':
                             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     input_files = [
-        's3://arxiv/src/arXiv_src_0003_001.tar'
-        # 's3://arxiv/src/arXiv_src_0306_001.tar'
+        's3://arxiv/src/arXiv_src_1207_004.tar'
     ]
 
     arxiv_dataset = ArxivDataSet(list_of_files=input_files, image_augmentation_transform_sequence=settings.no_op)
