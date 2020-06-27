@@ -68,7 +68,7 @@ def process_zip(zip_path: str, tmp_dir: str, output_dir: str) -> None:
 
 if __name__ == "__main__":
     """
-    python generate_data_for_yolov5.py \
+    python convert_data_for_yolov5.py \
     --zip_dir='/work/cascades/sampanna/deepfigures-results/pregenerated_training_data/377269' \
     --tmp_dir='/tmp' \
     --output_dir='/work/cascades/sampanna/yolov5/data/377269' \

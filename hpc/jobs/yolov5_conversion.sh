@@ -65,7 +65,7 @@ fi
 
 YOLOV5_DATA_DIR="$YOLOV5_WORK_DIR"/377269
 
-python $SOURCE_CODE/temporary/generate_data_for_yolov5.py \
+python $SOURCE_CODE/temporary/convert_data_for_yolov5.py \
   --zip_dir="$ZIP_DIR" \
   --tmp_dir="$SCRATCH_DIR" \
   --output_dir="$YOLOV5_DATA_DIR" \
