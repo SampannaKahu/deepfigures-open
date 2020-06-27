@@ -73,7 +73,8 @@ if __name__ == "__main__":
     --tmp_dir='/tmp' \
     --output_dir='/work/cascades/sampanna/yolov5/data/377269' \
     --num_zips_to_process=1000 \
-    --random_seed=42
+    --random_seed=42 \
+    --n_cpu=5
     
     """
 
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_dir', required=True, type=str)
     parser.add_argument('--num_zips_to_process', type=int, default=1000)
     parser.add_argument('--random_seed', type=int, default=42)
+    parser.add_argument('--n_cpu', type=int, default=multiprocessing.cpu_count())
     args = parser.parse_args()
 
     os.makedirs(args.output_dir)
@@ -93,5 +95,5 @@ if __name__ == "__main__":
     zip_paths = zip_paths[:args.num_zips_to_process]
     print(zip_paths)
 
-    with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+    with multiprocessing.Pool(args.n_cpu) as pool:
         pool.map(partial(process_zip, tmp_dir=args.tmp_dir, output_dir=args.output_dir), zip_paths)

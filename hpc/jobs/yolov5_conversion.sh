@@ -70,7 +70,8 @@ python $SOURCE_CODE/temporary/generate_data_for_yolov5.py \
   --tmp_dir="$SCRATCH_DIR" \
   --output_dir="$YOLOV5_DATA_DIR" \
   --num_zips_to_process=1000 \
-  --random_seed=42
+  --random_seed=42 \
+  --n_cpu=5
 
 echo "Job ended. Job ID: $SLURM_JOBID"
 exit
