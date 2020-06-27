@@ -45,6 +45,16 @@ elif [ "$SYSNAME" = "newriver" ]; then
   SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377269
   YOLOV5_WORK_DIR=/work/cascades/sampanna/yolov5
+elif [ "$SYSNAME" = "dragonstooth" ]; then
+  module purge
+  module load Anaconda/5.2.0
+  PYTHON=/home/sampanna/.conda/envs/"$CONDA_ENV"/bin/python
+  source activate "$CONDA_ENV"
+  DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
+  SOURCE_CODE=/home/sampanna/deepfigures-open
+  SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
+  ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377269
+  YOLOV5_WORK_DIR=/work/cascades/sampanna/yolov5
 elif [ "$HOSTNAME" = "xps15" ]; then
   PYTHON=/home/sampanna/anaconda3/envs/"$CONDA_ENV"/bin/python
   conda activate "$CONDA_ENV"
