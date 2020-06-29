@@ -42,7 +42,7 @@ elif [ "$SYSNAME" = "newriver" ]; then
   source activate "$CONDA_ENV"
   DEEPFIGURES_RESULTS=/work/cascades/sampanna/deepfigures-results
   SOURCE_CODE=/home/sampanna/deepfigures-open
-  SCRATCH_DIR=$TMPFS # 429 GB on p100 nodes. 770 MBPS.
+  SCRATCH_DIR=/scratch-ssd # 429 GB on p100 nodes. 770 MBPS.
   ZIP_DIR=$DEEPFIGURES_RESULTS/pregenerated_training_data/377269
   YOLOV5_WORK_DIR=/work/cascades/sampanna/yolov5
 elif [ "$SYSNAME" = "dragonstooth" ]; then
