@@ -60,59 +60,15 @@
     "scratch_dir": "/tmp",
     "random_seed": 0,
     "augmentations": {
-      "train": {
-        "Affine": {
-          "rotate_left": -5,
-          "rotate_right": 5
-        },
-        "AdditiveGaussianNoise": {
-          "scale_left": 10,
-          "scale_right": 60
-        },
-        "SaltAndPepper": {
-          "p": 0.1
-        },
-        "GaussianBlur": {
-          "sigma": 0.5
-        },
-        "LinearContrast": {
-          "alpha": 1
-        },
-        "PerspectiveTransform": {
-          "scale": 0.025,
-          "keep_size": true
-        }
-      },
-      "test": {
-        "Affine": {
-          "rotate_left": -5,
-          "rotate_right": 5
-        },
-        "AdditiveGaussianNoise": {
-          "scale_left": 10,
-          "scale_right": 60
-        },
-        "SaltAndPepper": {
-          "p": 0.1
-        },
-        "GaussianBlur": {
-          "sigma": 0.5
-        },
-        "LinearContrast": {
-          "alpha": 1
-        },
-        "PerspectiveTransform": {
-          "scale": 0.025,
-          "keep_size": true
-        }
-      },
+      "train": {},
+      "test": {},
       "hidden": {}
     }
   },
   "focus_size": 1.8,
   "rezoom_change_loss": "center",
   "image_width": 480,
-  "batch_size": 1,
+  "batch_size": 8,
   "grid_width": 15,
   "slim_basename": "resnet_v1_101",
   "avg_pool_size": 5,
