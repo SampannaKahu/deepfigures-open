@@ -873,7 +873,7 @@ def train(H: dict):
                     #     logger.info("Checkpoint f1 score reached. Updating the original learning rate to: 0.0002")
                     #     H['solver']['learning_rate'] = 0.0002
 
-                if i <= 15000:
+                if H['rapid_checkpoint'] and i <= 15000:
                     logger.info(
                         "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
                     saver.save(sess, ckpt_file, global_step=global_step)

@@ -17,7 +17,7 @@
   "save_dir": "/work/host-output/pmctable_arxiv_combined_2020_03_31_05.55",
   "solver": {
     "use_jitter": false,
-    "learning_rate_step": 2000,
+    "learning_rate_step": 20000,
     "use_global_step_for_lr": false,
     "rnd_seed": 1,
     "gpu": 0,
@@ -75,5 +75,6 @@
   "slim_ckpt": "",
   "use_rezoom": true,
   "max_checkpoints_to_keep": 100,
-  "run_hidden_eval": false
+  "run_hidden_eval": false,
+  "rapid_checkpoint": false
 }
