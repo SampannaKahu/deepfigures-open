@@ -21,7 +21,7 @@
     "use_global_step_for_lr": false,
     "rnd_seed": 1,
     "gpu": 0,
-    "learning_rate": 0.001,
+    "learning_rate": 0.0001,
     "hungarian_iou": 0.25,
     "weights": "/home/sampanna/deepfigures-results/weights/save.ckpt-500000",
     "opt": "RMS",
