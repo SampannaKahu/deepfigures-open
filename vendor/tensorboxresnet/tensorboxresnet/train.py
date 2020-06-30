@@ -762,7 +762,8 @@ def train(H: dict):
             augmentation_transforms = build_augmentation_pipeline(H, phase)
             logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
             gen = train_utils.load_data_gen_gold(
-                H, phase, num_epochs=10, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
+                H, phase, num_epochs=H['data']['epochs'], jitter=H['solver']['use_jitter'],
+                augmentation_transforms=augmentation_transforms
             )
             d = next(gen)
             sess.run(enqueue_op[phase], feed_dict=make_feed(d))

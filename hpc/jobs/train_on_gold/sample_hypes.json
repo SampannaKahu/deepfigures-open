@@ -59,6 +59,7 @@
     "test_split_percent": 20,
     "scratch_dir": "/tmp",
     "random_seed": 0,
+    "epochs": 50,
     "augmentations": {
       "train": {},
       "test": {},
