@@ -9,6 +9,7 @@ import torch
 from PIL import Image
 import multiprocessing
 from functools import partial
+from yolov5.yolov5_anno_util import coco_dict_to_yolov5_line, bb_tensor_to_coco_dict
 
 
 # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -50,16 +51,8 @@ def process_zip(zip_path: str, tmp_dir: str, output_dir: str) -> None:
             # move the image file
             dest_image_path = os.path.join(output_dir, output_file_prefix + '_' + str(idx) + '.png')
             shutil.move(png_path, dest_image_path)
-
-            rects = [
-                ' '.join([
-                    '0',  # class id
-                    str((bb_tensor[2].item() + bb_tensor[1].item()) / (2 * width)),  # xc
-                    str((bb_tensor[4].item() + bb_tensor[3].item()) / (2 * height)),  # yc
-                    str((bb_tensor[2].item() - bb_tensor[1].item()) / width),  # bb_width
-                    str((bb_tensor[4].item() - bb_tensor[3].item()) / height)  # bb_height
-                ])
-                for bb_tensor in torch.load(pt_path)]
+            rects = [coco_dict_to_yolov5_line(bb_tensor_to_coco_dict(bb_tensor), width, height) for bb_tensor in
+                     torch.load(pt_path)]
             if rects:
                 anno_path = os.path.join(output_dir, output_file_prefix + '_' + str(idx) + '.txt')
                 with open(anno_path, mode='w') as anno_file:

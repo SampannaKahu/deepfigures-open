@@ -90,13 +90,24 @@ def compute_precision_recall_f1(tp: int, fp: int, fn: int) -> Tuple[float, float
     return precision, recall, f1
 
 
-def get_list_of_annos_to_be_included(annos: list, run_for_set: str):
+def get_list_of_annos_to_be_included(annos: list, gold_standard_dir: str, run_for_set: str):
     if not run_for_set:
         return annos
 
     include_annos = json.load(open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format(run_for_set))))
     include_image_names = set([anno['image_path'] for anno in include_annos])
     return [anno for anno in annos if anno['image_path'] in include_image_names]
+
+
+def compute_metrics_for_annos(annos, gold_standard_dir: str, run_for_set: str):
+    annos = get_list_of_annos_to_be_included(annos, gold_standard_dir, run_for_set)
+    annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
+    annos_year_wise[0000] = annos
+    for year, annos_for_year in annos_year_wise.items():
+        _mean_iou, tp, fp, fn = compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
+        prec, rec, f1 = compute_precision_recall_f1(tp, fp, fn)
+        if year == 0:
+            print(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
 
 
 if __name__ == "__main__":
@@ -110,25 +121,12 @@ if __name__ == "__main__":
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/ir/deepfigures-results/model_checkpoints/377268_arxiv_2020-06-14_01-23-25/figure_boundaries_hidden_set_508701.json"
 
     with open('/tmp/output.log', mode='w') as log_file:
-        # fig_bound_path_list = glob.glob(
-        #     "/home/sampanna/deepfigures-results/weights/fig*")
         fig_bound_path_list = [
             '/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_testing.json',
             '/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_validation.json']
         for path in fig_bound_path_list:
             if '_2_' in path:
                 continue
-            # log_file.write(path)
-            # log_file.write("\n")
             print(path)
             annos = json.load(open(path))
-            annos = get_list_of_annos_to_be_included(annos, run_for_set)
-            annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
-            annos_year_wise[0000] = annos
-            for year, annos_for_year in annos_year_wise.items():
-                _mean_iou, tp, fp, fn = compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
-                prec, rec, f1 = compute_precision_recall_f1(tp, fp, fn)
-                if year == 0:
-                    print(year, (_mean_iou, tp, fp, fn, prec, rec, f1))
-                # log_file.write(str(year) + ' ' + str((_mean_iou, tp, fp, fn, prec, rec, f1)))
-                # log_file.write("\n")
+            compute_metrics_for_annos(annos, gold_standard_dir, run_for_set)

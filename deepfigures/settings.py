@@ -139,7 +139,7 @@ LOCAL_PUBMED_DISTANT_DATA_DIR = ''
 seq = iaa.Sequential([
     iaa.Affine(rotate=(-5, 5)),
     iaa.AdditiveGaussianNoise(scale=(10, 60)),
-    iaa.SaltAndPepper(0.1),
+    iaa.SaltAndPepper(p=0.1),
     iaa.GaussianBlur(sigma=0.5),
     iaa.LinearContrast(alpha=1),
     iaa.PerspectiveTransform(scale=0.025, keep_size=True)

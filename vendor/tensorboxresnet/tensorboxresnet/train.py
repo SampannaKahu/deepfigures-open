@@ -491,8 +491,10 @@ def build(H, q):
 
         if phase == 'train':
             global_step = tf.Variable(0, trainable=False)
-
-            tvars = tf.trainable_variables()
+            if H.get('train_only_overfeat', False):
+                tvars = tf.trainable_variables(scope='decoder')
+            else:
+                tvars = tf.trainable_variables()
             if H['clip_norm'] <= 0:
                 grads = tf.gradients(loss['train'], tvars)
             else:
@@ -761,8 +763,9 @@ def train(H: dict):
             # enqueue once manually to avoid thread start delay
             augmentation_transforms = build_augmentation_pipeline(H, phase)
             logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
-            gen = train_utils.load_data_gen(
-                H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
+            gen = train_utils.load_data_gen_gold(
+                H, phase, num_epochs=H['data']['epochs'], jitter=H['solver']['use_jitter'],
+                augmentation_transforms=augmentation_transforms
             )
             d = next(gen)
             sess.run(enqueue_op[phase], feed_dict=make_feed(d))
@@ -771,12 +774,13 @@ def train(H: dict):
             )
             t.daemon = True
             t.start()
-        hidden_x_in = tf.placeholder(
-            tf.float32, name='hidden_x_in', shape=[H['image_height'], H['image_width'], H['image_channels']]
-        )
-        assert (H['use_rezoom'])
-        hidden_pred_boxes, hidden_pred_logits, hidden_pred_confidences, hidden_pred_confs_deltas, hidden_pred_boxes_deltas = \
-            build_forward(H, tf.expand_dims(hidden_x_in, 0), 'hidden', reuse=True)
+        if H['run_hidden_eval']:
+            hidden_x_in = tf.placeholder(
+                tf.float32, name='hidden_x_in', shape=[H['image_height'], H['image_width'], H['image_channels']]
+            )
+            assert (H['use_rezoom'])
+            hidden_pred_boxes, hidden_pred_logits, hidden_pred_confidences, hidden_pred_confs_deltas, hidden_pred_boxes_deltas = \
+                build_forward(H, tf.expand_dims(hidden_x_in, 0), 'hidden', reuse=True)
 
         tf.set_random_seed(H['solver']['rnd_seed'])
         sess.run(tf.global_variables_initializer())
@@ -858,19 +862,21 @@ def train(H: dict):
                     )
                 )
 
-                logger.info("Running detections against hidden set. Global step: {}".format(global_step.eval()))
-                processed_annos = run_hidden_set_on_session(H, global_step, hidden_pred_boxes, hidden_pred_confidences,
-                                                            hidden_x_in, sess, save_image=False, early_stop=False)
-                processed_annos_val, processed_annos_test = split_annos_val_test(H, processed_annos)
-                logger.info("Evaluating val detection results.")
-                year_to_eval_result_map_val = eval_hidden_set_detection_result(H, processed_annos_val)
-                logger.info("Evaluating test detection results.")
-                year_to_eval_result_map_test = eval_hidden_set_detection_result(H, processed_annos_test)
-                # if year_to_eval_result_map_val[0000]['f1'] > 0.50:
-                #     logger.info("Checkpoint f1 score reached. Updating the original learning rate to: 0.0002")
-                #     H['solver']['learning_rate'] = 0.0002
+                if H['run_hidden_eval']:
+                    logger.info("Running detections against hidden set. Global step: {}".format(global_step.eval()))
+                    processed_annos = run_hidden_set_on_session(H, global_step, hidden_pred_boxes,
+                                                                hidden_pred_confidences,
+                                                                hidden_x_in, sess, save_image=False, early_stop=False)
+                    processed_annos_val, processed_annos_test = split_annos_val_test(H, processed_annos)
+                    logger.info("Evaluating val detection results.")
+                    year_to_eval_result_map_val = eval_hidden_set_detection_result(H, processed_annos_val)
+                    logger.info("Evaluating test detection results.")
+                    year_to_eval_result_map_test = eval_hidden_set_detection_result(H, processed_annos_test)
+                    # if year_to_eval_result_map_val[0000]['f1'] > 0.50:
+                    #     logger.info("Checkpoint f1 score reached. Updating the original learning rate to: 0.0002")
+                    #     H['solver']['learning_rate'] = 0.0002
 
-                if i <= 15000:
+                if H['rapid_checkpoint'] and i <= 15000:
                     logger.info(
                         "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
                     saver.save(sess, ckpt_file, global_step=global_step)
