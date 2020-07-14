@@ -25,10 +25,9 @@ def convert_coco_to_yolov5(coco_images_dir: str, coco_json_anno_path: str, _outp
     os.makedirs(_output_labels_dir)
     figure_boundaries_validation_json = json.load(open(coco_json_anno_path))
     for anno in figure_boundaries_validation_json:
-        shutil.move(os.path.join(coco_images_dir, anno['image_path']),
-                    os.path.join(_output_images_dir, anno['image_path']))
-        im = Image.open(os.path.join(_output_images_dir, anno['image_path']))
-        width, height = im.size
+        _img_dst = shutil.copy2(os.path.join(coco_images_dir, anno['image_path']),
+                                os.path.join(_output_images_dir, anno['image_path']))
+        width, height = Image.open(_img_dst).size
         rects = [yolov5_anno_util.coco_dict_to_yolov5_line(rect, width, height) for rect in anno['rects']]
         if rects:
             anno_path = os.path.join(_output_labels_dir, anno['image_path'].split('.png')[0] + '.txt')
