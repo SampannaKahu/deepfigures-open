@@ -491,8 +491,10 @@ def build(H, q):
 
         if phase == 'train':
             global_step = tf.Variable(0, trainable=False)
-
-            tvars = tf.trainable_variables(scope='decoder')
+            if H.get('train_only_overfeat', False):
+                tvars = tf.trainable_variables(scope='decoder')
+            else:
+                tvars = tf.trainable_variables()
             if H['clip_norm'] <= 0:
                 grads = tf.gradients(loss['train'], tvars)
             else:

@@ -17,7 +17,7 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=train_on_gold
+EXPERIMENT_NAME=train_on_gold_only_overfeat_layers_training_hidden_testing_enabled
 CONDA_ENV=deepfigures_3
 
 current_timestamp() {
@@ -76,7 +76,7 @@ else
 fi
 
 WEIGHTS_PATH=$DEEPFIGURES_RESULTS/weights/save.ckpt-500000
-HYPES_PATH=$SOURCE_CODE/hpc/jobs/train_on_gold/sample_hypes.json
+HYPES_PATH=$SOURCE_CODE/hpc/jobs/train_on_gold/overfeat_layers/sample_hypes.json
 MAX_ITER=10000000
 LOG_DIR=$DEEPFIGURES_RESULTS/model_checkpoints
 DATASET_DIR=$DEEPFIGURES_RESULTS/gold_standard_dataset
