@@ -57,4 +57,4 @@ if __name__ == "__main__":
     _coco_images_dir = '/work/cascades/sampanna/deepfigures-results/gold_standard_dataset/images'
     _coco_anno_path = '/work/cascades/sampanna/deepfigures-results/gold_standard_dataset/figure_boundaries.json'
     shutil.rmtree(output_dir, ignore_errors=True)
-    coco_to_yolov5_k_fold(K, "./output", _coco_images_dir, _coco_anno_path)
+    coco_to_yolov5_k_fold(K, output_dir, _coco_images_dir, _coco_anno_path)
