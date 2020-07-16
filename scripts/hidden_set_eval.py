@@ -56,8 +56,8 @@ def compute_mean_iou_for_annos(annos: list, iou_thresh: float) -> Tuple[float, i
     return sum(ious) / len(ious), tp, fp, fn
 
 
-def split_annos_year_wise(annos: list, gold_standard_dir: str) -> dict:
-    metadata = json.load(open(os.path.join(gold_standard_dir, 'metadata.json')))
+def split_annos_year_wise(annos: list, metadata_json_path: str) -> dict:
+    metadata = json.load(open(metadata_json_path))
     year_to_anno_list_dict = {}
     for anno in annos:
         if 'etd_for_gold_standard_dataset_2' in anno['image_path']:
@@ -90,18 +90,18 @@ def compute_precision_recall_f1(tp: int, fp: int, fn: int) -> Tuple[float, float
     return precision, recall, f1
 
 
-def get_list_of_annos_to_be_included(annos: list, gold_standard_dir: str, run_for_set: str):
-    if not run_for_set:
-        return annos
-
-    include_annos = json.load(open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format(run_for_set))))
+def get_list_of_annos_to_be_included(annos: list, include_annos: list):
     include_image_names = set([anno['image_path'] for anno in include_annos])
     return [anno for anno in annos if anno['image_path'] in include_image_names]
 
 
-def compute_metrics_for_annos(annos, gold_standard_dir: str, run_for_set: str):
-    annos = get_list_of_annos_to_be_included(annos, gold_standard_dir, run_for_set)
-    annos_year_wise = split_annos_year_wise(annos, gold_standard_dir)
+def compute_metrics_for_anno_set(annos, metadata_json_path: str, filter_annos: list):
+    annos = get_list_of_annos_to_be_included(annos, filter_annos)
+    compute_metrics_for_annos(annos, metadata_json_path)
+
+
+def compute_metrics_for_annos(annos: list, metadata_json_path: str):
+    annos_year_wise = split_annos_year_wise(annos, metadata_json_path)
     annos_year_wise[0000] = annos
     for year, annos_for_year in annos_year_wise.items():
         _mean_iou, tp, fp, fn = compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=0.8)
@@ -113,6 +113,7 @@ def compute_metrics_for_annos(annos, gold_standard_dir: str, run_for_set: str):
 if __name__ == "__main__":
     gold_standard_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/gold_standard_dataset'
     run_for_set = 'validation'  # can be either 'validation', 'testing' or None. If None, all annos will be used.
+    metadata_json_path = os.path.join(gold_standard_dir, 'metadata.json')
 
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/model_checkpoints/377266_arxiv_2020-06-02_22-48-45/figure_boundaries_hidden_set_501101.json"
     # path_to_figure_boundaries_with_hidden_detection_file = "/home/sampanna/workspace/bdts2/deepfigures-results/weights/figure_boundaries_hidden_set_2_500000.json"
@@ -129,4 +130,7 @@ if __name__ == "__main__":
                 continue
             print(path)
             annos = json.load(open(path))
-            compute_metrics_for_annos(annos, gold_standard_dir, run_for_set)
+            filter_annos = json.load(
+                open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format(
+                    run_for_set))))  # Metrics will be computed only for the annos in annos which are also in this list.
+            compute_metrics_for_anno_set(annos, metadata_json_path, filter_annos)
