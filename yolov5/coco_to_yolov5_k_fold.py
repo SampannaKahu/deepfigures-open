@@ -62,7 +62,7 @@ def coco_to_yolov5_k_fold(k: int, output_dir: str, coco_images_dir: str, coco_an
 
 
 if __name__ == "__main__":
-    K = 10
+    K = 8
     output_dir = '/work/cascades/sampanna/yolov5/gold_standard_k_fold'
     _coco_images_dir = '/work/cascades/sampanna/deepfigures-results/gold_standard_dataset/images'
     _coco_anno_path = '/work/cascades/sampanna/deepfigures-results/gold_standard_dataset/figure_boundaries.json'
