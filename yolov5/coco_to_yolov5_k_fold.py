@@ -13,6 +13,16 @@ logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
 
+def chunk_list(seq, num):
+    avg = len(seq) / float(num)
+    out = []
+    last = 0.0
+    while last < len(seq):
+        out.append(seq[int(last):int(last + avg)])
+        last += avg
+    return out
+
+
 def get_annos_for_fold(fold: int, anno_folds: list) -> Tuple[List, List]:
     _val_annos = copy.deepcopy(anno_folds[fold])
     _train_annos = []
@@ -40,7 +50,7 @@ def process_fold(fold, anno_folds, coco_images_dir, output_dir):
 
 def coco_to_yolov5_k_fold(k: int, output_dir: str, coco_images_dir: str, coco_anno_path: str):
     coco_annos = json.load(open(coco_anno_path))
-    anno_folds = [coco_annos[i * k:(i + 1) * k] for i in range((len(coco_annos) + k - 1) // k)]
+    anno_folds = chunk_list(coco_annos, k)
     print("Anno folds created.")
     os.makedirs(output_dir)
     print("Output directory created: {}".format(output_dir))
