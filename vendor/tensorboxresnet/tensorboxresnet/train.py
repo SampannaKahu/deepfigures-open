@@ -763,10 +763,8 @@ def train(H: dict):
             # enqueue once manually to avoid thread start delay
             augmentation_transforms = build_augmentation_pipeline(H, phase)
             logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
-            gen = train_utils.load_data_gen_gold(
-                H, phase, num_epochs=H['data']['epochs'], jitter=H['solver']['use_jitter'],
-                augmentation_transforms=augmentation_transforms
-            )
+            gen = train_utils.load_data_gen(H, phase, jitter=H['solver']['use_jitter'],
+                                            augmentation_transforms=augmentation_transforms)
             d = next(gen)
             sess.run(enqueue_op[phase], feed_dict=make_feed(d))
             t = threading.Thread(

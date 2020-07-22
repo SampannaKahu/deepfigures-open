@@ -17,7 +17,7 @@
 #SBATCH -p v100_normal_q
 #SBATCH -A waingram_lab
 
-EXPERIMENT_NAME=377269_0_to_4_arxiv_ablation_all_transformations_enabled
+EXPERIMENT_NAME=377269_0_to_4_arxiv_ablation_all_transformations_enabled_delete_this
 CONDA_ENV=deepfigures_3
 
 current_timestamp() {
