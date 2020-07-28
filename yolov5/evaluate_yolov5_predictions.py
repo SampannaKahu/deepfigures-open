@@ -12,11 +12,13 @@ logger.setLevel(logging.DEBUG)
 
 
 def evaluate_yolov5_predictions_for_set(_gold_standard_dir: str, _predictions_output_dir,
-                                        metadata_json_path: str, filter_anno_path: str):
+                                        metadata_json_path: str, filter_anno_path: str,
+                                        predictions_file_suffix: str = ""):
     annos = json.load(open(os.path.join(_gold_standard_dir, 'figure_boundaries.json')))
     for anno in annos:
         image_path = anno['image_path']
-        if os.path.isfile(os.path.join(_predictions_output_dir, image_path.split(".png")[0] + '.txt')):
+        if os.path.isfile(
+                os.path.join(_predictions_output_dir, image_path.split(".png")[0] + predictions_file_suffix + '.txt')):
             width, height = Image.open(os.path.join(_gold_standard_dir, 'images', image_path)).size
             with open(os.path.join(_predictions_output_dir, image_path.split(".png")[0] + '.txt')) as pred_fp:
                 lines = pred_fp.readlines()
