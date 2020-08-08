@@ -3,6 +3,7 @@ import glob
 import util
 import logging
 import tempfile
+import argparse
 from deepfigures.utils import settings_utils
 from deepfigures import settings
 from multiprocessing import Pool, cpu_count
@@ -43,7 +44,15 @@ def convert_pdf_paths_to_images(input_dir, output_dir, temp, cpu_count=cpu_count
 
 
 if __name__ == "__main__":
-    temp = '/work/cascades/sampanna/moco/temp'
-    output_dir = '/work/cascades/sampanna/moco/scanned_etd_dataset'
-    input_dir = '/work/cascades/sampanna/ir_backup/mit_etd_data/data/etds'
-    convert_pdf_paths_to_images(input_dir, output_dir, temp, cpu_count=cpu_count(), max_pages=1000)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_dir', default='/work/cascades/sampanna/ir_backup/mit_etd_data/data/etds', type=str)
+    parser.add_argument('--output_dir', default='/work/cascades/sampanna/moco/scanned_etd_dataset', type=str)
+    parser.add_argument('--temp', default='/work/cascades/sampanna/moco/temp', type=str)
+    parser.add_argument('--cpu_count', type=int, default=cpu_count())
+    parser.add_argument('--max_pages', type=int, default=1000)
+    args = parser.parse_args()
+    convert_pdf_paths_to_images(input_dir=args.input_dir,
+                                output_dir=args.output_dir,
+                                temp=args.temp,
+                                cpu_count=args.cpu_count,
+                                max_pages=args.max_pages)
