@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - master
-      - adding_some_documentation 
+      - adding_some_documentation
   pull_request:
     branches: [ master ]
 
@@ -17,19 +17,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Conda Python 3.6
-      uses: s-weigand/setup-conda@v1
-      with:
-        python-version: 3.6
-        activate-conda: true
-        conda-channels: anaconda, conda-forge
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt --no-cache-dir; fi
-        python setup.py install
-        cd vendor/tensorboxresnet && python setup.py install && cd ../..
-    - name: Check tensorboxresnet
-      run: python -c "import tensorboxresnet; print(tensorboxresnet.__path__)"
-
+      - uses: actions/checkout@v2
+      - name: Set up Conda Python 3.6
+        uses: s-weigand/setup-conda@v1
+        with:
+          python-version: 3.6
+          activate-conda: true
+          conda-channels: anaconda, conda-forge
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt --no-cache-dir; fi
+          python setup.py install
+          cd vendor/tensorboxresnet && python setup.py install && cd ../..
+      - name: Check python
+        run: which python
+      - name: Check deepfigures
+        run: python -c "import deepfigures; print(deepfigures.__path__)"
+      - name: Check tensorboxresnet
+        run: python -c "import tensorboxresnet; print(tensorboxresnet.__path__)"
