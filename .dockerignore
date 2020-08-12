@@ -17,3 +17,11 @@
 !figure_boundaries_train_test_split.py
 !hypes.json
 !yolov3
+!gold_standard
+!hpc
+!models
+!my_tests
+!tfds_trial
+!yolov5
+!coco_to_figure_boundaries.py
+!draw_boxes_on_results.py
