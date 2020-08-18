@@ -34,7 +34,7 @@ def pdffilename_to_handle(filename: str) -> str:
 
 
 def convert_pdf_to_images(_pdf_path, _output_dir, _pdf_renderer, _temp_dir, max_pages=500):
-    logger.info("Converting {pdf}.".format(pdf=_pdf_path))
+    # logger.info("Converting {pdf}.".format(pdf=_pdf_path))
     with tempfile.TemporaryDirectory(dir=_temp_dir) as td:
         image_paths = _pdf_renderer.render(
             pdf_path=_pdf_path,
@@ -45,10 +45,9 @@ def convert_pdf_to_images(_pdf_path, _output_dir, _pdf_renderer, _temp_dir, max_
         )
         for image_path in image_paths:
             dest_image_path = os.path.join(_output_dir, os.path.basename(image_path))
-            logger.info("Moving {src} to {dest}".format(src=image_path, dest=dest_image_path))
-            # os.rename(image_path, dest_image_path)
+            # logger.info("Moving {src} to {dest}".format(src=image_path, dest=dest_image_path))
             shutil.move(image_path, dest_image_path)
-            logger.info("Moved {src} to {dest}".format(src=image_path, dest=dest_image_path))
+            # logger.info("Moved {src} to {dest}".format(src=image_path, dest=dest_image_path))
 
 
 def filename_to_handle(filename: str) -> str:

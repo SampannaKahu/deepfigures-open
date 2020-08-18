@@ -5,8 +5,8 @@ import pandas as pd
 from tqdm import tqdm
 from time import sleep
 from lxml import html, etree
-from dataset.renderers import GhostScriptRenderer
-from dataset.util import invoke, pdffilename_to_handle, convert_pdf_to_images, combine_metadata_files
+from renderers import GhostScriptRenderer
+from util import invoke, pdffilename_to_handle, convert_pdf_to_images, combine_metadata_files
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(os.path.basename(__file__))
@@ -35,11 +35,11 @@ class EtdDownloader(object):
 
     def download(self) -> None:
         if os.path.exists(self.pdf_save_path) or os.path.exists(self.metadata_save_path):
-            logger.info("Skipping already downloaded etd {}.".format(self.handle))
+            # logger.info("Skipping already downloaded etd {}.".format(self.handle))
             return
         page = invoke("https://dspace.mit.edu/handle/" + self.handle + "?show=full")
         while page.status_code >= 400:
-            logger.error("Http call failed. Code: {}. Sleeping for {} secs.".format(page.status_code, 5))
+            # logger.error("Http call failed. Code: {}. Sleeping for {} secs.".format(page.status_code, 5))
             sleep(5)
             page = invoke("https://dspace.mit.edu/handle/" + self.handle + "?show=full")
         tree = html.fromstring(page.content)
@@ -51,7 +51,7 @@ class EtdDownloader(object):
         download_url = "https://dspace.mit.edu" + download_link_element[0].attrib['href']
         response = invoke(download_url)
         while response.status_code >= 400:
-            logger.error("Http call failed. Code: {}. Sleeping for {} secs.".format(response.status_code, 5))
+            # logger.error("Http call failed. Code: {}. Sleeping for {} secs.".format(response.status_code, 5))
             sleep(5)
             response = invoke("https://dspace.mit.edu/handle/" + self.handle + "?show=full")
         with open(save_path, mode='wb') as save_file:
@@ -86,5 +86,5 @@ if __name__ == "__main__":
 
     # Convert PDF files into images of pages.
     _pdf_renderer = GhostScriptRenderer()
-    for pdf_path in pdf_paths:
+    for pdf_path in tqdm(pdf_paths, desc="Converting PDF files to page images"):
         convert_pdf_to_images(pdf_path, "images", _pdf_renderer, _temp_dir="/tmp", max_pages=500)
