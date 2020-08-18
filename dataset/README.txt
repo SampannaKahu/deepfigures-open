@@ -1,5 +1,5 @@
 Steps to run:
-1. Install the dependencies listed in requirements.txt
+1. Install the dependencies. (requirements.txt or environment.yaml)
 2. Install ghostscript on your system. Test if it is installed using 'gs --version'. This code was tested for gs 9.50.
 3. Run download_etds.py. The script should take a few minutes to execute depending on the system performance and network download speed.
 
