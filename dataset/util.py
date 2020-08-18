@@ -1,3 +1,10 @@
+"""
+Author: Sampanna Kahu
+
+This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License
+License: http://creativecommons.org/licenses/by-nc-sa/4.0
+"""
+
 import os
 import json
 import shutil

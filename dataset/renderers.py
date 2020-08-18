@@ -1,12 +1,12 @@
 """
 PDF Rendering engines for deepfigures.
 
-Code from:
+Source of this code:
 Noah Siegel, Nicholas Lourie, Russell Power, and Waleed Ammar.
 Extracting Scientific Figures with Distantly Supervised Neural Networks.
 CoRR, abs/1804.02445, 2018. URL http://arxiv.org/abs/1804.02445.
 
-Github:
+Github source link:
 https://github.com/allenai/deepfigures-open/blob/master/deepfigures/extraction/renderers.py
 
 """
