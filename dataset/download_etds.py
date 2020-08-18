@@ -85,6 +85,8 @@ if __name__ == "__main__":
     combine_metadata_files(metadata_files_paths, 'metadata.json')
 
     # Convert PDF files into images of pages.
+    images_dir = "images"
+    os.makedirs(images_dir, exist_ok=True)
     _pdf_renderer = GhostScriptRenderer()
     for pdf_path in tqdm(pdf_paths, desc="Converting PDF files to page images"):
-        convert_pdf_to_images(pdf_path, "images", _pdf_renderer, _temp_dir="/tmp", max_pages=500)
+        convert_pdf_to_images(pdf_path, images_dir, _pdf_renderer, _temp_dir="/tmp", max_pages=500)
