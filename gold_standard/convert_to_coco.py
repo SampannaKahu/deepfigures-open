@@ -96,7 +96,7 @@ annotation_id = 1
 for image_name in image_name_to_row_list_dict:
     image_path = os.path.join(images_dir, image_name)
     img = Image.open(image_path)
-    image_json = build_image(image_path=image_name, image_id=image_id, height=img.size[0], width=img.size[1])
+    image_json = build_image(image_path=image_name, image_id=image_id, height=img.size[1], width=img.size[0])
     dataset['images'].append(image_json)
     row_list = image_name_to_row_list_dict[image_name]
     for row in row_list:
