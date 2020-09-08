@@ -11,6 +11,7 @@ from PIL import Image
 from multiprocessing import Pool
 from coco_to_figure_boundaries import coco_to_fig_boundaries
 from figure_boundaries_train_test_split import split_train_test
+from gold_standard.convert_VIA_to_coco import build_image, build_annotation
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     filename=os.path.basename(__file__).split('.')[0] + '.log')
@@ -27,67 +28,6 @@ figure_boundaries_train_save_path = os.path.join(dataset_dir, 'figure_boundaries
 figure_boundaries_test_save_path = os.path.join(dataset_dir, 'figure_boundaries_test.json')
 test_split_percent = 20
 tmp_extract_dir = os.path.join(dataset_dir, 'tmp')
-
-
-def build_annotation(bb, annotation_id: int, image_id: int, category_id: int):
-    """
-    Sample annotation:
-    {
-        "segmentation": [
-          [510.66,423.01,511.72,420.03,510.45,416,510.45,423.01]
-        ],
-        "area": 702.1057499999998,
-        "iscrowd": 0,
-        "image_id": 289343,
-        "bbox": [
-          473.07,
-          395.93,
-          38.65,
-          28.67
-        ],
-        "category_id": 18,
-        "id": 1768
-    }
-    """
-    x1, y1, x2, y2 = bb[1].item(), bb[3].item(), bb[2].item(), bb[4].item()
-    top_left = (x1, y1)
-    width = x2 - x1
-    height = y2 - y1
-    return {
-        "id": annotation_id,
-        "image_id": image_id,
-        "category_id": category_id,
-        "segmentation": [[x1, y1, x2, y1, x2, y2, x1, y2]],
-        "area": width * height,
-        "bbox": [top_left[0], top_left[1], width, height],
-        "iscrowd": 0
-    }
-
-
-def build_image(image_path: str, image_id: int, height: int, width: int):
-    """
-    Sample image:
-    {
-        "license": 4,
-        "file_name": "000000397133.jpg",
-        "coco_url": "http://images.cocodataset.org/val2017/000000397133.jpg",
-        "height": 427,
-        "width": 640,
-        "date_captured": "2013-11-14 17:02:52",
-        "flickr_url": "http://farm7.staticflickr.com/6116/6255196340_da26cf2c9e_z.jpg",
-        "id": 397133
-    }
-    """
-    return {
-        "license": 2,  # TODO: Confirm this.
-        "file_name": os.path.basename(image_path),
-        "coco_url": "",
-        "height": height,
-        "width": width,
-        "date_captured": "2020-05-20 01:00:00",
-        "flickr_url": "",
-        "id": image_id
-    }
 
 
 def unzip_zip_file(zip_file_path: str, extract_dir: str = tmp_extract_dir) -> typing.Tuple[
@@ -156,7 +96,9 @@ for batch in batches:
 
         tensor = torch.load(pt_path)
         for bb in tensor:
-            annotation_json = build_annotation(bb=bb, annotation_id=current_annotation_id, image_id=current_image_id,
+            annotation_json = build_annotation(x1=bb[1].item(), y1=bb[3].item(), height=bb[4].item() - bb[3].item(),
+                                               width=bb[2].item() - bb[1].item(), annotation_id=current_annotation_id,
+                                               image_id=current_image_id,
                                                category_id=1)
             dataset['annotations'].append(annotation_json)
             current_annotation_id = current_annotation_id + 1
