@@ -2,6 +2,7 @@ import os
 import csv
 import json
 import logging
+import argparse
 
 from PIL import Image
 
@@ -114,10 +115,20 @@ def create_annotations_for_image_names(image_names: list, _image_name_to_row_lis
 if __name__ == "__main__":
     dataset_dir = '/home/sampanna/gold_standard_generation/final_gold_standard_dataset'
     annotations_csv_file = '/home/sampanna/gold_standard_generation/final_gold_standard_dataset/annotations.csv'
-    images_dir = os.path.join(dataset_dir, 'images')
-    image_name_to_row_list_dict = get_image_name_to_row_list_dict(_annotations_csv_file=annotations_csv_file)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset_dir', default=dataset_dir, type=str)
+    parser.add_argument('--annotations_csv_file', default=annotations_csv_file, type=str)
+    parser.add_argument('--images_dir', default=os.path.join(dataset_dir, 'images'), type=str)
+    parser.add_argument('--coco_dataset_template_path',
+                        default='/home/sampanna/workspace/bdts2/deepfigures-open/hpc/post_process/coco_dataset_template.json',
+                        type=str)
+    args = parser.parse_args()
+
+    image_name_to_row_list_dict = get_image_name_to_row_list_dict(_annotations_csv_file=args.annotations_csv_file)
     image_names = list(image_name_to_row_list_dict.keys())
     create_annotations_for_image_names(image_names=image_names,
                                        _image_name_to_row_list_dict=image_name_to_row_list_dict,
-                                       _images_dir=images_dir,
-                                       _output_json_path=os.path.join(dataset_dir, 'annotations.json'))
+                                       _images_dir=args.images_dir,
+                                       _output_json_path=os.path.join(args.dataset_dir, 'annotations.json'),
+                                       _coco_dataset_template_path=args.coco_dataset_template_path)

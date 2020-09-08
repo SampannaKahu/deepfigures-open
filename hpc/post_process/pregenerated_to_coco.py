@@ -7,6 +7,7 @@ import logging
 import torch
 import json
 import typing
+import argparse
 from PIL import Image
 from multiprocessing import Pool
 from functools import partial
@@ -116,19 +117,33 @@ def convert_pregenerated_annotations_to_coco(_annotation_save_path: str,
 
 
 if __name__ == "__main__":
-    job_output_directory = '/home/sampanna/workspace/bdts2/deepfigures-results/pregenerated_training_data/377269'
     dataset_dir = '/home/sampanna/workspace/bdts2/deepfigures-results/arxiv_coco_dataset'
-    image_save_dir = os.path.join(dataset_dir, 'images')
-    annotation_save_path = os.path.join(dataset_dir, 'annotations.json')
-    tmp_extract_dir = os.path.join(dataset_dir, 'tmp')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset_dir', default=dataset_dir, type=str)
+    parser.add_argument('--annotation_save_path', default=os.path.join(dataset_dir, 'annotations.json'), type=str)
+    parser.add_argument('--image_save_dir', type=int, default=os.path.join(dataset_dir, 'images'))
+    parser.add_argument('--tmp_extract_dir', type=int, default=os.path.join(dataset_dir, 'tmp'))
+    parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--pool_size', type=int, default=8)
+    parser.add_argument('--job_output_directory',
+                        default='/home/sampanna/workspace/bdts2/deepfigures-results/pregenerated_training_data/377269',
+                        type=str)
+    parser.add_argument('--coco_dataset_template_path',
+                        default='/home/sampanna/workspace/bdts2/deepfigures-open/hpc/post_process/coco_dataset_template.json',
+                        type=str)
+    args = parser.parse_args()
 
     # Clean-up and make any directories necessary to run the job.
-    _setup_directories(_dataset_dir=dataset_dir,
-                       _image_save_dir=image_save_dir,
-                       _tmp_extract_dir=tmp_extract_dir)
+    _setup_directories(_dataset_dir=args.dataset_dir,
+                       _image_save_dir=args.image_save_dir,
+                       _tmp_extract_dir=args.tmp_extract_dir)
 
     # Start the conversion.
-    convert_pregenerated_annotations_to_coco(_annotation_save_path=annotation_save_path,
-                                             _job_output_directory=job_output_directory,
-                                             _tmp_extract_dir=tmp_extract_dir,
-                                             _image_save_dir=image_save_dir)
+    convert_pregenerated_annotations_to_coco(_annotation_save_path=args.annotation_save_path,
+                                             _job_output_directory=args.job_output_directory,
+                                             _tmp_extract_dir=args.tmp_extract_dir,
+                                             _image_save_dir=args.image_save_dir,
+                                             _batch_size=args.batch_size,
+                                             _pool_size=args.pool_size,
+                                             _coco_dataset_template_path=args.coco_dataset_template_path)

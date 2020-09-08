@@ -91,4 +91,5 @@ wcwidth==0.1.9
 Werkzeug==1.0.1
 youtube-dl==2020.1.24
 zipp==3.1.0
-
+funcy==1.14
+scikit-learn==0.23.2
