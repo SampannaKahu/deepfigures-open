@@ -23,15 +23,16 @@ setup(
     setup_requires=['Cython'],
     ext_modules=[
         Extension(
-            'tensorboxresnet.utils.stitch_wrapper',
-            [
+            name='tensorboxresnet.utils.stitch_wrapper',
+            sources=[
                 './tensorboxresnet/utils/stitch_wrapper.pyx',
                 './tensorboxresnet/utils/stitch_rects.cpp',
                 './tensorboxresnet/utils/hungarian/hungarian.cpp'
             ],
             language='c++',
             extra_compile_args=[
-                                   '-std=c++11', '-Itensorbox/utils',
+                                   '-std=c++11',
+                                   '-Itensorbox/utils',
                                    '-I%s' % tf_include
                                ] + extra_defs,
         )
