@@ -108,7 +108,7 @@ def main(argv):
         displayname = filename
         if (options.ncomponents > 0):
             suffix = None
-            for idx in xrange(options.ncomponents):
+            for idx in range(options.ncomponents):
                 displayname, last = os.path.split(displayname)
                 if (suffix):
                     suffix = os.path.join(last, suffix)
@@ -116,12 +116,12 @@ def main(argv):
                     suffix = last
             displayname = suffix
         if (options.cutcomponents > 0):
-            for idx in xrange(options.cutcomponents):
+            for idx in range(options.cutcomponents):
                 displayname, last = os.path.split(displayname)
 
-#		plusidx = displayname.index("+")
-#		displayname = displayname[plusidx:]
-        print "Plotting: " + displayname
+        #		plusidx = displayname.index("+")
+        #		displayname = displayname[plusidx:]
+        print("Plotting: " + displayname)
         if (options.fppw):
             plotter.plotFPPW(filename, displayname)
         elif (options.lfppi):
@@ -141,6 +141,7 @@ def main(argv):
     else:
         plotter.saveCurrentFigure(plotLine, options.output)
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

@@ -27,9 +27,9 @@ else:
 random.seed(0)
 np.random.seed(0)
 
-from tensorboxresnet.utils import tf_concat
-from tensorboxresnet.utils import train_utils
-from tensorboxresnet.utils import googlenet_load
+from vendor.tensorboxresnet.tensorboxresnet.utils import tf_concat
+from vendor.tensorboxresnet.tensorboxresnet.utils import train_utils
+from vendor.tensorboxresnet.tensorboxresnet.utils import googlenet_load
 
 logger: logging.Logger = None
 

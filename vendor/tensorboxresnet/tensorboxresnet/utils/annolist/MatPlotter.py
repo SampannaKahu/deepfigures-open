@@ -2,6 +2,7 @@ import os
 import sys
 import string
 import matplotlib
+
 matplotlib.use('Agg')
 from pylab import *
 import numpy as np
@@ -26,11 +27,11 @@ class MatPlotter:
         self.fontsizeLegend = fontsize - 1
 
     def formatLegend(
-        self,
-        newFontSize=14,
-        newPlace='lower right',
-        borderpad=None,
-        labelsep=None
+            self,
+            newFontSize=14,
+            newPlace='lower right',
+            borderpad=None,
+            labelsep=None
     ):
         self.fontsizeLegend = newFontSize
         self.legendPlace = newPlace
@@ -43,10 +44,10 @@ class MatPlotter:
     def newRPCFigure(self, plotTitle="", fsize=rcParams['figure.figsize']):
         curFigure = figure(figsize=fsize)
         self.title = title(plotTitle, fontsize=self.fontsize)
-        #subplots_adjust(left=0.085, right=0.975, top=0.975, bottom=0.085)
+        # subplots_adjust(left=0.085, right=0.975, top=0.975, bottom=0.085)
         subplots_adjust(right=0.975, top=0.975)
 
-        #axis('equal')
+        # axis('equal')
         axis([0, 1, 0, 1])
         xticklocs, xticklabels = xticks(arange(0, 1.01, 0.1))
         setp(xticklabels, size=self.fontsize)
@@ -64,7 +65,7 @@ class MatPlotter:
         self.title = title(plotTitle, fontsize=self.fontsize)
         subplots_adjust(left=0.085, right=0.975, top=0.975, bottom=0.085)
 
-        #axis('equal')
+        # axis('equal')
         axis([0, 100, 0, 1])
         xticklocs, xticklabels = xticks(arange(0, 100.01, 0.5))
         setp(xticklabels, size=self.fontsize)
@@ -78,12 +79,12 @@ class MatPlotter:
         hold(True)
 
     def newFreqFigure(
-        self, plotTitle="", maxX=10, maxY=10, fsize=rcParams['figure.figsize']
+            self, plotTitle="", maxX=10, maxY=10, fsize=rcParams['figure.figsize']
     ):
         curFigure = figure(figsize=fsize)
         self.title = title(plotTitle, fontsize=self.fontsize)
         subplots_adjust(left=0.085, right=0.975, top=0.975, bottom=0.1)
-        #axis('equal')
+        # axis('equal')
 
         axis([0, maxX, 0, maxY])
         xticklocs, xticklabels = xticks(
@@ -119,7 +120,7 @@ class MatPlotter:
         self.title = title(plotTitle, fontsize=self.fontsize)
         subplots_adjust(left=0.085, right=0.975, top=0.975, bottom=0.1)
 
-        #axis('equal')
+        # axis('equal')
 
         self.xlabel = xlabel("false positives per image")
         self.xlabel.set_size(self.fontsize + 2)
@@ -157,8 +158,8 @@ class MatPlotter:
 
         for line in file.readlines():
             vals = line.split()
-            #vals=line.split(" ")
-            #for val in vals:
+            # vals=line.split(" ")
+            # for val in vals:
             #       if val=="":
             #               vals.remove(val)
             self.prec.append(1 - float(vals[0]))
@@ -176,17 +177,17 @@ class MatPlotter:
                     lowest_fppi = math.ceil(
                         math.log(float(vals[3])) / math.log(10) * 10
                     )
-                    print "lowest_fppi: ", lowest_fppi
+                    print("lowest_fppi: ", lowest_fppi)
 
                     # MA: temporarily commented out
                     # for i in range(lowest_fppi, 1, 1):
                     #       logAvMR.append(10** (i * 1.0 / 10))
 
-                #self.score.append(float(vals[2][:-1]))
-                #print 1-self.prec[-1], self.rec[-1], self.score[-1]
+                # self.score.append(float(vals[2][:-1]))
+                # print 1-self.prec[-1], self.rec[-1], self.score[-1]
             if (len(self.prec) > 1):
                 diff = (1 - self.prec[-1] - self.rec[-1]
-                       ) * (1 - self.prec[-2] - self.rec[-2])
+                        ) * (1 - self.prec[-2] - self.rec[-2])
                 if (diff < 0):
                     eerinfo.append(
                         "EER between: %.03f and %.03f\tScore:%f" %
@@ -200,19 +201,19 @@ class MatPlotter:
                     )
                     self.eer = self.rec[-1]
 
-            #Remove already passed precision
+            # Remove already passed precision
             if (len(precScores) > 0 and (float(vals[0])) < precScores[0] / 100.0):
                 precinfo.append(
                     "%d percent precision score: %f, recall: %.03f" %
                     (precScores[0], float(vals[2]), float(vals[1]))
                 )
                 while (
-                    len(precScores) > 0 and
-                    precScores[0] / 100.0 > float(vals[0])
+                        len(precScores) > 0 and
+                        precScores[0] / 100.0 > float(vals[0])
                 ):
                     precScores.pop(0)
 
-            #Remove already passed precision
+            # Remove already passed precision
             if (len(vals) > 3):
                 if (len(fppiScores) > 0 and (float(vals[3])) > fppiScores[0]):
                     fppiinfo.append(
@@ -220,7 +221,7 @@ class MatPlotter:
                         (fppiScores[0], float(vals[2]), float(vals[1]))
                     )
                     while (
-                        len(fppiScores) > 0 and fppiScores[0] < float(vals[3])
+                            len(fppiScores) > 0 and fppiScores[0] < float(vals[3])
                     ):
                         fppiScores.pop(0)
 
@@ -245,26 +246,24 @@ class MatPlotter:
                 lamrcount += 1
 
         for i in precinfo:
-            print i
-        print
+            print(i)
+        print()
         for i in fppiinfo:
-            print i
-        print
+            print(i)
+        print()
         for i in eerinfo:
-            print i
-        print
-        print "Recall at first false positive: %.03f" % self.rec[0]
+            print(i)
+        print()
+        print("Recall at first false positive: %.03f" % self.rec[0])
         if (len(vals) > 3):
-            print
+            print()
             for i in logAvInfo:
-                print i
+                print(i)
             self.lamr = self.lamr * 1.0 / lamrcount
-            print "Log average miss rate in [10^%.01f, 10^0]: %.03f" % (
-                lowest_fppi / 10.0, self.lamr
-            )
+            print("Log average miss rate in [10^%.01f, 10^0]: %.03f" % (lowest_fppi / 10.0, self.lamr))
 
-        print
-        print
+        print()
+        print()
         file.close()
 
     def loadFreqData(self, fname):
@@ -288,12 +287,12 @@ class MatPlotter:
 
     def finishPlot(self, axlimits=[0, 1.0, 0, 1.0]):
         # MA:
-        #self.legend = legend(self.legendNames, self.legendPlace, pad = self.legendborderpad, labelsep = self.legendlabelsep)
+        # self.legend = legend(self.legendNames, self.legendPlace, pad = self.legendborderpad, labelsep = self.legendlabelsep)
         self.legend = legend(self.legendNames, self.legendPlace)
 
         lstrings = self.legend.get_texts()
         setp(lstrings, fontsize=self.fontsizeLegend)
-        #line= plot( [1 - axlimits[0], 0], [axlimits[3], 1 - axlimits[3] ] , 'k')
+        # line= plot( [1 - axlimits[0], 0], [axlimits[3], 1 - axlimits[3] ] , 'k')
         line = plot([1, 0], [0, 1], 'k')
 
     def finishFreqPlot(self):
@@ -322,25 +321,27 @@ class MatPlotter:
         else:
             self.finishFreqPlot()
 
-        print "Saving: " + filename
+        print
+        "Saving: " + filename
         savefig(filename)
 
     def plotRFP(self, numImages, fname, line="r-"):
-        print 'NOT YET IMPLEMENTED'
+        print
+        'NOT YET IMPLEMENTED'
 
     def plotRPC(
-        self,
-        fname,
-        descr="line",
-        style="-1",
-        axlimits=[0, 1.0, 0, 1.0],
-        linewidth=2,
-        dashstyle=[],
-        addEER=False
+            self,
+            fname,
+            descr="line",
+            style="-1",
+            axlimits=[0, 1.0, 0, 1.0],
+            linewidth=2,
+            dashstyle=[],
+            addEER=False
     ):
         self.loadRPCData(fname)
 
-        #axis(axlimits);
+        # axis(axlimits);
         if (style == "-1"):
             if dashstyle != []:
                 line = plot(
@@ -368,13 +369,13 @@ class MatPlotter:
         self.legendNames = self.legendNames + [descr]
 
     def plotFPPI(
-        self,
-        fname,
-        descr="line",
-        style="-1",
-        axlimits=[0, 2, 0, 1],
-        linewidth=2,
-        dashstyle=[]
+            self,
+            fname,
+            descr="line",
+            style="-1",
+            axlimits=[0, 2, 0, 1],
+            linewidth=2,
+            dashstyle=[]
     ):
         self.loadRPCData(fname)
 
@@ -402,7 +403,7 @@ class MatPlotter:
         self.legendNames = self.legendNames + [descr]
 
     def plotFreq(
-        self, fname, descr="line", style="-1", linewidth=2, dashstyle=[]
+            self, fname, descr="line", style="-1", linewidth=2, dashstyle=[]
     ):
         self.loadFreqData(fname)
         if (style == "-1"):
@@ -427,13 +428,13 @@ class MatPlotter:
         self.legendNames = self.legendNames + [descr]
 
     def plotFPPW(
-        self,
-        fname,
-        descr="line",
-        style="-1",
-        axlimits=[5e-6, 1e0, 1e-2, 0.5],
-        linewidth=2,
-        dashstyle=[]
+            self,
+            fname,
+            descr="line",
+            style="-1",
+            axlimits=[5e-6, 1e0, 1e-2, 0.5],
+            linewidth=2,
+            dashstyle=[]
     ):
         self.loadFPPWData(fname)
         if (style == "-1"):
@@ -477,14 +478,14 @@ class MatPlotter:
         self.legendNames = self.legendNames + [descr]
 
     def plotLogFPPI(
-        self,
-        fname,
-        descr="line",
-        style="-1",
-        axlimits=[5e-3, 1e1, 1e-1, 1],
-        linewidth=2,
-        dashstyle=[],
-        addlamr=False
+            self,
+            fname,
+            descr="line",
+            style="-1",
+            axlimits=[5e-3, 1e1, 1e-1, 1],
+            linewidth=2,
+            dashstyle=[],
+            addlamr=False
     ):
         self.loadRPCData(fname)
         if (style == "-1"):
