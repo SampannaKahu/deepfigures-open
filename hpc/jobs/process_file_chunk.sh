@@ -175,6 +175,6 @@ singularity exec -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/dee
 
 # Trigger the training.
 # The timeout command will kill the training after certain time.
-timeout --preserve-status 12h singularity exec --nv -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input "$GPU_IMAGE" python /work/vendor/tensorboxresnet/tensorboxresnet/train.py --hypes /work/host-input/weights/hypes.json --gpu "$CUDA_VISIBLE_DEVICES" --logdir /work/host-output
+timeout --preserve-status 12h singularity exec --nv -B "$WORK"/deepfigures-results:/work/host-output -B "$WORK"/deepfigures-results:/work/host-input "$GPU_IMAGE" python /work/train.py --hypes /work/host-input/weights/hypes.json --gpu "$CUDA_VISIBLE_DEVICES" --logdir /work/host-output
 
 exit

@@ -13,48 +13,10 @@ Another quick way to set up the environment using Anaconda is:
 ENV_NAME=deepfigures_3 && conda remove --name $ENV_NAME --all -y && conda create --name $ENV_NAME python=3.6 -y && source activate $ENV_NAME && pip install -r /home/sampanna/deepfigures-open/requirements.txt --no-cache-dir
 ```
 
-#### Install deepfigures package
-Activate the above-created python environment, update the PROJECT_SOURCE variable to where you cloned this repository, and run the following commands.
+#### Make the C++ dependencies
 ```shell script
-# Edit this to point to the location where you cloned this repository.
-PROJECT_SOURCE=/home/sampanna/deepfigures-open
-
-# This will remove any previously generated build files. If none are present, it won't do anything.
-rm -rf $PROJECT_SOURCE/build \
-  $PROJECT_SOURCE/dist \
-  $PROJECT_SOURCE/deepfigures_open.egg-info \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/.eggs \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/build \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/dist \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/tensorboxresnet.egg-info \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/tensorboxresnet/utils/stitch_wrapper.cpp
-
-# Uninstall deepfigures-open and tensorboxresnet, if it is installed in the current environment.
-pip uninstall deepfigures-open -y
-pip uninstall deepfigures-open -y
-pip uninstall tensorboxresnet -y
-pip uninstall tensorboxresnet -y
-
-cd $PROJECT_SOURCE
-
-# Install deepfigures-open in the current environment.
-python setup.py install
-
-# Install tensorboxresnet in the current environment.
-cd vendor/tensorboxresnet && python setup.py install && cd ../..
-
-# Remove any generated build files to keep the source code clean.
-rm -rf $PROJECT_SOURCE/build \
-  $PROJECT_SOURCE/dist \
-  $PROJECT_SOURCE/deepfigures_open.egg-info \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/.eggs \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/build \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/dist \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/tensorboxresnet.egg-info \
-  $PROJECT_SOURCE/vendor/tensorboxresnet/tensorboxresnet/utils/stitch_wrapper.cpp
-
+cd /home/sampanna/deepfigures-open/vendor/tensorboxresnet/tensorboxresnet/utils && make
 ```
-This will install the deepfigures python package in the current environment which will make our code work.
 
 #### Set AWS credentials. 
 If you need you need to download data from AWS, please add your credentials to the ```credentials``` file.

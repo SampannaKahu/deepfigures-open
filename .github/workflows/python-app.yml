@@ -30,9 +30,8 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt --no-cache-dir; fi
           python setup.py install
           cd vendor/tensorboxresnet && python setup.py install && cd ../..
+          cd vendor/tensorboxresnet/tensorboxresnet/utils && make && cd ../../../..
       - name: Check python
         run: which python
       - name: Check deepfigures
         run: python -c "import deepfigures; print(deepfigures.__path__)"
-      - name: Check tensorboxresnet
-        run: python -c "import tensorboxresnet; print(tensorboxresnet.__path__)"

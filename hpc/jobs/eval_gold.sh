@@ -93,7 +93,7 @@ MODEL_TO_EVALUATE_PATH="$LOG_DIR"/"$EVAL_MODEL_DIR"
 
 #cd "$SOURCE_CODE"
 
-$PYTHON -m tensorboxresnet.hidden_set_evaluation \
+$PYTHON $SOURCE_CODE/hidden_set_evaluation.py \
   --model_to_evaluate_path "$MODEL_TO_EVALUATE_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \

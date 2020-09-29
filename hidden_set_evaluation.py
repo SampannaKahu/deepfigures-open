@@ -878,7 +878,8 @@ def main():
 
     os.makedirs(H['save_dir'], exist_ok=True)
     global logger
-    logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
+    logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                            'vendor/tensorboxresnet/tensorboxresnet/logging.conf')
     logging.config.fileConfig(logging_config_file_path,
                               defaults={'logfilename': os.path.join(H['save_dir'], 'hidden_set_eval.log')})
     logger = logging.getLogger()

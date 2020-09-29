@@ -91,7 +91,7 @@ MAX_CHECKPOINTS_TO_KEEP=200
 TEST_SPLIT_PERCENT=20
 USE_GLOBAL_STEP_FOR_LR=False
 
-$PYTHON -m tensorboxresnet.train \
+$PYTHON $SOURCE_CODE/train.py \
   --weights "$WEIGHTS_PATH" \
   --gpu="$CUDA_VISIBLE_DEVICES" \
   --hypes="$HYPES_PATH" \
