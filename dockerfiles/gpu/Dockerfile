@@ -49,11 +49,9 @@ WORKDIR /work
 
 ADD ./requirements.txt /work
 
-RUN pip3 install --upgrade pip \
- && pip install Cython==0.25.2
-RUN pip3 install -r ./requirements.txt
+RUN pip3 install --upgrade pip && pip3 install -r ./requirements.txt
 
-ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
+#ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
 #RUN pip3 install -e /work/vendor/tensorboxresnet
 
 RUN mkdir ~/.aws

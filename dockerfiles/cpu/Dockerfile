@@ -49,11 +49,9 @@ WORKDIR /work
 
 ADD ./requirements_cpu.txt /work
 
-RUN pip3 install --upgrade pip \
- && pip install Cython==0.25.2
-RUN pip3 install -r ./requirements_cpu.txt -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip3 install --upgrade pip && pip3 install -r ./requirements_cpu.txt -f https://download.pytorch.org/whl/torch_stable.html
 
-ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
+#ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
 #RUN pip3 install -e /work/vendor/tensorboxresnet
 
 RUN mkdir ~/.aws
@@ -64,6 +62,7 @@ RUN pip install six numpy scipy Pillow matplotlib scikit-image opencv-python ima
 RUN pip install imgaug
 
 ADD . /work
+RUN cd vendor/tensorboxresnet/tensorboxresnet/util && make && cd ../../../..
 RUN pip3 install --quiet -e /work
 
 #ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
