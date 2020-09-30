@@ -62,8 +62,8 @@ RUN pip install six numpy scipy Pillow matplotlib scikit-image opencv-python ima
 RUN pip install imgaug
 
 ADD . /work
-RUN cd vendor/tensorboxresnet/tensorboxresnet/util && make && cd ../../../..
-RUN pip3 install --quiet -e /work
+RUN cd /work/vendor/tensorboxresnet/tensorboxresnet/utils && make && cd /work
+#RUN pip3 install --quiet -e /work
 
 #ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
 #RUN tar -xf /work/weights.tar.gz
