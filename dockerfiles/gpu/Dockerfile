@@ -1,5 +1,3 @@
-# docker image for running DeepFigures on a gpu
-
 FROM tensorflow/tensorflow:1.14.0-gpu-py3
 
 ENV LC_ALL C.UTF-8
@@ -51,19 +49,12 @@ ADD ./requirements.txt /work
 
 RUN pip3 install --upgrade pip && pip3 install -r ./requirements.txt
 
-#ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
-#RUN pip3 install -e /work/vendor/tensorboxresnet
-
 RUN mkdir ~/.aws
 ADD credentials /work
 RUN cat /work/credentials > ~/.aws/credentials
 
-RUN pip install six numpy scipy Pillow matplotlib scikit-image opencv-python imageio Shapely
-RUN pip install imgaug
-
 ADD . /work
 RUN cd /work/vendor/tensorboxresnet/tensorboxresnet/utils && make && cd /work
-#RUN pip3 install --quiet -e /work
 
 #ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
 #RUN tar -xf /work/weights.tar.gz

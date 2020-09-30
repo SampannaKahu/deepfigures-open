@@ -51,19 +51,12 @@ ADD ./requirements_cpu.txt /work
 
 RUN pip3 install --upgrade pip && pip3 install -r ./requirements_cpu.txt -f https://download.pytorch.org/whl/torch_stable.html
 
-#ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
-#RUN pip3 install -e /work/vendor/tensorboxresnet
-
 RUN mkdir ~/.aws
 ADD credentials /work
 RUN cat /work/credentials > ~/.aws/credentials
 
-RUN pip install six numpy scipy Pillow matplotlib scikit-image opencv-python imageio Shapely
-RUN pip install imgaug
-
 ADD . /work
 RUN cd /work/vendor/tensorboxresnet/tensorboxresnet/utils && make && cd /work
-#RUN pip3 install --quiet -e /work
 
 #ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
 #RUN tar -xf /work/weights.tar.gz
