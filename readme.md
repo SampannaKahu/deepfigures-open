@@ -18,7 +18,25 @@ ENV_NAME=deepfigures_3 && conda remove --name $ENV_NAME --all -y && conda create
 cd /home/sampanna/deepfigures-open/vendor/tensorboxresnet/tensorboxresnet/utils && make
 ```
 
-#### Set AWS credentials. 
+#### Install texlive (optional, needed for data generation)
+If you have sudo access, run:
+```shell script
+sudo apt-get install texlive-latex-base \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-latex-extra \
+    texlive-font-utils
+```
+
+If you do not have sudo access, run:
+```shell script
+wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+tar -xvf install-tl-unx.tar.gz > untar.log
+cd `head -1 untar.log`
+./install-tl -profile texlive.profile
+```
+
+#### Set AWS credentials (optional, needed for data generation)
 If you need you need to download data from AWS, please add your credentials to the ```credentials``` file.
 A sample of this file should look like:
 ```ini
