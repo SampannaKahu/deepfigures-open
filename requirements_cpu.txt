@@ -15,7 +15,7 @@ keras
 lxml
 matplotlib
 more_itertools
-numpy
+numpy==1.16.4
 opencv-python
 pandas
 pytest

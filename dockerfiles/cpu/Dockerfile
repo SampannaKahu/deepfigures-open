@@ -54,7 +54,7 @@ RUN pip3 install --upgrade pip \
 RUN pip3 install -r ./requirements_cpu.txt -f https://download.pytorch.org/whl/torch_stable.html
 
 ADD ./vendor/tensorboxresnet /work/vendor/tensorboxresnet
-RUN pip3 install -e /work/vendor/tensorboxresnet
+#RUN pip3 install -e /work/vendor/tensorboxresnet
 
 RUN mkdir ~/.aws
 ADD credentials /work
