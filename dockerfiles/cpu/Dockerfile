@@ -1,5 +1,3 @@
-# image for running DeepFigures
-
 FROM tensorflow/tensorflow:1.14.0-py3
 
 ENV LC_ALL C.UTF-8
