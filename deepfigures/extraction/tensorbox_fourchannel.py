@@ -21,8 +21,8 @@ from deepfigures.utils import (
     file_util,
     image_util,
     settings_utils)
-from tensorboxresnet import train
-from tensorboxresnet.utils import train_utils
+import train
+from vendor.tensorboxresnet.tensorboxresnet.utils import train_utils
 
 CAPTION_CHANNEL_BACKGROUND = 255
 CAPTION_CHANNEL_MASK = 0

@@ -1,5 +1,5 @@
-from tensorboxresnet.utils.slim_nets import inception_v1 as inception
-from tensorboxresnet.utils.slim_nets import resnet_v1 as resnet
+from vendor.tensorboxresnet.tensorboxresnet.utils.slim_nets import inception_v1 as inception
+from vendor.tensorboxresnet.tensorboxresnet.utils.slim_nets import resnet_v1 as resnet
 import tensorflow.contrib.slim as slim
 
 

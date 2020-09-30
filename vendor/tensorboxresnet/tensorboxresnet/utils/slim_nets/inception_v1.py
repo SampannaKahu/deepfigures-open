@@ -23,7 +23,7 @@ import tensorflow as tf
 slim = tf.contrib.slim
 trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
 
-from tensorboxresnet.utils import tf_concat
+from vendor.tensorboxresnet.tensorboxresnet.utils import tf_concat
 
 
 def inception_v1_base(inputs, final_endpoint='Mixed_5c', scope='InceptionV1'):

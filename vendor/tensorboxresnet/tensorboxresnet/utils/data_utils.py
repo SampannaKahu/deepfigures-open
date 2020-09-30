@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import copy
-import tensorboxresnet.utils.annolist.AnnotationLib as al
+import vendor.tensorboxresnet.tensorboxresnet.utils.annolist.AnnotationLib as al
 from typing import List
 
 

@@ -125,7 +125,7 @@ for i in {0..26}; do
 
   # Trigger the training.
   sudo -u $NORMAL_USER rm -f "$WORK"/deepfigures-results/train_cid.txt
-  CID=$(sudo -u $NORMAL_USER docker run --cidfile "$WORK"/deepfigures-results/train_cid.txt -d --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $GPU_IMAGE python /work/vendor/tensorboxresnet/tensorboxresnet/train.py --hypes /work/host-input/weights/hypes.json --gpu 0 --logdir /work/host-output)
+  CID=$(sudo -u $NORMAL_USER docker run --cidfile "$WORK"/deepfigures-results/train_cid.txt -d --gpus all -it --volume "$WORK"/deepfigures-results:/work/host-output --volume "$WORK"/deepfigures-results:/work/host-input $GPU_IMAGE python /work/train.py --hypes /work/host-input/weights/hypes.json --gpu 0 --logdir /work/host-output)
   sudo -u $NORMAL_USER sleep 12h && sudo -u $NORMAL_USER docker stop -t 60 "$CID" # Sleep for 12 hours and then invoke the stop command (with a 60 sec timeout)
 
 done

@@ -1,20 +1,28 @@
 #!/usr/bin/env python
 import json
-import math
 import tensorflow.contrib.slim as slim
 import datetime
 import random
+import time
 import argparse
 import os
-import time
 import threading
 import imageio
 import tensorflow as tf
 import numpy as np
 from distutils.version import LooseVersion
 from imgaug import augmenters as iaa
-from pprint import pformat
 import logging.config
+from typing import List
+from deepfigures.utils import image_util
+from deepfigures.extraction.datamodels import BoxClass
+import matplotlib
+from pprint import pformat
+
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from tqdm import tqdm
 
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
     rnn_cell = tf.contrib.rnn
@@ -27,9 +35,9 @@ else:
 random.seed(0)
 np.random.seed(0)
 
-from tensorboxresnet.utils import tf_concat
-from tensorboxresnet.utils import train_utils
-from tensorboxresnet.utils import googlenet_load
+from vendor.tensorboxresnet.tensorboxresnet.utils import tf_concat
+from vendor.tensorboxresnet.tensorboxresnet.utils import train_utils
+from vendor.tensorboxresnet.tensorboxresnet.utils import googlenet_load
 
 logger: logging.Logger = None
 
@@ -301,9 +309,9 @@ def build_forward_backward(H, x, phase, boxes, flags):
             'decoder', reuse={'train': None,
                               'test': True}[phase]
     ):
-        outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])
+        outer_boxes = tf.reshape(boxes, [outer_size, H['rnn_len'], 4])  # 300, 1, 4
         outer_flags = tf.cast(
-            tf.reshape(flags, [outer_size, H['rnn_len']]), 'int32'
+            tf.reshape(flags, [outer_size, H['rnn_len']]), 'int32'  # 300, 1
         )
         if H['use_lstm']:
             hungarian_module = tf.load_op_library(
@@ -316,17 +324,17 @@ def build_forward_backward(H, x, phase, boxes, flags):
                 )
             )
         else:
-            classes = tf.reshape(flags, (outer_size, 1))
-            perm_truth = tf.reshape(outer_boxes, (outer_size, 1, 4))
+            classes = tf.reshape(flags, (outer_size, 1))  # 300, 1
+            perm_truth = tf.reshape(outer_boxes, (outer_size, 1, 4))  # 300, 1, 4
             pred_mask = tf.reshape(
-                tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1)
+                tf.cast(tf.greater(classes, 0), 'float32'), (outer_size, 1, 1)  # 300, 1, 1
             )
         true_classes = tf.reshape(
             tf.cast(tf.greater(classes, 0), 'int64'),
-            [outer_size * H['rnn_len']]
+            [outer_size * H['rnn_len']]  # 300
         )
         pred_logit_r = tf.reshape(
-            pred_logits, [outer_size * H['rnn_len'], H['num_classes']]
+            pred_logits, [outer_size * H['rnn_len'], H['num_classes']]  # 300, 2
         )
         confidences_loss = (
                                tf.reduce_sum(
@@ -336,7 +344,7 @@ def build_forward_backward(H, x, phase, boxes, flags):
                                )
                            ) / outer_size * H['solver']['head_weights'][0]
         residual = tf.reshape(
-            perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4]
+            perm_truth - pred_boxes * pred_mask, [outer_size, H['rnn_len'], 4]  # 300, 1, 4
         )
         boxes_loss = tf.reduce_sum(
             tf.abs(residual)
@@ -483,8 +491,10 @@ def build(H, q):
 
         if phase == 'train':
             global_step = tf.Variable(0, trainable=False)
-
-            tvars = tf.trainable_variables()
+            if H.get('train_only_overfeat', False):
+                tvars = tf.trainable_variables(scope='decoder')
+            else:
+                tvars = tf.trainable_variables()
             if H['clip_norm'] <= 0:
                 grads = tf.gradients(loss['train'], tvars)
             else:
@@ -507,7 +517,7 @@ def build(H, q):
                 ]
             )
 
-            for p in ['test']:  # 'train' was removed from this list to avoid the 'train' graph from executing.
+            for p in ['train', 'test']:
                 tf.summary.scalar('%s/accuracy' % p, accuracy[p])
                 tf.summary.scalar(
                     '%s/accuracy/smooth' % p, moving_avg.average(accuracy[p])
@@ -550,10 +560,11 @@ def build(H, q):
                     rnn_len=H['rnn_len']
                 )[0]
 
-                # num_images = 5000
+                num_images = 5000
                 img_path = os.path.join(
                     H['save_dir'], '%s_%s.jpg' % (
-                        np_global_step, pred_or_true
+                        (np_global_step / H['logging']['display_iter']
+                         ) % num_images, pred_or_true
                     )
                 )
                 imageio.imwrite(img_path, merged)
@@ -625,7 +636,64 @@ def build_augmentation_pipeline(H: dict, phase: str):
     return iaa.Sequential(augmenter_list)
 
 
-def evaluate(H: dict):
+def get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
+                          page_images: List[np.ndarray],
+                          crop_whitespace: bool = True,
+                          conf_threshold: float = .5) -> List[List[BoxClass]]:
+    input_shape = [H['image_height'], H['image_width'], H['image_channels']]
+    page_datas = [
+        {
+            'page_image': page_image,
+            'orig_size': page_image.shape[:2],
+            'resized_page_image': image_util.imresize_multichannel(
+                page_image, input_shape),
+        }
+        for page_image in page_images
+    ]
+
+    predictions = [
+        sess.run([hidden_pred_boxes, hidden_pred_confidences], feed_dict={hidden_x_in: page_data['resized_page_image']})
+        for page_data in page_datas
+    ]
+
+    for (page_data, prediction) in zip(page_datas, predictions):
+        (np_pred_boxes, np_pred_confidences) = prediction
+        new_img, rects = train_utils.add_rectangles(
+            H,
+            page_data['resized_page_image'],
+            np_pred_confidences,
+            np_pred_boxes,
+            use_stitching=True,
+            min_conf=conf_threshold,
+            show_suppressed=False)
+        detected_boxes = [
+            BoxClass(x1=r.x1, y1=r.y1, x2=r.x2, y2=r.y2).resize_by_page(
+                input_shape, page_data['orig_size'])
+            for r in rects if r.score > conf_threshold
+        ]
+        if crop_whitespace:
+            detected_boxes = [
+                box.crop_whitespace_edges(page_data['page_image'])
+                for box in detected_boxes
+            ]
+            detected_boxes = list(filter(None, detected_boxes))
+        page_data['detected_boxes'] = detected_boxes
+    return [page_data['detected_boxes'] for page_data in page_datas]
+
+
+def split_annos_val_test(H, processed_annos):
+    gold_standard_dir = os.path.dirname(H['data']['hidden_idl'])
+    val_annos = json.load(open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format('validation'))))
+    val_image_names = set([anno['image_path'] for anno in val_annos])
+    val_annos_ret = [anno for anno in processed_annos if os.path.basename(anno['image_path']) in val_image_names]
+
+    test_annos = json.load(open(os.path.join(gold_standard_dir, 'figure_boundaries_{}.json'.format('testing'))))
+    test_image_names = set([anno['image_path'] for anno in test_annos])
+    test_annos_ret = [anno for anno in processed_annos if os.path.basename(anno['image_path']) in test_image_names]
+    return val_annos_ret, test_annos_ret
+
+
+def train(H: dict):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
     '''
@@ -696,7 +764,8 @@ def evaluate(H: dict):
             augmentation_transforms = build_augmentation_pipeline(H, phase)
             logger.info("Image augmentation pipeline built: {}".format(augmentation_transforms))
             gen = train_utils.load_data_gen_gold(
-                H, phase, jitter=H['solver']['use_jitter'], augmentation_transforms=augmentation_transforms
+                H, phase, num_epochs=H['data']['epochs'], jitter=H['solver']['use_jitter'],
+                augmentation_transforms=augmentation_transforms
             )
             d = next(gen)
             sess.run(enqueue_op[phase], feed_dict=make_feed(d))
@@ -705,6 +774,13 @@ def evaluate(H: dict):
             )
             t.daemon = True
             t.start()
+        if H['run_hidden_eval']:
+            hidden_x_in = tf.placeholder(
+                tf.float32, name='hidden_x_in', shape=[H['image_height'], H['image_width'], H['image_channels']]
+            )
+            assert (H['use_rezoom'])
+            hidden_pred_boxes, hidden_pred_logits, hidden_pred_confidences, hidden_pred_confs_deltas, hidden_pred_boxes_deltas = \
+                build_forward(H, tf.expand_dims(hidden_x_in, 0), 'hidden', reuse=True)
 
         tf.set_random_seed(H['solver']['rnd_seed'])
         sess.run(tf.global_variables_initializer())
@@ -736,94 +812,152 @@ def evaluate(H: dict):
             init_fn(sess)
 
         # train model for N iterations
-        # start = time.time()
-        max_iter = math.floor(10182 / H['batch_size'])
+        start = time.time()
+        max_iter = H['solver'].get('max_iter', 10000000)
         for i in range(max_iter):
+            display_iter = H['logging']['display_iter']
+            lr_iter = global_step.eval() if H['solver']['use_global_step_for_lr'] else i
             adjusted_lr = (
                     H['solver']['learning_rate'] * 0.5 **
-                    max(0, (i / H['solver']['learning_rate_step']) - 2)
+                    max(0, (lr_iter / H['solver']['learning_rate_step']) - 2)
             )
             lr_feed = {learning_rate: adjusted_lr}
-            (test_accuracy, summary_str) = sess.run([
-                accuracy['test'],
-                summary_op
-            ], feed_dict=lr_feed)
-            writer.add_summary(summary_str, global_step=global_step.eval())
-            logger.info(
-                ', '.join([
-                    'Step: %d',
-                    'lr: %f',
-                    'Softmax Test Accuracy: %.1f%%'
-                ]) % (
-                    i,
-                    adjusted_lr,
-                    test_accuracy * 100
+
+            if i % display_iter != 0:
+                # train network
+                batch_loss_train, _ = sess.run(
+                    [loss['train'], train_op], feed_dict=lr_feed
                 )
+            else:
+                # test network every N iterations; log additional info
+                if i > 0:
+                    dt = (time.time() - start
+                          ) / (H['batch_size'] * display_iter)
+                start = time.time()
+                (train_loss, test_accuracy, summary_str, _, _) = sess.run(
+                    [
+                        loss['train'],
+                        accuracy['test'],
+                        summary_op,
+                        train_op,
+                        smooth_op,
+                    ],
+                    feed_dict=lr_feed
+                )
+                writer.add_summary(summary_str, global_step=global_step.eval())
+                print_str = ', '.join(
+                    [
+                        'Global step: %d',
+                        'Local step: %d',
+                        'lr: %f',
+                        'Train Loss: %.2f',
+                        'Softmax Test Accuracy: %.1f%%',
+                        'Time/image (ms): %.1f',
+                    ]
+                )
+                logger.info(
+                    print_str % (
+                        global_step.eval(), i, adjusted_lr, train_loss, test_accuracy * 100,
+                        dt * 1000 if i > 0 else 0
+                    )
+                )
+
+                if H['run_hidden_eval']:
+                    logger.info("Running detections against hidden set. Global step: {}".format(global_step.eval()))
+                    processed_annos = run_hidden_set_on_session(H, global_step, hidden_pred_boxes,
+                                                                hidden_pred_confidences,
+                                                                hidden_x_in, sess, save_image=False, early_stop=False)
+                    processed_annos_val, processed_annos_test = split_annos_val_test(H, processed_annos)
+                    logger.info("Evaluating val detection results.")
+                    year_to_eval_result_map_val = eval_hidden_set_detection_result(H, processed_annos_val)
+                    logger.info("Evaluating test detection results.")
+                    year_to_eval_result_map_test = eval_hidden_set_detection_result(H, processed_annos_test)
+                    # if year_to_eval_result_map_val[0000]['f1'] > 0.50:
+                    #     logger.info("Checkpoint f1 score reached. Updating the original learning rate to: 0.0002")
+                    #     H['solver']['learning_rate'] = 0.0002
+
+                if H['rapid_checkpoint'] and i <= 15000:
+                    logger.info(
+                        "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
+                    saver.save(sess, ckpt_file, global_step=global_step)
+
+            if global_step.eval() % H['logging'][
+                'save_iter'
+            ] == 0 or global_step.eval() == max_iter - 1:
+                logger.info("Saving checkpoint. Step: %d" % global_step.eval())
+                saver.save(sess, ckpt_file, global_step=global_step)
+
+
+def eval_hidden_set_detection_result(H, annos, iou_thresh: float = 0.8):
+    gold_standard_dir = os.path.dirname(H['data']['hidden_idl'])
+    annos_year_wise = train_utils.split_annos_year_wise(annos, gold_standard_dir)
+    annos_year_wise[0000] = annos
+    output = dict()
+    for year, annos_for_year in annos_year_wise.items():
+        _mean_iou, tp, fp, fn = train_utils.compute_mean_iou_for_annos(annos=annos_for_year, iou_thresh=iou_thresh)
+        prec, rec, f1 = train_utils.compute_precision_recall_f1(tp, fp, fn)
+        logger.info(str(year) + ' ' + str((_mean_iou, tp, fp, fn, prec, rec, f1)))
+        output[year] = {
+            "mean_iou": _mean_iou,
+            "true_positives": tp,
+            "false_positives": fp,
+            "false_negatives": fn,
+            "precision": prec,
+            "recall": rec,
+            "f1": f1
+        }
+    logger.info("Detection results:")
+    logger.info("{output}".format(output=pformat(output, indent=2)))
+    return output
+
+
+def run_hidden_set_on_session(H, global_step, hidden_pred_boxes, hidden_pred_confidences, hidden_x_in, sess,
+                              save_image: bool = False, early_stop: bool = False):
+    _p = 'hidden'  # phase
+    hidden_aug_pipeline = build_augmentation_pipeline(H, _p)
+    hidden_set_data_gen = train_utils.load_data_gen_gold(H, _p, num_epochs=1, jitter=False,
+                                                         augmentation_transforms=hidden_aug_pipeline)
+    processed_annos = []
+    for data in tqdm(hidden_set_data_gen):
+        if early_stop and len(processed_annos) > 100:
+            break
+        boxes = get_hidden_detections(sess, H, hidden_x_in, hidden_pred_boxes, hidden_pred_confidences,
+                                      [data['image']], crop_whitespace=True,
+                                      conf_threshold=0.5)
+        processed_anno = data['anno'].writeJSON()
+        processed_anno['hidden_set_rects'] = [{'x1': box.x1, 'y1': box.y1, 'x2': box.x2, 'y2': box.y2} for
+                                              box in boxes[0]]
+        processed_annos.append(processed_anno)
+        if save_image:
+            fig, ax = plt.subplots(1)
+            ax.imshow(data['image'])
+            for bb in processed_anno['hidden_set_rects']:
+                x1, y1, x2, y2 = bb['x1'], bb['y1'], bb['x2'], bb['y2']
+                rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='g',
+                                         facecolor='none')
+                ax.add_patch(rect)
+            image_name = '{orig_name}_global_step_{global_step}_hidden_bb.png'.format(
+                orig_name=os.path.basename(processed_anno['image_path']).split('.png')[0],
+                global_step=global_step.eval()
             )
-            old_pred_path = os.path.join(H['save_dir'],
-                                         '%s_b%s.jpg' % (H['solver']['weights'].split('-')[-1], '\'pred\''))
-            new_pred_path = os.path.join(H['save_dir'], '%s_%s.jpg' % (i, 'pred'))
-            old_true_path = os.path.join(H['save_dir'],
-                                         '%s_b%s.jpg' % (H['solver']['weights'].split('-')[-1], '\'true\''))
-            new_true_path = os.path.join(H['save_dir'], '%s_%s.jpg' % (i, 'true'))
-            os.rename(old_pred_path, new_pred_path)
-            os.rename(old_true_path, new_true_path)
-        # for i in range(max_iter):
-        #     display_iter = H['logging']['display_iter']
-        #     adjusted_lr = (
-        #             H['solver']['learning_rate'] * 0.5 **
-        #             max(0, (i / H['solver']['learning_rate_step']) - 2)
-        #     )
-        #     lr_feed = {learning_rate: adjusted_lr}
-        #
-        #     if i % display_iter != 0:
-        #         # train network
-        #         # batch_loss_train, _ = sess.run(
-        #         #     [loss['train'], train_op], feed_dict=lr_feed
-        #         # )
-        #         pass
-        #     else:
-        #         # test network every N iterations; log additional info
-        #         if i > 0:
-        #             dt = (time.time() - start
-        #                   ) / (H['batch_size'] * display_iter)
-        #         start = time.time()
-        #         (train_loss, test_accuracy, summary_str, _, _) = sess.run(
-        #             [
-        #                 loss['train'],
-        #                 accuracy['test'],
-        #                 summary_op,
-        #                 train_op,
-        #                 smooth_op,
-        #             ],
-        #             feed_dict=lr_feed
-        #         )
-        #         writer.add_summary(summary_str, global_step=global_step.eval())
-        #         print_str = ', '.join(
-        #             [
-        #                 'Step: %d',
-        #                 'lr: %f',
-        #                 'Train Loss: %.2f',
-        #                 'Softmax Test Accuracy: %.1f%%',
-        #                 'Time/image (ms): %.1f',
-        #             ]
-        #         )
-        #         logger.info(
-        #             print_str % (
-        #                 i, adjusted_lr, train_loss, test_accuracy * 100,
-        #                 dt * 1000 if i > 0 else 0
-        #             )
-        #         )
-        #         if i <= 10000:
-        #             logger.info(
-        #                 "Saving checkpoint every %d steps as part of initial rapid checkpoint strategy." % display_iter)
-        #             saver.save(sess, ckpt_file, global_step=global_step)
-        #
-        #     if global_step.eval() % H['logging'][
-        #         'save_iter'
-        #     ] == 0 or global_step.eval() == max_iter - 1:
-        #         logger.info("Saving checkpoint. Step: %d" % global_step.eval())
-        #         saver.save(sess, ckpt_file, global_step=global_step)
+            plt.savefig(os.path.join(H['save_dir'], image_name), bbox_inches='tight')
+            plt.close()
+    detected_hidden_annotation_save_path = os.path.join(H['save_dir'],
+                                                        'figure_boundaries_gold_standard_dataset_{}.json'.format(
+                                                            global_step.eval()))
+    json.dump(processed_annos, open(detected_hidden_annotation_save_path, mode='w'), indent=2)
+    return processed_annos
+
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def main():
@@ -837,20 +971,25 @@ def main():
         print("The environment variable CUDA_VISIBLE_DEVICES is not set. Exiting.")
         return
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_to_evaluate_path', required=True, type=str)
+    parser.add_argument('--weights', default=None, type=str)
     parser.add_argument('--gpu', default=int(os.environ.get('CUDA_VISIBLE_DEVICES', -1)), type=int)
     parser.add_argument('--hypes', required=True, type=str)
+    parser.add_argument('--max_iter', required=False, type=int, default=None)
     parser.add_argument('--logdir', default='/home/sampanna/job_logs', type=str)
     parser.add_argument('--experiment_name', default='arxiv_experiment', type=str)
     parser.add_argument('--train_idl_path', default=None, type=str)
     parser.add_argument('--train_images_dir', default=None, type=str)
     parser.add_argument('--test_idl_path', default=None, type=str)
     parser.add_argument('--test_images_dir', default=None, type=str)
+    parser.add_argument('--hidden_idl_path', default=None, type=str)
+    parser.add_argument('--hidden_images_dir', default=None, type=str)
     parser.add_argument('--max_checkpoints_to_keep', type=int, default=None)
     parser.add_argument('--timestamp', default=datetime.datetime.now().strftime('%Y_%m_%d_%H.%M'), type=str)
     parser.add_argument('--scratch_dir', default=os.environ.get("TMPRAM", "/tmp"), type=str)
+    parser.add_argument('--zip_dir', required=True, type=str)
     parser.add_argument('--test_split_percent', type=int, default=20)
     parser.add_argument('--random_seed', type=int, default=0)
+    parser.add_argument('--use_global_step_for_lr', type=str2bool, nargs='?', const=True, default=False)
     args = parser.parse_args()
 
     with open(args.hypes, 'r') as f:
@@ -859,9 +998,13 @@ def main():
         H['exp_name'] = args.experiment_name
     if args.gpu is not None:
         H['solver']['gpu'] = args.gpu
+    if args.max_iter is not None:
+        H['solver']['max_iter'] = args.max_iter
     if len(H.get('exp_name', '')) == 0:
         H['exp_name'] = args.hypes.split('/')[-1].replace('.json', '')
     H['save_dir'] = args.logdir + '/%s_%s' % (H['exp_name'], args.timestamp)
+    if args.weights is not None:
+        H['solver']['weights'] = args.weights
     if args.train_idl_path is not None:
         H['data']['train_idl'] = args.train_idl_path
     if args.train_images_dir is not None:
@@ -870,29 +1013,28 @@ def main():
         H['data']['test_idl'] = args.test_idl_path
     if args.test_images_dir is not None:
         H['data']['test_images_dir'] = args.test_images_dir
+    if args.hidden_idl_path is not None:
+        H['data']['hidden_idl'] = args.hidden_idl_path
+    if args.hidden_images_dir is not None:
+        H['data']['hidden_images_dir'] = args.hidden_images_dir
     if args.max_checkpoints_to_keep is not None:
         H['max_checkpoints_to_keep'] = int(args.max_checkpoints_to_keep)
     H['data']['scratch_dir'] = args.scratch_dir
+    H['data']['zip_dir'] = args.zip_dir
     H['data']['test_split_percent'] = args.test_split_percent
     H['data']['random_seed'] = args.random_seed
+    H['solver']['use_global_step_for_lr'] = args.use_global_step_for_lr
 
     os.makedirs(H['save_dir'], exist_ok=True)
     global logger
-    logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
+    logging_config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                            'vendor/tensorboxresnet/tensorboxresnet/logging.conf')
     logging.config.fileConfig(logging_config_file_path,
-                              defaults={'logfilename': os.path.join(H['save_dir'], 'hidden_set_eval.log')})
+                              defaults={'logfilename': os.path.join(H['save_dir'], 'train.log')})
     logger = logging.getLogger()
     logger.info("Logger setup successful.")
-
-    checkpoints = [ckpt.strip().split(' ')[1].strip('"') for ckpt in
-                   open(os.path.join(args.model_to_evaluate_path, 'checkpoint')).readlines()][1:]
-    for checkpoint in checkpoints:
-        H['solver']['weights'] = checkpoint
-        sleep_duration = 20.0
-        logger.info("Sleeping for {} to let the previous session close.".format(sleep_duration))
-        time.sleep(sleep_duration)
-        logger.info("Beginning evaluation with hyper-parameters: {H}".format(H=pformat(H, indent=2)))
-        evaluate(H)
+    logger.info("Beginning training with hyper-parameters: {H}".format(H=pformat(H, indent=2)))
+    train(H)
 
 
 if __name__ == '__main__':

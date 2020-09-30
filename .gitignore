@@ -23,3 +23,9 @@ data
 
 dataset/images
 dataset/etds
+
+**/stitch_wrapper.cpp
+
+**/.eggs
+
+**/*.egg

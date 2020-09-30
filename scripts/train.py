@@ -65,7 +65,7 @@ def train(output_directory,
         ' --volume {host_input_path}:{docker_input_path}'
         ' --volume {host_output_path}:{docker_output_path}'
         ' {tag}:{version}'
-        ' python vendor/tensorboxresnet/tensorboxresnet/train.py'
+        ' python train.py'
         ' --hypes {hypes_path}'
         ' --gpu 0'
         ' --logdir {docker_output_path}'.format(
