@@ -64,6 +64,7 @@ python-dateutil==2.8.1
 pytz==2020.1
 PyWavelets==1.1.1
 PyYAML==5.2
+requests==2.23.0
 rsa==3.4.2
 s3transfer==0.3.3
 scikit-image==0.17.2
