@@ -5,15 +5,12 @@ ENV IN_DOCKER Yes
 ENV TZ=America/New_York
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt-get update
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
-RUN apt-get update
-RUN apt-get install -y libjasper1 libjasper-dev
-
-# install system packages
-
-RUN apt-get clean \
+RUN apt-get update \
+ && apt-get install -y software-properties-common \
+ && add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" \
+ && apt-get update \
+ && apt-get install -y libjasper1 libjasper-dev \
+ && apt-get clean \
  && apt-get update --fix-missing \
  && apt-get install -y \
     git \
@@ -45,19 +42,17 @@ RUN apt-get clean \
 
 WORKDIR /work
 
-ADD ./requirements_cpu.txt /work
+RUN wget https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz
+ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
+RUN tar -xf /work/weights.tar.gz && rm weights.tar.gz
 
+ADD ./requirements_cpu.txt /work
 RUN pip3 install --upgrade pip && pip3 install -r ./requirements_cpu.txt -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN mkdir ~/.aws
-ADD credentials /work
-RUN cat /work/credentials > ~/.aws/credentials
 
 ADD . /work
+RUN cat /work/credentials > ~/.aws/credentials
 RUN cd /work/vendor/tensorboxresnet/tensorboxresnet/utils && make && cd /work
-
-#ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
-#RUN tar -xf /work/weights.tar.gz
-#RUN rm weights.tar.gz
 
 CMD [ "/bin/bash" ]

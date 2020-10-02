@@ -1,4 +1,3 @@
-# TODO: Switch to Tensorflow 1.12.
 FROM tensorflow/tensorflow:1.14.0-gpu-py3
 
 ENV LC_ALL C.UTF-8
@@ -43,9 +42,8 @@ RUN apt-get update \
 
 WORKDIR /work
 
-# Using 'ADD' to download this file does not check cache and hence downloads it always.
 RUN wget https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz
-ADD weights.tar.gz /work
+ADD https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/deepfigures/weights.tar.gz /work
 RUN tar -xf /work/weights.tar.gz && rm weights.tar.gz
 
 ADD ./requirements.txt /work
