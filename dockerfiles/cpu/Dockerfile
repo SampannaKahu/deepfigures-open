@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.14.0-py3
+FROM tensorflow/tensorflow:1.12.0-py3
 
 ENV LC_ALL C.UTF-8
 ENV IN_DOCKER Yes
