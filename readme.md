@@ -1,6 +1,10 @@
-The original readme (readme from the original fork) can be found [here][original-readme].
+## Dataset
 
-Master branch docker image build status: [![Build Status](https://travis-ci.org/SampannaKahu/deepfigures-open.svg?branch=master)](https://travis-ci.org/SampannaKahu/deepfigures-open)
+Our gold standard dataset for figure extraction from scanned ETDs can be downloaded using this [link][dataset].
+
+## Original Readme
+
+The original readme (readme from the original fork) can be found [here][original-readme].
 
 ## Instructions to run this fork:
 
@@ -172,3 +176,4 @@ Imported it separately using ```from scipy import optimize``` and started using 
 [docker-commandline-run-docs]: https://docs.docker.com/engine/reference/commandline/run
 [singularity-homepage]: https://singularity.lbl.gov
 [vt-arc-homepage]: https://www.arc.vt.edu
+[dataset]: https://vtechworks.lib.vt.edu/bitstream/handle/10919/100113/Kahu_SY_T_2020_support_3.zip?sequence=3&isAllowed=y
