@@ -1,4 +1,4 @@
-FROM sampyash/deepfigures_dependencies:cpu_0.0.1
+FROM sampyash/deepfigures:dependencies_cpu_0.0.1
 
 WORKDIR /work
 
