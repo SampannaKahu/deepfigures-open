@@ -42,12 +42,14 @@ def build():
     })
 @click.argument(
     'cpu_build_config_path',
+    required=False,
     type=click.Path(
         file_okay=True,
         dir_okay=False,
         resolve_path=True))
 @click.argument(
     'gpu_build_config_path',
+    required=False,
     type=click.Path(
         file_okay=True,
         dir_okay=False,
