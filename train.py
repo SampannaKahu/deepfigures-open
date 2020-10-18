@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import json
-import tensorflow.contrib.slim as slim
+# import tensorflow.contrib.slim as slim
 import datetime
 import random
 import time
@@ -25,7 +25,8 @@ import matplotlib.patches as patches
 from tqdm import tqdm
 
 if LooseVersion(tf.__version__) >= LooseVersion('1.0'):
-    rnn_cell = tf.contrib.rnn
+    # rnn_cell = tf.contrib.rnn
+    from tensorflow.compat.v1.nn import rnn_cell
 else:
     try:
         from tensorflow.models.rnn import rnn_cell

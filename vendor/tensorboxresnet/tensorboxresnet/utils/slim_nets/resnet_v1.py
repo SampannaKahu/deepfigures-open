@@ -61,18 +61,21 @@ import tensorflow as tf
 from . import resnet_utils
 
 resnet_arg_scope = resnet_utils.resnet_arg_scope
-from tensorflow.contrib import slim
+import tf_slim as slim
+from tf_slim.layers import utils
+from tf_slim.layers import layers
+from tf_slim.ops.arg_scope import arg_scope
 
 
 @slim.add_arg_scope
 def bottleneck(
-    inputs,
-    depth,
-    depth_bottleneck,
-    stride,
-    rate=1,
-    outputs_collections=None,
-    scope=None
+        inputs,
+        depth,
+        depth_bottleneck,
+        stride,
+        rate=1,
+        outputs_collections=None,
+        scope=None
 ):
     """Bottleneck residual unit variant with BN after convolutions.
 
@@ -96,12 +99,12 @@ def bottleneck(
   Returns:
     The ResNet unit's output.
   """
-    with tf.variable_scope(scope, 'bottleneck_v1', [inputs]) as sc:
-        depth_in = slim.utils.last_dimension(inputs.get_shape(), min_rank=4)
+    with tf.compat.v1.variable_scope(scope, 'bottleneck_v1', [inputs]) as sc:
+        depth_in = utils.last_dimension(inputs.get_shape(), min_rank=4)
         if depth == depth_in:
             shortcut = resnet_utils.subsample(inputs, stride, 'shortcut')
         else:
-            shortcut = slim.conv2d(
+            shortcut = layers.conv2d(
                 inputs,
                 depth, [1, 1],
                 stride=stride,
@@ -109,13 +112,13 @@ def bottleneck(
                 scope='shortcut'
             )
 
-        residual = slim.conv2d(
+        residual = layers.conv2d(
             inputs, depth_bottleneck, [1, 1], stride=1, scope='conv1'
         )
         residual = resnet_utils.conv2d_same(
             residual, depth_bottleneck, 3, stride, rate=rate, scope='conv2'
         )
-        residual = slim.conv2d(
+        residual = layers.conv2d(
             residual,
             depth, [1, 1],
             stride=1,
@@ -125,21 +128,21 @@ def bottleneck(
 
         output = tf.nn.relu(shortcut + residual)
 
-        return slim.utils.collect_named_outputs(
+        return utils.collect_named_outputs(
             outputs_collections, sc.original_name_scope, output
         )
 
 
 def resnet_v1(
-    inputs,
-    blocks,
-    num_classes=None,
-    is_training=True,
-    global_pool=True,
-    output_stride=None,
-    include_root_block=True,
-    reuse=None,
-    scope=None
+        inputs,
+        blocks,
+        num_classes=None,
+        is_training=True,
+        global_pool=True,
+        output_stride=None,
+        include_root_block=True,
+        reuse=None,
+        scope=None
 ):
     """Generator for v1 ResNet models.
 
@@ -196,13 +199,13 @@ def resnet_v1(
   Raises:
     ValueError: If the target output_stride is not valid.
   """
-    with tf.variable_scope(scope, 'resnet_v1', [inputs], reuse=reuse) as sc:
+    with tf.compat.v1.variable_scope(scope, 'resnet_v1', [inputs], reuse=reuse) as sc:
         end_points_collection = sc.name + '_end_points'
-        with slim.arg_scope(
-            [slim.conv2d, bottleneck, resnet_utils.stack_blocks_dense],
-            outputs_collections=end_points_collection
+        with arg_scope(
+                [layers.conv2d, bottleneck, resnet_utils.stack_blocks_dense],
+                outputs_collections=end_points_collection
         ):
-            with slim.arg_scope([slim.batch_norm], is_training=is_training):
+            with arg_scope([layers.batch_norm], is_training=is_training):
                 net = inputs
                 if include_root_block:
                     if output_stride is not None:
@@ -214,17 +217,17 @@ def resnet_v1(
                     net = resnet_utils.conv2d_same(
                         net, 64, 7, stride=2, scope='conv1'
                     )
-                    net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
+                    net = layers.max_pool2d(net, [3, 3], stride=2, scope='pool1')
                 net = resnet_utils.stack_blocks_dense(
                     net, blocks, output_stride
                 )
                 if global_pool:
                     # Global average pooling.
                     net = tf.reduce_mean(
-                        net, [1, 2], name='pool5', keep_dims=True
+                        input_tensor=net, axis=[1, 2], name='pool5', keepdims=True
                     )
                 if num_classes is not None:
-                    net = slim.conv2d(
+                    net = layers.conv2d(
                         net,
                         num_classes, [1, 1],
                         activation_fn=None,
@@ -232,11 +235,11 @@ def resnet_v1(
                         scope='logits'
                     )
                 # Convert end_points_collection into a dictionary of end_points.
-                end_points = slim.utils.convert_collection_to_dict(
+                end_points = utils.convert_collection_to_dict(
                     end_points_collection
                 )
                 if num_classes is not None:
-                    end_points['predictions'] = slim.softmax(
+                    end_points['predictions'] = layers.softmax(
                         net, scope='predictions'
                     )
                 return net, end_points
@@ -246,13 +249,13 @@ resnet_v1.default_image_size = 224
 
 
 def resnet_v1_50(
-    inputs,
-    num_classes=None,
-    is_training=True,
-    global_pool=True,
-    output_stride=None,
-    reuse=None,
-    scope='resnet_v1_50'
+        inputs,
+        num_classes=None,
+        is_training=True,
+        global_pool=True,
+        output_stride=None,
+        reuse=None,
+        scope='resnet_v1_50'
 ):
     """ResNet-50 model of [1]. See resnet_v1() for arg and return description."""
     blocks = [
@@ -281,13 +284,13 @@ def resnet_v1_50(
 
 
 def resnet_v1_101(
-    inputs,
-    num_classes=None,
-    is_training=True,
-    global_pool=True,
-    output_stride=None,
-    reuse=None,
-    scope='resnet_v1_101'
+        inputs,
+        num_classes=None,
+        is_training=True,
+        global_pool=True,
+        output_stride=None,
+        reuse=None,
+        scope='resnet_v1_101'
 ):
     """ResNet-101 model of [1]. See resnet_v1() for arg and return description."""
     blocks = [
@@ -316,13 +319,13 @@ def resnet_v1_101(
 
 
 def resnet_v1_152(
-    inputs,
-    num_classes=None,
-    is_training=True,
-    global_pool=True,
-    output_stride=None,
-    reuse=None,
-    scope='resnet_v1_152'
+        inputs,
+        num_classes=None,
+        is_training=True,
+        global_pool=True,
+        output_stride=None,
+        reuse=None,
+        scope='resnet_v1_152'
 ):
     """ResNet-152 model of [1]. See resnet_v1() for arg and return description."""
     blocks = [
@@ -351,13 +354,13 @@ def resnet_v1_152(
 
 
 def resnet_v1_200(
-    inputs,
-    num_classes=None,
-    is_training=True,
-    global_pool=True,
-    output_stride=None,
-    reuse=None,
-    scope='resnet_v1_200'
+        inputs,
+        num_classes=None,
+        is_training=True,
+        global_pool=True,
+        output_stride=None,
+        reuse=None,
+        scope='resnet_v1_200'
 ):
     """ResNet-200 model of [2]. See resnet_v1() for arg and return description."""
     blocks = [

@@ -1,16 +1,20 @@
-from vendor.tensorboxresnet.tensorboxresnet.utils.slim_nets import inception_v1 as inception
-from vendor.tensorboxresnet.tensorboxresnet.utils.slim_nets import resnet_v1 as resnet
-import tensorflow.contrib.slim as slim
+# from vendor.tensorboxresnet.tensorboxresnet.utils.slim_nets import inception_v1 as inception
+# from vendor.tensorboxresnet.tensorboxresnet.utils.slim_nets import resnet_v1 as resnet
+from tf_slim.nets import resnet_v1 as resnet
+from tf_slim.nets import inception_v1 as inception
+
+# import tensorflow.contrib.slim as slim
+from tf_slim.ops.arg_scope import arg_scope
 
 
 def model(x, H, reuse, is_training=True):
     if H['slim_basename'] == 'resnet_v1_101':
-        with slim.arg_scope(resnet.resnet_arg_scope()):
+        with arg_scope(resnet.resnet_arg_scope()):
             _, T = resnet.resnet_v1_101(
                 x, is_training=is_training, num_classes=1000, reuse=reuse
             )
     elif H['slim_basename'] == 'InceptionV1':
-        with slim.arg_scope(inception.inception_v1_arg_scope()):
+        with arg_scope(inception.inception_v1_arg_scope()):
             _, T = inception.inception_v1(
                 x,
                 is_training=is_training,
