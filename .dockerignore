@@ -25,3 +25,5 @@
 !yolov5
 !coco_to_figure_boundaries.py
 !draw_boxes_on_results.py
+!train.py
+!hidden_set_evaluation.py
