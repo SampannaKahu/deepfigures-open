@@ -57,6 +57,7 @@ def manage(verbose, log_file):
 
 subcommands = [
     build.build,
+    build.build_full,
     detectfigures.detectfigures,
     generatearxiv.generatearxiv,
     generatepubmed.generatepubmed,

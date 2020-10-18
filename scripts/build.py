@@ -4,7 +4,7 @@ See ``build.py --help`` for more information.
 """
 
 import logging
-
+import json
 import click
 
 from deepfigures import settings
@@ -34,6 +34,47 @@ def build():
                 version=version,
                 dockerfile_path=dockerfile_path),
             logger)
+
+
+@click.command(
+    context_settings={
+        'help_option_names': ['-h', '--help']
+    })
+@click.argument(
+    'cpu_build_config_path',
+    type=click.Path(
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True))
+@click.argument(
+    'gpu_build_config_path',
+    type=click.Path(
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True))
+def build_full(cpu_build_config_path, gpu_build_config_path):
+    config_file_paths = []
+    if cpu_build_config_path:
+        config_file_paths.append(cpu_build_config_path)
+    if gpu_build_config_path:
+        config_file_paths.append(gpu_build_config_path)
+    if not cpu_build_config_path and not gpu_build_config_path:
+        config_file_paths = [settings.DOCKER_CPU_BUILD_CONFIG, settings.DOCKER_GPU_BUILD_CONFIG]
+
+    for build_config_file in config_file_paths:
+        build_config = json.load(open(build_config_file))
+        for build_stage in build_config["build_stages"]:
+            execute(
+                'docker build'
+                ' --tag {user}/{repo}:{tag}'
+                ' --cache-from {user}/{repo}:{tag}'
+                ' --build-arg BUILDKIT_INLINE_CACHE=1'
+                ' --file {docker_file} .'.format(
+                    user=build_stage["user"],
+                    repo=build_stage["repo"],
+                    tag=build_stage["tag"],
+                    docker_file=build_stage["docker_file"]),
+                logger)
 
 
 if __name__ == '__main__':

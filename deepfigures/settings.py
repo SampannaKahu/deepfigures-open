@@ -40,6 +40,9 @@ DEEPFIGURES_IMAGES = {
     }
 }
 
+DOCKER_CPU_BUILD_CONFIG = 'dockerfiles/cpu/build_config.json'
+DOCKER_GPU_BUILD_CONFIG = 'dockerfiles/gpu/build_config.json'
+
 # path to the directory containing all the project-level test data.
 TEST_DATA_DIR = os.path.join(BASE_DIR, 'tests/data')
 
