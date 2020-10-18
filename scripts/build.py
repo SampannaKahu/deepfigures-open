@@ -66,7 +66,7 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
 
     for build_config_file in config_file_paths:
         build_config = json.load(open(build_config_file))
-        config_dir = os.path.dirname(build_config)
+        config_dir = os.path.dirname(build_config_file)
         for build_stage in build_config["build_stages"]:
             execute(
                 'docker build'
