@@ -1,4 +1,4 @@
-FROM sampyash/pdflatex_tf:2.3.1_gpu_py_3.6
+FROM sampyash/deepfigures:pdflatex_tf_gpu_2.3.1_py_3.6
 
 RUN pip3 install --upgrade pip \
  && pip install Cython==0.25.2
