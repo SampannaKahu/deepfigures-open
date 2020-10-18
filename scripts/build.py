@@ -3,6 +3,7 @@
 See ``build.py --help`` for more information.
 """
 
+import os
 import logging
 import json
 import click
@@ -65,6 +66,7 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
 
     for build_config_file in config_file_paths:
         build_config = json.load(open(build_config_file))
+        config_dir = os.path.dirname(build_config)
         for build_stage in build_config["build_stages"]:
             execute(
                 'docker build'
@@ -75,7 +77,7 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                     user=build_stage["user"],
                     repo=build_stage["repo"],
                     tag=build_stage["tag"],
-                    docker_file=build_stage["docker_file"]),
+                    docker_file=os.path.join(config_dir, build_stage["docker_file"])),
                 logger)
 
 
