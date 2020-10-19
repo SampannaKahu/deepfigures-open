@@ -71,6 +71,9 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SYLABS_API_TOKEN: ${{ secrets.SYLABS_API_TOKEN }}
         run: |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          mkdir -p ~/.singularity
+          echo $SYLABS_API_TOKEN >> ~/.singularity/sylabs-token
           python manage.py build-full
