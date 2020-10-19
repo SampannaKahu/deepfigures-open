@@ -38,7 +38,8 @@ jobs:
           docker --version
       - name: Build
         env:
-          SINGULARITY_RECIPE: Singularity
-          OUTPUT_CONTAINER: container.sif
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           python manage.py build-full
