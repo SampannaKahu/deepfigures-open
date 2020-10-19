@@ -5,22 +5,22 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        singularity_version:
-          - '3.5.3'
-    container:
-      image: quay.io/singularity/singularity:v${{ matrix.singularity_version }}
-      options: --privileged
+#    strategy:
+#      matrix:
+#        singularity_version:
+#          - '3.5.3'
+#    container:
+#      image: quay.io/singularity/singularity:v${{ matrix.singularity_version }}
+#      options: --privileged
     steps:
       - name: Check out code
         uses: actions/checkout@v1
-#      - name: Set up Conda Python 3.6
-#        uses: s-weigand/setup-conda@v1
-#        with:
-#          python-version: 3.6
-#          activate-conda: true
-#          conda-channels: anaconda, conda-forge
+      - name: Set up Conda Python 3.6
+        uses: s-weigand/setup-conda@v1
+        with:
+          python-version: 3.6
+          activate-conda: true
+          conda-channels: anaconda, conda-forge
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
