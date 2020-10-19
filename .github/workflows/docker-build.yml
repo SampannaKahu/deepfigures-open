@@ -41,11 +41,4 @@ jobs:
           SINGULARITY_RECIPE: Singularity
           OUTPUT_CONTAINER: container.sif
         run: |
-          ls
-          if [ -f "${SINGULARITY_RECIPE}" ]; then
-              singularity build ${OUTPUT_CONTAINER} ${SINGULARITY_RECIPE}
-          else
-              echo "${SINGULARITY_RECIPE} is not found."
-              echo "Present working directory: $PWD"
-              ls
-          fi
+          python manage.py build-full
