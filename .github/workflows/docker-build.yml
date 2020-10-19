@@ -21,6 +21,8 @@ jobs:
           ls
           uname -a
           env
+          singularity --version
+          df -h
 
       - name: Build
         env:
