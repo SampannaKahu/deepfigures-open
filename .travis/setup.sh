@@ -9,6 +9,7 @@ sudo apt-get update
 sudo apt-get install python3.6 -y
 sudo apt-get install python3-setuptools -y
 sudo apt install python3-pip -y
+pip3 install --upgrade pip3 || pip3 install --upgrade pip
 
 echo "Python Version:"
 python3 --version

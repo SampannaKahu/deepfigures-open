@@ -29,7 +29,7 @@ install:
 #  - sudo apt-get update
 #  - sudo apt-get install python3.6 -y
 #  - pip3 install -r requirements.txt
-  - pip3 install --upgrade pip3
+#  - pip3 install --upgrade pip3
   - pip3 install click
   - pip3 install imgaug
 before_install:
