@@ -24,7 +24,7 @@ def execute(
 
     Returns
     -------
-    None
+    returncode
     """
     if quiet :
         logger.info(
@@ -59,4 +59,4 @@ def execute(
                 command=command,
                 returncode=returncode))
 
-    return None
+    return returncode

@@ -6,7 +6,8 @@
       "user": "sampyash",
       "repo": "deepfigures",
       "tag": "pdflatex_tf_cpu_2.3.1_py_3.6",
-      "should_push": true
+      "should_push": true,
+      "should_push_to_singularity": false
     },
     {
       "name": "dependencies",
@@ -14,7 +15,8 @@
       "user": "sampyash",
       "repo": "deepfigures",
       "tag": "dependencies_cpu_0.0.1",
-      "should_push": true
+      "should_push": true,
+      "should_push_to_singularity": false
     },
     {
       "name": "final",
@@ -22,7 +24,8 @@
       "user": "sampyash",
       "repo": "deepfigures",
       "tag": "cpu_0.0.1",
-      "should_push": true
+      "should_push": true,
+      "should_push_to_singularity": true
     }
   ]
 }

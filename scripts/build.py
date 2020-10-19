@@ -69,6 +69,13 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
         config_dir = os.path.dirname(build_config_file)
         for stage_config in build_config["build_stages"]:
             execute(
+                'docker pull'
+                ' {user}/{repo}:{tag}'.format(user=stage_config["user"],
+                                              repo=stage_config["repo"],
+                                              tag=stage_config["tag"]),
+                logger
+            )
+            execute(
                 'docker build'
                 ' --tag {user}/{repo}:{tag}'
                 ' --cache-from {user}/{repo}:{tag}'
@@ -85,6 +92,29 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                     ' {user}/{repo}:{tag}'.format(user=stage_config["user"],
                                                   repo=stage_config["repo"],
                                                   tag=stage_config["tag"]),
+                    logger
+                )
+            if stage_config["should_push_to_singularity"]:
+                return_code = execute('singularity --help', logger)
+                if return_code != 0:
+                    continue
+                execute(
+                    'docker run'
+                    ' -v /var/run/docker.sock:/var/run/docker.sock'
+                    ' -v /tmp/test:/output'
+                    ' --privileged -t --rm'
+                    ' singularityware/docker2singularity'
+                    ' {user}/{repo}:{tag}'.format(user=stage_config["user"],
+                                                  repo=stage_config["repo"],
+                                                  tag=stage_config["tag"]),
+                    logger)
+                execute(
+                    'singularity push'
+                    ' --allow-unsigned'
+                    ' `ls -1 /tmp/test/*.simg'
+                    ' | head -1` library://{user}/default/{repo}:{tag}'.format(user=stage_config["user"],
+                                                                               repo=stage_config["repo"],
+                                                                               tag=stage_config["tag"]),
                     logger
                 )
 
