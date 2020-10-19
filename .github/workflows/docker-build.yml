@@ -13,6 +13,36 @@ jobs:
 #      image: quay.io/singularity/singularity:v${{ matrix.singularity_version }}
 #      options: --privileged
     steps:
+      - name: Set up Go 1.12
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.12
+        id: go
+      - name: Install Dependencies for singularity
+        run: |
+          sudo apt-get update && sudo apt-get install -y \
+            build-essential \
+            libssl-dev \
+            uuid-dev \
+            libgpgme11-dev \
+            squashfs-tools \
+            libseccomp-dev \
+            pkg-config
+      - name: Install Singularity
+        env:
+          SINGULARITY_VERSION: 3.2.1
+          GOPATH: /tmp/go
+        run: |
+          mkdir -p $GOPATH
+          sudo mkdir -p /usr/local/var/singularity/mnt && \
+          mkdir -p $GOPATH/src/github.com/sylabs && \
+          cd $GOPATH/src/github.com/sylabs && \
+          wget -qO- https://github.com/sylabs/singularity/releases/download/v${SINGULARITY_VERSION}/singularity-${SINGULARITY_VERSION}.tar.gz | \
+          tar xzv && \
+          cd singularity && \
+          ./mconfig -p /usr/local && \
+          make -C builddir && \
+          sudo make -C builddir install
       - name: Check out code
         uses: actions/checkout@v1
       - name: Set up Conda Python 3.6
@@ -36,6 +66,7 @@ jobs:
           which python
           which pip
           docker --version
+          singularity --version
       - name: Build
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
