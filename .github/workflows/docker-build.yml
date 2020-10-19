@@ -32,7 +32,6 @@ jobs:
           ls
           uname -a
           env
-#          singularity --version
           df -h
           which python
           which pip
