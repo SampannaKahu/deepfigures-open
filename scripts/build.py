@@ -67,24 +67,24 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
     for build_config_file in config_file_paths:
         build_config = json.load(open(build_config_file))
         config_dir = os.path.dirname(build_config_file)
-        for build_stage in build_config["build_stages"]:
+        for stage_config in build_config["build_stages"]:
             execute(
                 'docker build'
                 ' --tag {user}/{repo}:{tag}'
                 ' --cache-from {user}/{repo}:{tag}'
                 ' --build-arg BUILDKIT_INLINE_CACHE=1'
                 ' --file {docker_file} .'.format(
-                    user=build_stage["user"],
-                    repo=build_stage["repo"],
-                    tag=build_stage["tag"],
-                    docker_file=os.path.join(config_dir, build_stage["docker_file"])),
+                    user=stage_config["user"],
+                    repo=stage_config["repo"],
+                    tag=stage_config["tag"],
+                    docker_file=os.path.join(config_dir, stage_config["docker_file"])),
                 logger)
-            if build_config["should_push"]:
+            if stage_config["should_push"]:
                 execute(
                     'docker push'
-                    ' {user}/{repo}:{tag}'.format(user=build_stage["user"],
-                                                  repo=build_stage["repo"],
-                                                  tag=build_stage["tag"]),
+                    ' {user}/{repo}:{tag}'.format(user=stage_config["user"],
+                                                  repo=stage_config["repo"],
+                                                  tag=stage_config["tag"]),
                     logger
                 )
 
