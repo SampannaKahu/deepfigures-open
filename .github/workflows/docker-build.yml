@@ -76,4 +76,5 @@ jobs:
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           mkdir -p ~/.singularity
           echo $SYLABS_API_TOKEN >> ~/.singularity/sylabs-token
-          python manage.py build-full
+          python manage.py build-full dockerfiles/gpu/build_config.json
+          python manage.py build-full dockerfiles/cpu/build_config.json

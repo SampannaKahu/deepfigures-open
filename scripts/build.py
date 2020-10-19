@@ -14,6 +14,21 @@ from scripts import execute
 logger = logging.getLogger(__name__)
 
 
+def _docker_cleanup():
+    # Cleanup docker cache to save disk space.
+    execute('docker system prune --all --force', logger)
+
+
+def _singularity_cleanup():
+    execute('rm -rf /tmp/test && mkdir /tmp/test', logger)
+    execute('singularity cache clean --all', logger)
+
+
+def _cleanup_all():
+    _docker_cleanup()
+    _singularity_cleanup()
+
+
 @click.command(
     context_settings={
         'help_option_names': ['-h', '--help']
@@ -108,6 +123,7 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                                                   repo=stage_config["repo"],
                                                   tag=stage_config["tag"]),
                     logger)
+                _docker_cleanup()
                 execute(
                     'singularity push'
                     ' --allow-unsigned'
@@ -117,6 +133,8 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                                                                                tag=stage_config["tag"]),
                     logger
                 )
+                _singularity_cleanup()
+            _docker_cleanup()
 
 
 if __name__ == '__main__':
