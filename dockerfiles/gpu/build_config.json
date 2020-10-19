@@ -5,21 +5,24 @@
       "docker_file": "base/Dockerfile",
       "user": "sampyash",
       "repo": "deepfigures",
-      "tag": "pdflatex_tf_gpu_2.3.1_py_3.6"
+      "tag": "pdflatex_tf_gpu_2.3.1_py_3.6",
+      "should_push": true
     },
     {
       "name": "dependencies",
       "docker_file": "dependencies/Dockerfile",
       "user": "sampyash",
       "repo": "deepfigures",
-      "tag": "dependencies_gpu_0.0.1"
+      "tag": "dependencies_gpu_0.0.1",
+      "should_push": true
     },
     {
       "name": "final",
       "docker_file": "Dockerfile",
       "user": "sampyash",
       "repo": "deepfigures",
-      "tag": "gpu_0.0.1"
+      "tag": "gpu_0.0.1",
+      "should_push": true
     }
   ]
 }

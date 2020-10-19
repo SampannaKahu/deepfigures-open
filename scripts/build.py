@@ -79,6 +79,14 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                     tag=build_stage["tag"],
                     docker_file=os.path.join(config_dir, build_stage["docker_file"])),
                 logger)
+            if build_config["should_push"]:
+                execute(
+                    'docker push'
+                    ' {user}/{repo}:{tag}'.format(user=build_stage["user"],
+                                                  repo=build_stage["repo"],
+                                                  tag=build_stage["tag"]),
+                    logger
+                )
 
 
 if __name__ == '__main__':
