@@ -14,6 +14,12 @@ from scripts import execute
 logger = logging.getLogger(__name__)
 
 
+def _disable_swap():
+    execute('sudo swapoff -a', logger)
+    execute('sudo rm -f /swapfile', logger)
+    execute('sudo apt clean', logger)
+
+
 def _docker_cleanup():
     # Cleanup docker cache to save disk space.
     execute('docker system prune --all --force', logger)
@@ -71,6 +77,7 @@ def build():
         dir_okay=False,
         resolve_path=True))
 def build_full(cpu_build_config_path, gpu_build_config_path):
+    _disable_swap()
     config_file_paths = []
     if cpu_build_config_path:
         config_file_paths.append(cpu_build_config_path)
