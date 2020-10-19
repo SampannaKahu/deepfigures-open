@@ -15,15 +15,28 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v1
-
+      - name: Set up Conda Python 3.6
+        uses: s-weigand/setup-conda@v1
+        with:
+          python-version: 3.6
+          activate-conda: true
+          conda-channels: anaconda, conda-forge
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install click
+          pip install imgaug
       - name: Check
         run: |
+          pwd
           ls
           uname -a
           env
           singularity --version
           df -h
-
+          which python
+          which pip
+          docker --version
       - name: Build
         env:
           SINGULARITY_RECIPE: Singularity
