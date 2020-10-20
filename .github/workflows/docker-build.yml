@@ -68,7 +68,6 @@ jobs:
           which pip
           docker --version
           singularity --version
-          sshpass --help
       - name: Build
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
