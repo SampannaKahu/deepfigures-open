@@ -86,6 +86,17 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
     if not cpu_build_config_path and not gpu_build_config_path:
         config_file_paths = [settings.DOCKER_CPU_BUILD_CONFIG, settings.DOCKER_GPU_BUILD_CONFIG]
 
+    execute('docker plugin install'
+            ' --grant-all-permissions'
+            ' vieux/sshfs', logger)
+    execute(
+        'docker volume create'
+        ' --driver vieux/sshfs'
+        ' -o sshcmd=sampanna@$SSH_ECE_HOSTNAME:/home/sampanna/ci_remote_volume'
+        ' -o password="$SSH_ECE_PASSWORD"'
+        ' sshvolume',
+        logger)
+
     for build_config_file in config_file_paths:
         build_config = json.load(open(build_config_file))
         config_dir = os.path.dirname(build_config_file)
@@ -123,7 +134,7 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                 execute(
                     'docker run'
                     ' -v /var/run/docker.sock:/var/run/docker.sock'
-                    ' -v /tmp/test:/output'
+                    ' -v sshvolume:/output'
                     ' --privileged -t --rm'
                     ' singularityware/docker2singularity'
                     ' {user}/{repo}:{tag}'.format(user=stage_config["user"],
@@ -131,6 +142,10 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                                                   tag=stage_config["tag"]),
                     logger)
                 _docker_cleanup()
+                execute('dir="/home/sampanna/ci_remote_volume"', logger)
+                execute('server="/home/sampanna/ci_remote_volume"', logger)
+                execute('mkdir /tmp/test', logger)
+                execute("scp $server:$dir/$(ssh $server 'ls -t $dir | head -1') /tmp/test", logger)
                 execute(
                     'singularity push'
                     ' --allow-unsigned'

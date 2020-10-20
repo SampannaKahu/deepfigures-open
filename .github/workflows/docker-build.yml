@@ -27,7 +27,8 @@ jobs:
             libgpgme11-dev \
             squashfs-tools \
             libseccomp-dev \
-            pkg-config
+            pkg-config \
+            sshpass
       - name: Install Singularity
         env:
           SINGULARITY_VERSION: 3.2.1
@@ -67,11 +68,14 @@ jobs:
           which pip
           docker --version
           singularity --version
+          sshpass --help
       - name: Build
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           SYLABS_API_TOKEN: ${{ secrets.SYLABS_API_TOKEN }}
+          SSH_ECE_HOSTNAME: ${{ secrets.SSH_ECE_HOSTNAME }}
+          SSH_ECE_PASSWORD: ${{ secrets.SSH_ECE_PASSWORD }}
         run: |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           mkdir -p ~/.singularity
