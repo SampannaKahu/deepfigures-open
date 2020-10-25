@@ -101,6 +101,7 @@ def build_full(cpu_build_config_path, gpu_build_config_path):
                     continue
                 execute('singularity build'
                         ' --remote'
+                        ' --force'
                         ' output.sif'
                         ' docker:{user}/{repo}:{tag}'.format(user=stage_config["user"],
                                                              repo=stage_config["repo"],
