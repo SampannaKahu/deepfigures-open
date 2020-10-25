@@ -2,16 +2,81 @@ name: Docker build
 on: [push]
 jobs:
 
-  build:
-    name: Build
+  build_cpu:
+    name: Build CPU
     runs-on: ubuntu-18.04
-#    strategy:
-#      matrix:
-#        singularity_version:
-#          - '3.5.3'
-#    container:
-#      image: quay.io/singularity/singularity:v${{ matrix.singularity_version }}
-#      options: --privileged
+    steps:
+      - name: Set up Go 1.12
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.12
+        id: go
+      - name: Install Dependencies for singularity
+        run: |
+          sudo apt-get update && sudo apt-get install -y \
+            build-essential \
+            libssl-dev \
+            uuid-dev \
+            libgpgme11-dev \
+            squashfs-tools \
+            libseccomp-dev \
+            pkg-config \
+            sshpass
+      - name: Install Singularity
+        env:
+          SINGULARITY_VERSION: 3.2.1
+          GOPATH: /tmp/go
+        run: |
+          mkdir -p $GOPATH
+          sudo mkdir -p /usr/local/var/singularity/mnt && \
+          mkdir -p $GOPATH/src/github.com/sylabs && \
+          cd $GOPATH/src/github.com/sylabs && \
+          wget -qO- https://github.com/sylabs/singularity/releases/download/v${SINGULARITY_VERSION}/singularity-${SINGULARITY_VERSION}.tar.gz | \
+          tar xzv && \
+          cd singularity && \
+          ./mconfig -p /usr/local && \
+          make -C builddir && \
+          sudo make -C builddir install
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: Set up Conda Python 3.6
+        uses: s-weigand/setup-conda@v1
+        with:
+          python-version: 3.6
+          activate-conda: true
+          conda-channels: anaconda, conda-forge
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install click
+          pip install imgaug
+      - name: Check
+        run: |
+          pwd
+          ls
+          uname -a
+          env
+          df -h
+          which python
+          which pip
+          docker --version
+          singularity --version
+      - name: Build
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SYLABS_API_TOKEN: ${{ secrets.SYLABS_API_TOKEN }}
+          SSH_ECE_HOSTNAME: ${{ secrets.SSH_ECE_HOSTNAME }}
+          SSH_ECE_PASSWORD: ${{ secrets.SSH_ECE_PASSWORD }}
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          mkdir -p ~/.singularity
+          echo $SYLABS_API_TOKEN >> ~/.singularity/sylabs-token
+          python manage.py build-full dockerfiles/cpu/build_config.json
+
+  build_gpu:
+    name: Build GPU
+    runs-on: ubuntu-18.04
     steps:
       - name: Set up Go 1.12
         uses: actions/setup-go@v1
@@ -80,4 +145,3 @@ jobs:
           mkdir -p ~/.singularity
           echo $SYLABS_API_TOKEN >> ~/.singularity/sylabs-token
           python manage.py build-full dockerfiles/gpu/build_config.json
-          python manage.py build-full dockerfiles/cpu/build_config.json
