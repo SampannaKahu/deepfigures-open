@@ -13,4 +13,7 @@ RUN cat /work/credentials > ~/.aws/credentials
 # Add the source code.
 ADD . /work
 
+# Setup stitch_rects
+RUN cd vendor/tensorboxresnet/tensorboxresnet/utils && make && cd ../../../..
+
 CMD [ "/bin/bash" ]

@@ -706,9 +706,9 @@ def train(H: dict):
     with open(H['save_dir'] + '/hypes.json', 'w') as f:
         json.dump(H, f, indent=2)
 
-    x_in = tf.placeholder(tf.float32)
-    confs_in = tf.placeholder(tf.float32)
-    boxes_in = tf.placeholder(tf.float32)
+    x_in = tf.compat.v1.placeholder(tf.float32)
+    confs_in = tf.compat.v1.placeholder(tf.float32)
+    boxes_in = tf.compat.v1.placeholder(tf.float32)
     q = {}
     enqueue_op = {}
     for phase in ['train', 'test']:
