@@ -25,7 +25,7 @@ scikit-image==0.17.1
 seaborn
 tqdm
 typing
-PyYAML==5.2
+PyYAML==5.4
 imgaug
 torch==1.4.0
 torchvision==0.5.0
